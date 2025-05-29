@@ -3,6 +3,7 @@ import time
 import allure
 from playwright.sync_api import sync_playwright
 from pages.page_mts.mts_page import MtsHomeOnlinePage
+HEADLESS = True if os.getenv("HEADLESS") == "True" else False
 
 class TestMolMainRegionPage:
     # @allure.title("1.1. Проверка работы сайта при отсутствии сертификата")
@@ -19,7 +20,7 @@ class TestMolMainRegionPage:
     def test_application_popup_super_offer(self):
         full_url = "https://mts-home.online/"
         with sync_playwright() as playwright:
-            browser = playwright.chromium.launch()
+            browser = playwright.chromium.launch(headless=HEADLESS)
             page = browser.new_page()
             page.goto(full_url)
             mts_page = MtsHomeOnlinePage(page=page)
@@ -27,6 +28,7 @@ class TestMolMainRegionPage:
             mts_page.check_popup_super_offer()
             time.sleep(2)
             mts_page.send_popup_super_offer()
+            mts_page.check_sucess()
             mts_page.close_thankyou_page()
 
     @allure.title("3. Отправка заявки из  попапа Выгодное спецпредложение! по нажатию фиксированной красной кнопки "
@@ -34,7 +36,7 @@ class TestMolMainRegionPage:
     def test_application_popup_super_offer_red_button(self):
         full_url = "https://mts-home.online/"
         with sync_playwright() as playwright:
-            browser = playwright.chromium.launch()
+            browser = playwright.chromium.launch(headless=HEADLESS)
             page = browser.new_page()
             page.goto(full_url)
             mts_page = MtsHomeOnlinePage(page=page)
@@ -42,5 +44,34 @@ class TestMolMainRegionPage:
             mts_page.check_popup_super_offer()
             time.sleep(2)
             mts_page.send_popup_super_offer()
+            mts_page.check_sucess()
             mts_page.close_thankyou_page()
+
+    @allure.title("4. Отправка заявки из попапа  по кнопке Подключить из хедера")
+    def test_application_popup_button_connect(self):
+        full_url = "https://mts-home.online/"
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=HEADLESS)
+            page = browser.new_page()
+            page.goto(full_url)
+            mts_page = MtsHomeOnlinePage(page=page)
+            mts_page.click_connect_button()
+            mts_page.send_popup_application_connection()
+            mts_page.check_sucess()
+            mts_page.close_thankyou_page()
+
+    @allure.title("5. Отправка заявки из попапа  по кнопке Проверить адрес из хедера")
+    def test_application_popup_button_check_address(self):
+        full_url = "https://mts-home.online/"
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=HEADLESS)
+            page = browser.new_page()
+            page.goto(full_url)
+            mts_page = MtsHomeOnlinePage(page=page)
+            mts_page.click_check_address_button()
+            mts_page.send_popup_application_connection_your_address()
+            mts_page.check_sucess()
+            mts_page.close_thankyou_page()
+
+
 
