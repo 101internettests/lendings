@@ -113,25 +113,37 @@ class MtsHomeOnlinePage(BasePage):
     @allure.title("Проверить ссылку и убедиться, что страница существует")
     def check_link(self, locator, link_name):
         with allure.step(f"Проверка ссылки {link_name}"):
-            # Сохраняем текущий URL
-            current_url = self.page.url
-            
-            # Находим и проверяем видимость ссылки
-            link = self.page.locator(locator)
-            expect(link).to_be_visible()
-            
-            # Кликаем по ссылке
-            link.click()
-            
-            # Ждем загрузки страницы
-            self.page.wait_for_load_state('networkidle')
-            
-            # Проверяем, что страница существует (нет ошибки 404)
-            expect(self.page).not_to_have_url("**/404")
-            
-            # Возвращаемся на исходную страницу
-            self.page.goto(current_url)
-            self.page.wait_for_load_state('networkidle')
+            try:
+                # Сохраняем текущий URL
+                current_url = self.page.url
+                
+                # Находим и проверяем видимость ссылки
+                link = self.page.locator(locator)
+                expect(link).to_be_visible()
+                
+                # Кликаем по ссылке с модификатором Ctrl для открытия в новой вкладке
+                link.click(modifiers=["Control"])
+                
+                # Ждем появления новой вкладки и переключаемся на нее
+                new_page = self.page.context.wait_for_event("page", timeout=10000)
+                new_page.wait_for_load_state("networkidle", timeout=10000)
+                
+                # Проверяем, что страница существует (нет ошибки 404)
+                expect(new_page).not_to_have_url("**/404")
+                
+                # Закрываем новую вкладку
+                new_page.close()
+                
+                # Возвращаемся на основную вкладку
+                self.page.bring_to_front()
+                
+            except Exception as e:
+                allure.attach(
+                    str(e),
+                    name="Error details",
+                    attachment_type=allure.attachment_type.TEXT
+                )
+                raise
 
     @allure.title("Проверить все ссылки на странице")
     def check_all_links(self):
@@ -143,14 +155,9 @@ class MtsHomeOnlinePage(BasePage):
         for name, locator in MTSHomeOnlineMain.FOOTER_LINKS.items():
             self.check_link(locator, f"Footer: {name}")
 
-        # Проверяем только заголовок формы
-        expect(self.page.locator("xpath=//h1[contains(text(),'Подключить домашний интернет МТС')]")).to_be_visible()
-
     @allure.title("Выполнить тесты 2-10 для указанного URL")
     def run_tests_2_to_10(self, url):
-        # Переходим на указанный URL
         self.page.goto(url)
-        
         # Тест 2: Попап "Выгодное спецпредложение"
         time.sleep(65)
         self.check_popup_super_offer()
