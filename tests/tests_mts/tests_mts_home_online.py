@@ -3,7 +3,9 @@ import time
 import allure
 from playwright.sync_api import sync_playwright
 from pages.page_mts.mts_page import MtsHomeOnlinePage
+
 HEADLESS = True if os.getenv("HEADLESS") == "True" else False
+
 
 class TestMolMainRegionPage:
     # @allure.title("1.1. Проверка работы сайта при отсутствии сертификата")
@@ -160,107 +162,152 @@ class TestMolMainRegionPage:
             mts_page = MtsHomeOnlinePage(page=page)
             mts_page.check_all_links()
 
-    @allure.title("12. Повторить кейсы 2-10 на странице Домашнего интернета")
-    def test_check_all_pages(self):
+    @allure.title("12.1. Повторить кейсы 2-10 на странице Домашнего интернета")
+    def test_check_domashnij_internet(self):
         full_url = "https://mts-home.online/domashnij-internet"
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=HEADLESS)
             page = browser.new_page()
             page.goto(full_url)
             mts_page = MtsHomeOnlinePage(page=page)
-
-            # Повторяем заполнение каждой формы по 3 раза
-            for _ in range(3):
-                with allure.step(f"Итерация {_ + 1} заполнения форм"):
-                    # 1. Форма "Выгодное спецпредложение" через таймер
-                    with allure.step("Форма 'Выгодное спецпредложение' через таймер"):
-                        time.sleep(65)
-                        mts_page.check_popup_super_offer()
-                        time.sleep(2)
-                        mts_page.send_popup_super_offer()
-                        mts_page.check_sucess()
-                        mts_page.close_thankyou_page()
-                        time.sleep(2)
-
-                    # 2. Форма "Выгодное спецпредложение" через красную кнопку
-                    with allure.step("Форма 'Выгодное спецпредложение' через красную кнопку"):
-                        mts_page.click_on_red_button()
-                        mts_page.check_popup_super_offer()
-                        time.sleep(2)
-                        mts_page.send_popup_super_offer()
-                        mts_page.check_sucess()
-                        mts_page.close_thankyou_page()
-                        time.sleep(2)
-
-                    # 3. Форма через кнопку "Подключить" в хедере
-                    with allure.step("Форма через кнопку 'Подключить' в хедере"):
-                        mts_page.click_connect_button()
-                        mts_page.send_popup_application_connection()
-                        mts_page.check_sucess()
-                        mts_page.close_thankyou_page()
-                        time.sleep(2)
-
-                    # 4. Форма через кнопку "Проверить адрес" в хедере
-                    with allure.step("Форма через кнопку 'Проверить адрес' в хедере"):
-                        mts_page.click_check_address_button()
-                        mts_page.send_popup_application_connection_your_address()
-                        mts_page.check_sucess()
-                        mts_page.close_thankyou_page()
-                        time.sleep(2)
-
-                    # 5. Форма через баннер
-                    with allure.step("Форма через баннер"):
-                        mts_page.click_on_banner()
-                        mts_page.send_popup_application_connection()
-                        mts_page.check_sucess()
-                        mts_page.close_thankyou_page()
-                        time.sleep(2)
-
-                    # 6. Формы "Проверьте возможность подключения"
-                    with allure.step("Формы 'Проверьте возможность подключения'"):
-                        mts_page.send_popup_application_check_connection()
-                        mts_page.check_sucess()
-                        mts_page.close_thankyou_page()
+            with allure.step("Форма 'Выгодное спецпредложение' через таймер"):
+                time.sleep(65)
+                mts_page.check_popup_super_offer()
+                time.sleep(2)
+                mts_page.send_popup_super_offer_other_pages()
+                mts_page.check_sucess()
+                mts_page.close_thankyou_page()
+                time.sleep(2)
+            # 2. Форма "Выгодное спецпредложение" через красную кнопку
+            with allure.step("Форма 'Выгодное спецпредложение' через красную кнопку"):
+                mts_page.click_on_red_button()
+                mts_page.check_popup_super_offer()
+                time.sleep(2)
+                mts_page.send_popup_super_offer_other_pages()
+                mts_page.check_sucess()
+                mts_page.close_thankyou_page()
+                time.sleep(2)
+            # 3. Форма через кнопку "Подключить" в хедере
+            with allure.step("Форма через кнопку 'Подключить' в хедере"):
+                mts_page.click_connect_button()
+                time.sleep(3)
+                mts_page.send_popup_application_connection_other()
+                mts_page.check_sucess()
+                mts_page.close_thankyou_page()
+                time.sleep(2)
+            # 4. Форма через кнопку "Проверить адрес" в хедере
+            with allure.step("Форма через кнопку 'Проверить адрес' в хедере"):
+                mts_page.click_check_address_button()
+                mts_page.send_popup_application_connection_your_address_other()
+                mts_page.check_sucess()
+                mts_page.close_thankyou_page()
+                time.sleep(2)
+            # 6. Формы "Проверьте возможность подключения"
+            with allure.step("Формы 'Проверьте возможность подключения'"):
+                mts_page.send_popup_application_check_connection()
+                mts_page.check_sucess()
+                mts_page.close_thankyou_page()
+                time.sleep(3)
+            # 7. Формы с карточек тарифов
+            with allure.step("Формы с карточек тарифов"):
+                tariff_cards = mts_page.get_tariff_cards()
+                for i in range(len(tariff_cards)):
+                    with allure.step(f"Подключение тарифа {i + 1}"):
+                        tariff_name = mts_page.get_tariff_name(i)
+                        mts_page.click_tariff_connect_button(i)
+                        mts_page.verify_popup_tariff_name(tariff_name)
                         time.sleep(3)
-                        mts_page.send_popup_application_check_connection_near_futer()
+                        mts_page.send_tariff_connection_request_other()
                         mts_page.check_sucess()
                         mts_page.close_thankyou_page()
                         time.sleep(2)
+            # 8. Форма через кнопку "Подключить" в футере
+            with allure.step("Форма через кнопку 'Подключить' в футере"):
+                mts_page.click_connect_button_futer()
+                mts_page.send_popup_application_connection_other()
+                mts_page.check_sucess()
+                mts_page.close_thankyou_page()
+                time.sleep(2)
+            # 9. Форма через кнопку "Проверить адрес" в футере
+            with allure.step("Форма через кнопку 'Проверить адрес' в футере"):
+                mts_page.click_check_address_button_futer()
+                mts_page.send_popup_application_connection_your_address_other()
+                mts_page.check_sucess()
+                mts_page.close_thankyou_page()
+                time.sleep(2)
 
-                    # 7. Формы с карточек тарифов
-                    with allure.step("Формы с карточек тарифов"):
-                        tariff_cards = mts_page.get_tariff_cards()
-                        for i in range(len(tariff_cards)):
-                            with allure.step(f"Подключение тарифа {i + 1}"):
-                                tariff_name = mts_page.get_tariff_name(i)
-                                mts_page.click_tariff_connect_button(i)
-                                mts_page.verify_popup_tariff_name(tariff_name)
-                                time.sleep(3)
-                                mts_page.send_tariff_connection_request()
-                                mts_page.check_sucess()
-                                mts_page.close_thankyou_page()
-                                time.sleep(2)
-
-                    # 8. Форма через кнопку "Подключить" в футере
-                    with allure.step("Форма через кнопку 'Подключить' в футере"):
-                        mts_page.click_connect_button_futer()
-                        mts_page.send_popup_application_connection()
+    @allure.title("12.2. Повторить кейсы 2-10 на странице Интернет и телевидение")
+    def test_check_internet_tv(self):
+        full_url = "https://mts-home.online/internet-i-televidenie"
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=HEADLESS)
+            page = browser.new_page()
+            page.goto(full_url)
+            mts_page = MtsHomeOnlinePage(page=page)
+            # 1. Форма "Выгодное спецпредложение" через таймер
+            with allure.step("Форма 'Выгодное спецпредложение' через таймер"):
+                time.sleep(65)
+                mts_page.check_popup_super_offer()
+                time.sleep(2)
+                mts_page.send_popup_super_offer_other_pages()
+                mts_page.check_sucess()
+                mts_page.close_thankyou_page()
+                time.sleep(2)
+            # 2. Форма "Выгодное спецпредложение" через красную кнопку
+            with allure.step("Форма 'Выгодное спецпредложение' через красную кнопку"):
+                mts_page.click_on_red_button()
+                mts_page.check_popup_super_offer()
+                time.sleep(2)
+                mts_page.send_popup_super_offer_other_pages()
+                mts_page.check_sucess()
+                mts_page.close_thankyou_page()
+                time.sleep(2)
+            # 3. Форма через кнопку "Подключить" в хедере
+            with allure.step("Форма через кнопку 'Подключить' в хедере"):
+                mts_page.click_connect_button()
+                time.sleep(3)
+                mts_page.send_popup_application_connection_another()
+                mts_page.check_sucess()
+                mts_page.close_thankyou_page()
+                time.sleep(2)
+            # 4. Форма через кнопку "Проверить адрес" в хедере
+            with allure.step("Форма через кнопку 'Проверить адрес' в хедере"):
+                mts_page.click_check_address_button()
+                mts_page.send_popup_application_connection_your_address_another()
+                mts_page.check_sucess()
+                mts_page.close_thankyou_page()
+                time.sleep(2)
+            # 6. Формы "Проверьте возможность подключения"
+            with allure.step("Формы 'Проверьте возможность подключения'"):
+                mts_page.send_popup_application_check_connection()
+                mts_page.check_sucess()
+                mts_page.close_thankyou_page()
+                time.sleep(3)
+            # 7. Формы с карточек тарифов
+            with allure.step("Формы с карточек тарифов"):
+                tariff_cards = mts_page.get_tariff_cards()
+                for i in range(len(tariff_cards)):
+                    with allure.step(f"Подключение тарифа {i + 1}"):
+                        tariff_name = mts_page.get_tariff_name(i)
+                        mts_page.click_tariff_connect_button(i)
+                        mts_page.verify_popup_tariff_name(tariff_name)
+                        time.sleep(3)
+                        mts_page.send_tariff_connection_request_another()
                         mts_page.check_sucess()
                         mts_page.close_thankyou_page()
                         time.sleep(2)
-
-                    # 9. Форма через кнопку "Проверить адрес" в футере
-                    with allure.step("Форма через кнопку 'Проверить адрес' в футере"):
-                        mts_page.click_check_address_button_futer()
-                        mts_page.send_popup_application_connection_your_address()
-                        mts_page.check_sucess()
-                        mts_page.close_thankyou_page()
-                        time.sleep(2)
-
-                    # Обновляем страницу перед следующей итерацией
-                    page.reload()
-                    page.wait_for_load_state('networkidle')
-                    time.sleep(5)
-
-
-
+            # 8. Форма через кнопку "Подключить" в футере
+            with allure.step("Форма через кнопку 'Подключить' в футере"):
+                mts_page.click_connect_button_futer()
+                mts_page.send_popup_application_connection_another()
+                mts_page.check_sucess()
+                mts_page.close_thankyou_page()
+                time.sleep(2)
+            # 9. Форма через кнопку "Проверить адрес" в футере
+            with allure.step("Форма через кнопку 'Проверить адрес' в футере"):
+                mts_page.click_check_address_button_futer()
+                time.sleep(3)
+                mts_page.send_popup_application_connection_your_address_another()
+                mts_page.check_sucess()
+                mts_page.close_thankyou_page()
+                time.sleep(2)
