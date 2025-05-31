@@ -10,10 +10,11 @@ class MTSHomeOnlineMain:
     CHECK_ADDRESS_BUTTON = "xpath=(//button[contains(text(),'Проверить адрес')])[1]"
     BANNER = "xpath=//div[@class='banner button-application']"
     # Тарифные карточки
-    TARIFF_CARDS = "xpath=//div[contains(@class, 'tariff-card')]"
-    TARIFF_NAMES = "xpath=//div[contains(@class, 'tariff-card')]//div[contains(@class, 'tariff-name')]"
-    TARIFF_CONNECT_BUTTONS = "xpath=//div[contains(@class, 'tariff-card')]//button[contains(text(), 'Подключить')]"
-    POPUP_TARIFF_NAME = "xpath=//div[contains(@class, 'popup-title')]//span[@class='tariff-name']"
+    TARIFF_CARDS = "xpath=//div[@id='sale']"
+    TARIFF_NAMES = "xpath=//h3[contains(text(),'')]"
+    TARIFF_CONNECT_BUTTONS = "xpath=//button[@class='button button-red card-one__button  button-application']"
+    POPUP_TARIFF_NAME = "xpath=(//div[@class='popup__wrapper']//div[contains(text(),'')])[1]"
+
 
 # попап по кнопке подключить Заявка на подключение
 class ApplicationPopupWithName:
