@@ -81,7 +81,8 @@ class MtsHomeOnlinePage(BasePage):
 
     @allure.title("Получить название тарифа из карточки")
     def get_tariff_name(self, card_index):
-        return self.page.locator(MTSHomeOnlineMain.TARIFF_NAMES).nth(card_index).text_content()
+        tariff_name = self.page.locator(MTSHomeOnlineMain.TARIFF_NAMES).nth(card_index).text_content()
+        return f"Тариф: \n                              {tariff_name}\n                              "
 
     @allure.title("Нажать кнопку Подключить на тарифной карточке")
     def click_tariff_connect_button(self, card_index):
