@@ -98,6 +98,6 @@ class MtsHomeOnlinePage(BasePage):
     def send_tariff_connection_request(self):
         with allure.step("Заполнить попап и отправить заявку"):
             self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
-            self.page.locator(ApplicationPopupWithName.PHONE_INPUT).fill("9999999999")
+            self.page.locator(ApplicationPopupWithName.PHONE_INPUT).fill("99999999999")
             self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
             time.sleep(4)

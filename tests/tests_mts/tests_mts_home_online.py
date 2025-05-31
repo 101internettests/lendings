@@ -112,23 +112,13 @@ class TestMolMainRegionPage:
             page = browser.new_page()
             page.goto(full_url)
             mts_page = MtsHomeOnlinePage(page=page)
-            
-            # Получаем все тарифные карточки
             tariff_cards = mts_page.get_tariff_cards()
-            
-            # Для каждой карточки выполняем сценарий подключения
             for i in range(len(tariff_cards)):
                 with allure.step(f"Подключение тарифа {i + 1}"):
-                    # Получаем название тарифа
                     tariff_name = mts_page.get_tariff_name(i)
-                    
-                    # Нажимаем кнопку "Подключить"
                     mts_page.click_tariff_connect_button(i)
-                    
-                    # Проверяем название тарифа в попапе
                     mts_page.verify_popup_tariff_name(tariff_name)
-                    
-                    # Отправляем заявку
+                    time.sleep(3)
                     mts_page.send_tariff_connection_request()
                     mts_page.check_sucess()
                     mts_page.close_thankyou_page()
