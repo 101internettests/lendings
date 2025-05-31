@@ -74,3 +74,29 @@ class MtsHomeOnlinePage(BasePage):
             self.page.locator(FormApplicationCheckConnection.PHONE_INPUT_SECOND).fill("99999999999")
             self.page.locator(FormApplicationCheckConnection.CHECK_ADDRESS_BUTTON_SECOND).click()
             time.sleep(4)
+
+    @allure.title("Получить список всех тарифных карточек")
+    def get_tariff_cards(self):
+        return self.page.locator(MTSHomeOnlineMain.TARIFF_CARDS).all()
+
+    @allure.title("Получить название тарифа из карточки")
+    def get_tariff_name(self, card_index):
+        return self.page.locator(MTSHomeOnlineMain.TARIFF_NAMES).nth(card_index).text_content()
+
+    @allure.title("Нажать кнопку Подключить на тарифной карточке")
+    def click_tariff_connect_button(self, card_index):
+        self.page.locator(MTSHomeOnlineMain.TARIFF_CONNECT_BUTTONS).nth(card_index).click()
+
+    @allure.title("Проверить название тарифа в попапе")
+    def verify_popup_tariff_name(self, expected_name):
+        popup_tariff_name = self.page.locator(MTSHomeOnlineMain.POPUP_TARIFF_NAME)
+        expect(popup_tariff_name).to_be_visible()
+        expect(popup_tariff_name).to_have_text(expected_name)
+
+    @allure.title("Отправить заявку на подключение тарифа")
+    def send_tariff_connection_request(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
+            self.page.locator(ApplicationPopupWithName.PHONE_INPUT).fill("9999999999")
+            self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            time.sleep(4)
