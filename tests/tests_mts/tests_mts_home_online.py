@@ -150,14 +150,94 @@ class TestMolMainRegionPage:
             mts_page.check_sucess()
             mts_page.close_thankyou_page()
 
-    @allure.title("11. Переход по всем ссылкам на странице")
-    def test_check_all_links(self):
-        full_url = "https://mts-home.online/"
+    @allure.title("11. Проверка всех ссылок и функционала на всех страницах")
+    def test_check_all_pages(self):
+        urls = [
+            "https://mts-home.online/",
+            "https://mts-home.online/domashnij-internet",
+            "https://mts-home.online/internet-i-televidenie",
+            "https://mts-home.online/internet-tv-mobile",
+            "https://mts-home.online/semejnye-tarify"
+        ]
+        
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=HEADLESS)
-            page = browser.new_page()
-            page.goto(full_url)
+            context = browser.new_context()
+            page = context.new_page()
             mts_page = MtsHomeOnlinePage(page=page)
+            
+            for url in urls:
+                with allure.step(f"Тестирование страницы {url}"):
+                    # Переходим на страницу
+                    page.goto(url)
+                    
+                    # Для главной страницы проверяем все ссылки
+                    if url == "https://mts-home.online/":
+                        mts_page.check_all_links()
+                    
+                    # Для всех страниц выполняем тесты 2-10
+                    for test_number in range(2, 11):
+                        with allure.step(f"Выполнение теста #{test_number}"):
+                            if test_number == 2:
+                                time.sleep(65)
+                                mts_page.check_popup_super_offer()
+                                time.sleep(2)
+                                mts_page.send_popup_super_offer()
+                                mts_page.check_sucess()
+                                mts_page.close_thankyou_page()
+                            elif test_number == 3:
+                                mts_page.click_on_red_button()
+                                mts_page.check_popup_super_offer()
+                                time.sleep(2)
+                                mts_page.send_popup_super_offer()
+                                mts_page.check_sucess()
+                                mts_page.close_thankyou_page()
+                            elif test_number == 4:
+                                mts_page.click_connect_button()
+                                mts_page.send_popup_application_connection()
+                                mts_page.check_sucess()
+                                mts_page.close_thankyou_page()
+                            elif test_number == 5:
+                                mts_page.click_check_address_button()
+                                mts_page.send_popup_application_connection_your_address()
+                                mts_page.check_sucess()
+                                mts_page.close_thankyou_page()
+                            elif test_number == 6:
+                                mts_page.click_on_banner()
+                                mts_page.send_popup_application_connection()
+                                mts_page.check_sucess()
+                                mts_page.close_thankyou_page()
+                            elif test_number == 7:
+                                mts_page.send_popup_application_check_connection()
+                                mts_page.check_sucess()
+                                mts_page.close_thankyou_page()
+                                time.sleep(3)
+                                mts_page.send_popup_application_check_connection_near_futer()
+                                mts_page.check_sucess()
+                                mts_page.close_thankyou_page()
+                            elif test_number == 8:
+                                tariff_cards = mts_page.get_tariff_cards()
+                                for i in range(len(tariff_cards)):
+                                    with allure.step(f"Подключение тарифа {i + 1}"):
+                                        tariff_name = mts_page.get_tariff_name(i)
+                                        mts_page.click_tariff_connect_button(i)
+                                        mts_page.verify_popup_tariff_name(tariff_name)
+                                        time.sleep(3)
+                                        mts_page.send_tariff_connection_request()
+                                        mts_page.check_sucess()
+                                        mts_page.close_thankyou_page()
+                                        time.sleep(2)
+                            elif test_number == 9:
+                                mts_page.click_connect_button_futer()
+                                mts_page.send_popup_application_connection()
+                                mts_page.check_sucess()
+                                mts_page.close_thankyou_page()
+                            elif test_number == 10:
+                                mts_page.click_check_address_button_futer()
+                                mts_page.send_popup_application_connection_your_address()
+                                mts_page.check_sucess()
+                                mts_page.close_thankyou_page()
+                            time.sleep(2)
 
 
 

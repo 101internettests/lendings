@@ -17,6 +17,34 @@ class MTSHomeOnlineMain:
     TARIFF_CONNECT_BUTTONS = "xpath=//button[@class='button button-red card-one__button  button-application']"
     POPUP_TARIFF_NAME = "xpath=(//div[@class='popup__wrapper']//div[contains(text(),'')])[1]"
 
+    # Ссылки в хедере
+    HEADER_LINKS = {
+        "home_internet": "xpath=//a[contains(text(),'Домашний интернет')]",
+        "internet_tv": "xpath=//a[contains(text(),'Интернет + ТВ')]",
+        "internet_tv_mobile": "xpath=//a[contains(text(),'Интернет, ТВ и мобильная связь')]",
+        "family_tariffs": "xpath=//a[contains(text(),'Семейные тарифы')]",
+        "mobile": "xpath=//a[contains(text(),'Мобильная связь')]"
+    }
+
+    # Ссылки в футере
+    FOOTER_LINKS = {
+        "cookie_policy": "xpath=//a[contains(text(),'Политики обработки файлов cookie')]",
+        "privacy_policy": "xpath=//a[contains(text(),'Политику конфиденциальности')]"
+    }
+
+    # Ссылки в форме
+    FORM_LINKS = {
+        "terms_and_conditions": "xpath=//a[contains(text(),'Положение') or contains(text(),'Согласие на обработку персональных данных')]"
+    }
+
+    # URLs для проверки
+    URLS_TO_CHECK = [
+        "https://mts-home.online/domashnij-internet",
+        "https://mts-home.online/internet-i-televidenie",
+        "https://mts-home.online/internet-tv-mobile",
+        "https://mts-home.online/semejnye-tarify"
+    ]
+
 
 # попап по кнопке подключить Заявка на подключение
 class ApplicationPopupWithName:

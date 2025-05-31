@@ -109,3 +109,110 @@ class MtsHomeOnlinePage(BasePage):
             self.page.locator(ApplicationPopupWithName.PHONE_INPUT).fill("99999999999")
             self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
             time.sleep(4)
+
+    @allure.title("Проверить ссылку и убедиться, что страница существует")
+    def check_link(self, locator, link_name):
+        with allure.step(f"Проверка ссылки {link_name}"):
+            link = self.page.locator(locator)
+            expect(link).to_be_visible()
+            
+            # Открываем ссылку в новой вкладке
+            with self.page.context.expect_page() as new_page_info:
+                link.click()
+            new_page = new_page_info.value
+            
+            # Ждем загрузки страницы
+            new_page.wait_for_load_state('networkidle')
+            
+            # Проверяем, что страница существует (нет ошибки 404)
+            expect(new_page).not_to_have_url("**/404")
+            
+            # Закрываем вкладку
+            new_page.close()
+
+    @allure.title("Проверить все ссылки на странице")
+    def check_all_links(self):
+        # Проверяем ссылки в хедере
+        for name, locator in MTSHomeOnlineMain.HEADER_LINKS.items():
+            self.check_link(locator, f"Header: {name}")
+
+        # Проверяем ссылки в футере
+        for name, locator in MTSHomeOnlineMain.FOOTER_LINKS.items():
+            self.check_link(locator, f"Footer: {name}")
+
+        # Проверяем ссылки в форме
+        for name, locator in MTSHomeOnlineMain.FORM_LINKS.items():
+            self.check_link(locator, f"Form: {name}")
+
+    @allure.title("Выполнить тесты 2-10 для указанного URL")
+    def run_tests_2_to_10(self, url):
+        # Переходим на указанный URL
+        self.page.goto(url)
+        
+        # Тест 2: Попап "Выгодное спецпредложение"
+        time.sleep(65)
+        self.check_popup_super_offer()
+        time.sleep(2)
+        self.send_popup_super_offer()
+        self.check_sucess()
+        self.close_thankyou_page()
+        
+        # Тест 3: Красная кнопка
+        self.click_on_red_button()
+        self.check_popup_super_offer()
+        time.sleep(2)
+        self.send_popup_super_offer()
+        self.check_sucess()
+        self.close_thankyou_page()
+        
+        # Тест 4: Кнопка "Подключить" в хедере
+        self.click_connect_button()
+        self.send_popup_application_connection()
+        self.check_sucess()
+        self.close_thankyou_page()
+        
+        # Тест 5: Кнопка "Проверить адрес" в хедере
+        self.click_check_address_button()
+        self.send_popup_application_connection_your_address()
+        self.check_sucess()
+        self.close_thankyou_page()
+        
+        # Тест 6: Кликабельный баннер
+        self.click_on_banner()
+        self.send_popup_application_connection()
+        self.check_sucess()
+        self.close_thankyou_page()
+        
+        # Тест 7: Формы на странице
+        self.send_popup_application_check_connection()
+        self.check_sucess()
+        self.close_thankyou_page()
+        time.sleep(3)
+        self.send_popup_application_check_connection_near_futer()
+        self.check_sucess()
+        self.close_thankyou_page()
+        
+        # Тест 8: Карточки тарифов
+        tariff_cards = self.get_tariff_cards()
+        for i in range(len(tariff_cards)):
+            with allure.step(f"Подключение тарифа {i + 1}"):
+                tariff_name = self.get_tariff_name(i)
+                self.click_tariff_connect_button(i)
+                self.verify_popup_tariff_name(tariff_name)
+                time.sleep(3)
+                self.send_tariff_connection_request()
+                self.check_sucess()
+                self.close_thankyou_page()
+                time.sleep(2)
+        
+        # Тест 9: Кнопка "Подключить" в футере
+        self.click_connect_button_futer()
+        self.send_popup_application_connection()
+        self.check_sucess()
+        self.close_thankyou_page()
+        
+        # Тест 10: Кнопка "Проверить адрес" в футере
+        self.click_check_address_button_futer()
+        self.send_popup_application_connection_your_address()
+        self.check_sucess()
+        self.close_thankyou_page()
