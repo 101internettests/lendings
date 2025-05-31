@@ -60,7 +60,7 @@ class TestMolMainRegionPage:
             mts_page.check_sucess()
             mts_page.close_thankyou_page()
 
-    @allure.title("5. Отправка заявки из попапа  по кнопке Проверить адрес из хедера")
+    @allure.title("5. Отправка заявки из попапа по кнопке Проверить адрес из хедера")
     def test_application_popup_button_check_address(self):
         full_url = "https://mts-home.online/"
         with sync_playwright() as playwright:
@@ -123,5 +123,41 @@ class TestMolMainRegionPage:
                     mts_page.check_sucess()
                     mts_page.close_thankyou_page()
                     time.sleep(2)
+
+    @allure.title("9. Отправка заявки из попапа по кнопке Подключить из футера")
+    def test_application_popup_button_connect_futer(self):
+        full_url = "https://mts-home.online/"
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=HEADLESS)
+            page = browser.new_page()
+            page.goto(full_url)
+            mts_page = MtsHomeOnlinePage(page=page)
+            mts_page.click_connect_button_futer()
+            mts_page.send_popup_application_connection()
+            mts_page.check_sucess()
+            mts_page.close_thankyou_page()
+
+    @allure.title("10. Отправка заявки из попапа  по кнопке Проверить адрес из футера")
+    def test_application_popup_button_check_address_futer(self):
+        full_url = "https://mts-home.online/"
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=HEADLESS)
+            page = browser.new_page()
+            page.goto(full_url)
+            mts_page = MtsHomeOnlinePage(page=page)
+            mts_page.click_check_address_button_futer()
+            mts_page.send_popup_application_connection_your_address()
+            mts_page.check_sucess()
+            mts_page.close_thankyou_page()
+
+    @allure.title("11. Переход по всем ссылкам на странице")
+    def test_check_all_links(self):
+        full_url = "https://mts-home.online/"
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=HEADLESS)
+            page = browser.new_page()
+            page.goto(full_url)
+            mts_page = MtsHomeOnlinePage(page=page)
+
 
 

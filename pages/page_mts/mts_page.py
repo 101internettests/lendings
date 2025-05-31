@@ -35,6 +35,10 @@ class MtsHomeOnlinePage(BasePage):
     def click_connect_button(self):
         self.page.locator(MTSHomeOnlineMain.CONNECT_BUTTON).click()
 
+    @allure.title("Нажать на кнопку Подключить из футера")
+    def click_connect_button_futer(self):
+        self.page.locator(MTSHomeOnlineMain.CONNECT_BUTTON_FUTER).click()
+
     @allure.title("Отправить заявку в попап с названием Заявка на подключение")
     def send_popup_application_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
@@ -46,6 +50,10 @@ class MtsHomeOnlinePage(BasePage):
     @allure.title("Нажать на кнопку Проверить адрес")
     def click_check_address_button(self):
         self.page.locator(MTSHomeOnlineMain.CHECK_ADDRESS_BUTTON).click()
+
+    @allure.title("Нажать на кнопку Проверить адрес из футера")
+    def click_check_address_button_futer(self):
+        self.page.locator(MTSHomeOnlineMain.CHECK_ADDRESS_BUTTON_FUTER).click()
 
     @allure.title("Отправить заявку в попап с названием Проверьте возможность подключения по вашему адресу")
     def send_popup_application_connection_your_address(self):
