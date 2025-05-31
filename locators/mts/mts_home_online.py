@@ -19,11 +19,11 @@ class MTSHomeOnlineMain:
 
     # Ссылки в хедере
     HEADER_LINKS = {
-        "home_internet": "xpath=//a[contains(text(),'Домашний интернет')]",
-        "internet_tv": "xpath=//a[contains(text(),'Интернет + ТВ')]",
-        "internet_tv_mobile": "xpath=//a[contains(text(),'Интернет, ТВ и мобильная связь')]",
-        "family_tariffs": "xpath=//a[contains(text(),'Семейные тарифы')]",
-        "mobile": "xpath=//a[contains(text(),'Мобильная связь')]"
+        "home_internet": "xpath=(//a[contains(text(),'Домашний интернет')])[2]",
+        "internet_tv": "xpath=(//a[contains(text(),'Интернет + ТВ')])[2]",
+        "internet_tv_mobile": "xpath=(//a[contains(text(),'Интернет, ТВ и мобильная связь')])[2]",
+        "family_tariffs": "xpath=(//a[contains(text(),'Семейные тарифы')])[2]",
+        "mobile": "xpath=(//a[contains(text(),'Мобильная связь')])[2]"
     }
 
     # Ссылки в футере
@@ -36,14 +36,6 @@ class MTSHomeOnlineMain:
     FORM_LINKS = {
         "terms_and_conditions": "xpath=//a[contains(text(),'Положение') or contains(text(),'Согласие на обработку персональных данных')]"
     }
-
-    # URLs для проверки
-    URLS_TO_CHECK = [
-        "https://mts-home.online/domashnij-internet",
-        "https://mts-home.online/internet-i-televidenie",
-        "https://mts-home.online/internet-tv-mobile",
-        "https://mts-home.online/semejnye-tarify"
-    ]
 
 
 # попап по кнопке подключить Заявка на подключение

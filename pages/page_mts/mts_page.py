@@ -113,22 +113,25 @@ class MtsHomeOnlinePage(BasePage):
     @allure.title("Проверить ссылку и убедиться, что страница существует")
     def check_link(self, locator, link_name):
         with allure.step(f"Проверка ссылки {link_name}"):
+            # Сохраняем текущий URL
+            current_url = self.page.url
+            
+            # Находим и проверяем видимость ссылки
             link = self.page.locator(locator)
             expect(link).to_be_visible()
             
-            # Открываем ссылку в новой вкладке
-            with self.page.context.expect_page() as new_page_info:
-                link.click()
-            new_page = new_page_info.value
+            # Кликаем по ссылке
+            link.click()
             
             # Ждем загрузки страницы
-            new_page.wait_for_load_state('networkidle')
+            self.page.wait_for_load_state('networkidle')
             
             # Проверяем, что страница существует (нет ошибки 404)
-            expect(new_page).not_to_have_url("**/404")
+            expect(self.page).not_to_have_url("**/404")
             
-            # Закрываем вкладку
-            new_page.close()
+            # Возвращаемся на исходную страницу
+            self.page.goto(current_url)
+            self.page.wait_for_load_state('networkidle')
 
     @allure.title("Проверить все ссылки на странице")
     def check_all_links(self):

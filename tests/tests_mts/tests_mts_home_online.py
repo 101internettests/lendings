@@ -170,8 +170,6 @@ class TestMolMainRegionPage:
                 with allure.step(f"Тестирование страницы {url}"):
                     # Переходим на страницу
                     page.goto(url)
-                    
-                    # Для главной страницы проверяем все ссылки
                     if url == "https://mts-home.online/":
                         mts_page.check_all_links()
                     
