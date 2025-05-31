@@ -3,7 +3,7 @@ import allure
 from playwright.sync_api import expect
 from pages.base_page import BasePage
 from locators.mts.mts_home_online import MTSHomeOnlineMain, ApplicationPopupWithName, ApplicationPopupCheckConnection
-
+from locators.mts.mts_home_online import FormApplicationCheckConnection
 
 class MtsHomeOnlinePage(BasePage):
     @allure.title("Проверить, что попап Выгодное приложение появился")
@@ -53,4 +53,24 @@ class MtsHomeOnlinePage(BasePage):
             self.page.locator(ApplicationPopupCheckConnection.ADDRESS_INPUT).fill("Тестимя")
             self.page.locator(ApplicationPopupCheckConnection.PHONE_INPUT).fill("99999999999")
             self.page.locator(ApplicationPopupCheckConnection.CHECK_ADDRESS_BUTTON).click()
+            time.sleep(4)
+
+    @allure.title("Нажать на баннер на главной стране")
+    def click_on_banner(self):
+        self.page.locator(MTSHomeOnlineMain.BANNER).click()
+
+    @allure.title("Отправить заявку в форму Проверьте возможность подключения по вашему адресу в Москве под баннером")
+    def send_popup_application_check_connection(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(FormApplicationCheckConnection.ADDRESS).fill("Тестимя")
+            self.page.locator(FormApplicationCheckConnection.PHONE_INPUT).fill("99999999999")
+            self.page.locator(FormApplicationCheckConnection.CHECK_ADDRESS_BUTTON).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в форму Проверьте возможность подключения по вашему адресу в Москве в конце страницы")
+    def send_popup_application_check_connection_near_futer(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(FormApplicationCheckConnection.ADDRESS_SECOND).fill("Тестимя")
+            self.page.locator(FormApplicationCheckConnection.PHONE_INPUT_SECOND).fill("99999999999")
+            self.page.locator(FormApplicationCheckConnection.CHECK_ADDRESS_BUTTON_SECOND).click()
             time.sleep(4)

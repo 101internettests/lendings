@@ -73,5 +73,44 @@ class TestMolMainRegionPage:
             mts_page.check_sucess()
             mts_page.close_thankyou_page()
 
+    @allure.title("6. Отправка заявки из попапа Заявка на подключение с  кликабельного баннера, который идет сразу "
+                  "после заголовка Подключить домашний интернет МТС")
+    def test_application_popup_clicable_banner(self):
+        full_url = "https://mts-home.online/"
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=HEADLESS)
+            page = browser.new_page()
+            page.goto(full_url)
+            mts_page = MtsHomeOnlinePage(page=page)
+            mts_page.click_on_banner()
+            mts_page.send_popup_application_connection()
+            mts_page.check_sucess()
+            mts_page.close_thankyou_page()
+
+    @allure.title("7. Отправка заявки со ВСЕХ  форм на странице с названием Проверьте возможность подключения по "
+                  "вашему адресу")
+    def test_application_from_all_forms(self):
+        full_url = "https://mts-home.online/"
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=HEADLESS)
+            page = browser.new_page()
+            page.goto(full_url)
+            mts_page = MtsHomeOnlinePage(page=page)
+            mts_page.send_popup_application_check_connection()
+            mts_page.check_sucess()
+            mts_page.close_thankyou_page()
+            time.sleep(3)
+            mts_page.send_popup_application_check_connection_near_futer()
+            mts_page.check_sucess()
+            mts_page.close_thankyou_page()
+
+    @allure.title("8. Отправка заявок с карточек тарифа (С КАЖДОЙ, КОТОРАЯ ЕСТЬ НА СТРАНИЦЕ)")
+    def test_application_from_all_forms(self):
+        full_url = "https://mts-home.online/"
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=HEADLESS)
+            page = browser.new_page()
+            page.goto(full_url)
+            mts_page = MtsHomeOnlinePage(page=page)
 
 

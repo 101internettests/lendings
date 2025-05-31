@@ -8,7 +8,7 @@ class MTSHomeOnlineMain:
     CLOSE_BUTTON = "xpath=//a[@class='thanks__close']//img[@alt='Вектор закрытия']"
     CONNECT_BUTTON = "xpath=(//button[contains(text(),'Подключить')])[1]"
     CHECK_ADDRESS_BUTTON = "xpath=(//button[contains(text(),'Проверить адрес')])[1]"
-
+    BANNER = "xpath=//div[@class='banner button-application']"
 
 # попап по кнопке подключить Заявка на подключение
 class ApplicationPopupWithName:
@@ -22,4 +22,14 @@ class ApplicationPopupCheckConnection:
     ADDRESS_INPUT = "xpath=(//input[@placeholder='Адрес'])[3]"
     PHONE_INPUT = "xpath=(//input[@name='Phone'])[3]"
     CHECK_ADDRESS_BUTTON = "xpath=(//input[@value='Проверить адрес'])[3]"
+
+
+class FormApplicationCheckConnection:
+    ADDRESS = "xpath=(//input[@placeholder='Адрес'])[1]"
+    PHONE_INPUT = "xpath=(//input[@name='Phone'])[1]"
+    CHECK_ADDRESS_BUTTON = "xpath=(//input[@value='Проверить адрес'])[1]"
+    ADDRESS_SECOND = "xpath=(//input[@placeholder='Адрес'])[2]"
+    PHONE_INPUT_SECOND = "xpath=(//input[@name='Phone'])[2]"
+    CHECK_ADDRESS_BUTTON_SECOND = "xpath=(//input[@value='Проверить адрес'])[2]"
+
 
