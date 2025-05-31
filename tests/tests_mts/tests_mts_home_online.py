@@ -160,16 +160,16 @@ class TestMolMainRegionPage:
             "https://mts-home.online/semejnye-tarify"
         ]
         
-        with sync_playwright() as playwright:
-            browser = playwright.chromium.launch(headless=HEADLESS)
-            context = browser.new_context()
-            page = context.new_page()
-            mts_page = MtsHomeOnlinePage(page=page)
-            
-            for url in urls:
+        for url in urls:
+            with sync_playwright() as playwright:
                 with allure.step(f"Тестирование страницы {url}"):
-                    # Переходим на страницу
+                    browser = playwright.chromium.launch(headless=HEADLESS)
+                    context = browser.new_context()
+                    page = context.new_page()
                     page.goto(url)
+                    mts_page = MtsHomeOnlinePage(page=page)
+                    
+                    # Для главной страницы проверяем все ссылки
                     if url == "https://mts-home.online/":
                         mts_page.check_all_links()
                     
@@ -236,6 +236,10 @@ class TestMolMainRegionPage:
                                 mts_page.check_sucess()
                                 mts_page.close_thankyou_page()
                             time.sleep(2)
+                    
+                    # Закрываем браузер после проверки каждого URL
+                    context.close()
+                    browser.close()
 
 
 
