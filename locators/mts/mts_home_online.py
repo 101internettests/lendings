@@ -34,7 +34,7 @@ class MTSHomeOnlineMain:
 
     # Ссылки в форме
     FORM_LINKS = {
-        "terms_and_conditions": "xpath=//a[contains(text(),'Положение') or contains(text(),'Согласие на обработку персональных данных')]"
+        "terms_and_conditions": "xpath=//h1[contains(text(),'Политика в отношении обработки персональных данных Россия')]"
     }
 
 

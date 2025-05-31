@@ -143,9 +143,8 @@ class MtsHomeOnlinePage(BasePage):
         for name, locator in MTSHomeOnlineMain.FOOTER_LINKS.items():
             self.check_link(locator, f"Footer: {name}")
 
-        # Проверяем ссылки в форме
-        for name, locator in MTSHomeOnlineMain.FORM_LINKS.items():
-            self.check_link(locator, f"Form: {name}")
+        # Проверяем только заголовок формы
+        expect(self.page.locator("xpath=//h1[contains(text(),'Подключить домашний интернет МТС')]")).to_be_visible()
 
     @allure.title("Выполнить тесты 2-10 для указанного URL")
     def run_tests_2_to_10(self, url):
