@@ -530,11 +530,32 @@ class TestMolMainRegionPage:
                 region_page.verify_region_button_text("Азнакаево")
 
     @allure.title("15. Переход по всем ссылкам городов на странице выбора города")
-    def test_choose_region_futer_azn(self):
+    def test_check_all_city_links(self):
         full_url = "https://mts-home.online/"
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=HEADLESS)
             page = browser.new_page()
             page.goto(full_url)
             mts_page = MtsHomeOnlinePage(page=page)
+            mts_page.click_region_choice_button()
+            region_page = ChoiceRegionPage(page=page)
+            region_page.check_all_city_links()
+
+    @allure.title("16. Отправка заявки из попапа по кнопке Не нашли город")
+    def test_send_application_button_city(self):
+        full_url = "https://mts-home.online/city"
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=HEADLESS)
+            page = browser.new_page()
+            page.goto(full_url)
+            mts_page = MtsHomeOnlinePage(page=page)
+            region_page = ChoiceRegionPage(page=page)
+            region_page.click_button_dont_find_city()
+            region_page.close_popup_super_offer()
+            time.sleep(4)
+            region_page.send_form_dont_find_city()
+            mts_page.check_sucess()
+            mts_page.close_thankyou_page()
+            time.sleep(2)
+
 

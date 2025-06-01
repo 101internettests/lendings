@@ -1,5 +1,6 @@
 class MTSHomeOnlineMain:
     SUPER_OFFER_HEADER = "xpath=//div[contains(text(),'Выгодное спецпредложение!')]"
+    SUPER_OFFER_CLOSE = "xpath=(//button[@class='popup__close'])[4]"
     SUPER_OFFER_TEXT = "xpath=//div[contains(text(),'С экономией в год от 9000 рублей!')]"
     INPUT_OFFER_POPUP_SOME_PAGE = "xpath=(//input[@name='Phone'])[4]"
     INPUT_OFFER_POPUP = "xpath=(//input[@name='Phone'])[5]"
@@ -72,3 +73,6 @@ class RegionChoice:
     REGION_CHOICE_BUTTON_FUTER = "xpath=(//a[@id='city'])[2]"
     CITY_INPUT = "xpath=//input[@placeholder='Введите название города']"
     FIRST_CHOICE = "xpath=(//a[@class='region_item'])[1]"
+    ALL_CHOICES = "xpath=//a[@class='region_item']"
+    BUTTON_DONT_CITY = "xpath=//button[@class='region-search__button button button-red']"
+    FORM_CITY = "xpath=//input[@placeholder='Город']"

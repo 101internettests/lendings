@@ -224,3 +224,50 @@ class ChoiceRegionPage(BasePage):
     def verify_region_button_text(self, expected_text):
         region_button = self.page.locator(RegionChoice.REGION_CHOICE_BUTTON)
         expect(region_button).to_contain_text(expected_text)
+
+    @allure.title("Проверить все ссылки городов на странице")
+    def check_all_city_links(self):
+        """Проверяет все ссылки городов на странице выбора региона"""
+        with allure.step("Проверка всех ссылок городов"):
+            # Получаем все ссылки городов
+            city_links = self.page.locator(RegionChoice.ALL_CHOICES).all()
+            browser = self.page.context.browser
+            
+            # Проходим по каждой ссылке
+            for i, link in enumerate(city_links):
+                with allure.step(f"Проверка ссылки города #{i + 1}"):
+                    # Получаем текст города для отчета
+                    city_name = link.text_content().strip()
+                    with allure.step(f"Проверка города: {city_name}"):
+                        # Получаем href ссылки
+                        href = link.get_attribute('href')
+                        
+                        # Создаем новый контекст и страницу
+                        context = browser.new_context()
+                        new_page = context.new_page()
+                        new_page.goto(href)
+                        new_page.wait_for_load_state("networkidle", timeout=10000)
+                        
+                        # Проверяем что не получили 404
+                        expect(new_page).not_to_have_url("**/404")
+                        
+                        # Закрываем контекст (это автоматически закроет и страницу)
+                        context.close()
+                        time.sleep(1)  # Небольшая пауза между проверками
+
+    @allure.title("Нажать на кнопку Не смогли найти город")
+    def click_button_dont_find_city(self):
+        self.page.locator(RegionChoice.BUTTON_DONT_CITY).click()
+        time.sleep(2)
+
+    @allure.title("Отправить заявку в форму Не нашли свой город?")
+    def send_form_dont_find_city(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(RegionChoice.FORM_CITY).fill("Тестгород")
+            self.page.locator(FormApplicationCheckConnection.PHONE_INPUT).fill("99999999999")
+            self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            time.sleep(4)
+
+    @allure.title("Закрыть попап Выгодное предложение")
+    def close_popup_super_offer(self):
+        self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_CLOSE).click()
