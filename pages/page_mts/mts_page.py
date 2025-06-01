@@ -3,7 +3,7 @@ import allure
 from playwright.sync_api import expect
 from pages.base_page import BasePage
 from locators.mts.mts_home_online import MTSHomeOnlineMain, ApplicationPopupWithName, ApplicationPopupCheckConnection
-from locators.mts.mts_home_online import FormApplicationCheckConnection
+from locators.mts.mts_home_online import FormApplicationCheckConnection, RegionChoice
 
 
 class MtsHomeOnlinePage(BasePage):
@@ -187,3 +187,40 @@ class MtsHomeOnlinePage(BasePage):
         # Проверяем ссылки в футере
         for name, locator in MTSHomeOnlineMain.FOOTER_LINKS.items():
             self.check_link(locator, f"Footer: {name}")
+
+    @allure.title("Нажать на кнопку выбора региона в хедере")
+    def click_region_choice_button(self):
+        region_button = self.page.locator(RegionChoice.REGION_CHOICE_BUTTON)
+        region_button.click()
+        time.sleep(2)
+
+    @allure.title("Нажать на кнопку выбора региона в футере")
+    def click_region_choice_button_futer(self):
+        region_button = self.page.locator(RegionChoice.REGION_CHOICE_BUTTON_FUTER)
+        region_button.click()
+        time.sleep(2)
+
+
+class ChoiceRegionPage(BasePage):
+    @allure.title("Ввести текст в поле поиска региона")
+    def fill_region_search(self, search_text):
+        city_input = self.page.locator(RegionChoice.CITY_INPUT)
+        city_input.fill(search_text)
+        time.sleep(2)
+
+    @allure.title("Проверить, что первый вариант содержит ожидаемый текст")
+    def verify_first_region_choice(self, expected_text):
+        first_choice = self.page.locator(RegionChoice.FIRST_CHOICE)
+        expect(first_choice).to_contain_text(expected_text)
+        return first_choice
+
+    @allure.title("Выбрать первый регион из списка")
+    def select_first_region(self):
+        first_choice = self.page.locator(RegionChoice.FIRST_CHOICE)
+        first_choice.click()
+        time.sleep(2)
+
+    @allure.title("Проверить текст кнопки выбора региона")
+    def verify_region_button_text(self, expected_text):
+        region_button = self.page.locator(RegionChoice.REGION_CHOICE_BUTTON)
+        expect(region_button).to_contain_text(expected_text)

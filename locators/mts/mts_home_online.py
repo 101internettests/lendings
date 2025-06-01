@@ -65,3 +65,10 @@ class FormApplicationCheckConnection:
     ADDRESS_SECOND = "xpath=(//input[@placeholder='Адрес'])[2]"
     PHONE_INPUT_SECOND = "xpath=(//input[@name='Phone'])[2]"
     CHECK_ADDRESS_BUTTON_SECOND = "xpath=(//input[@value='Проверить адрес'])[2]"
+
+
+class RegionChoice:
+    REGION_CHOICE_BUTTON = "xpath=(//a[@id='city'])[1]"
+    REGION_CHOICE_BUTTON_FUTER = "xpath=(//a[@id='city'])[2]"
+    CITY_INPUT = "xpath=//input[@placeholder='Введите название города']"
+    FIRST_CHOICE = "xpath=(//a[@class='region_item'])[1]"
