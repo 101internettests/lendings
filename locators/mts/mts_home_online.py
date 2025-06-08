@@ -76,3 +76,33 @@ class RegionChoice:
     ALL_CHOICES = "xpath=//a[@class='region_item']"
     BUTTON_DONT_CITY = "xpath=//button[@class='region-search__button button button-red']"
     FORM_CITY = "xpath=//input[@placeholder='Город']"
+
+
+class MskMtsMainWeb:
+    BANNER = "xpath=//div[@class='banner  button-application']"
+    REGION_CHOICE_BUTTON = "xpath=(//a[@href='/city'])[3]"
+    # Ссылки в хедере
+    HEADER_LINKS = {
+        "home_internet": "xpath=(//a[contains(text(),'Домашний интернет')])[2]",
+        "internet_tv": "xpath=(//a[contains(text(),'Интернет + ТВ')])[2]",
+        "internet_tv_mobile": "xpath=(//a[contains(text(),'Интернет, ТВ и мобильная связь')])[2]",
+        "mobile": "xpath=(//a[contains(text(),'Мобильная связь')])[2]",
+        "all_tariffs": "xpath=(//a[contains(text(),'Все тарифы')])[2]",
+    }
+    SUPER_OFFER_HEADER = "xpath=(//div[contains(text(),'Выгодное спецпредложение!')])[1]"
+    SUPER_OFFER_TEXT = "xpath=(//div[contains(text(),'С экономией в год от 9000 рублей!')])[1]"
+    INPUT_OFFER_POPUP = "xpath=(//input[@name='Phone'])[6]"
+    CONNECT_BUTTON = "xpath=(//button[contains(text(),'Подключить')])[2]"
+    PHONE_INPUT_OTHER = "xpath=(//input[@name='Phone'])[5]"
+    CHECK_ADDRESS_BUTTON = "xpath=(//input[@value='Проверить адрес'])[1]"
+    CHECK_ADDRESS_BUTTON_FUTER = "xpath=(//button[contains(text(),'Проверить адрес')])[2]"
+    ADDRESS_SECOND = "xpath=(//input[@placeholder='Адрес'])[3]"
+    PHONE_INPUT = "xpath=(//input[@name='Phone'])[4]"
+    CHECK_ADDRESS_BUTTON_SECOND = "xpath=(//input[@value='Проверить адрес'])[3]"
+    HEADER_LINKS_GPON = {
+        "home_internet": "xpath=(//a[contains(text(),'Тарифы с домашним интернетом')])[2]",
+        "mobile": "xpath=(//a[contains(text(),'Мобильная связь')])[2]"
+    }
+    REGION_CHOICE_BUTTON_SECOND = "xpath=(//a[@id='city'])[2]"
+    REGION_CHOICE_BUTTON_FUTER = "xpath=(//a[@href='/city'])[5]"
+    SUPER_OFFER_CLOSE = "xpath=(//button[@class='popup__close'])[3]"
