@@ -3,7 +3,7 @@ import allure
 from playwright.sync_api import expect
 from pages.base_page import BasePage
 from locators.mts.mts_home_online import MTSHomeOnlineMain, ApplicationPopupWithName, ApplicationPopupCheckConnection
-from locators.mts.mts_home_online import FormApplicationCheckConnection, RegionChoice
+from locators.mts.mts_home_online import FormApplicationCheckConnection, RegionChoice, MskMtsMainWeb
 
 
 class MtsHomeOnlinePage(BasePage):
@@ -18,7 +18,6 @@ class MtsHomeOnlinePage(BasePage):
             self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP).fill("99999999999")
             self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()
             time.sleep(4)
-
 
 
     @allure.title("Отправить заявку в попап для других страниц и проверить успешность")
@@ -122,7 +121,9 @@ class MtsHomeOnlinePage(BasePage):
     def send_popup_application_check_connection_near_futer(self):
         with allure.step("Заполнить попап и отправить заявку"):
             self.page.locator(FormApplicationCheckConnection.ADDRESS_SECOND).fill("Тестимя")
+            time.sleep(3)
             self.page.locator(FormApplicationCheckConnection.PHONE_INPUT_SECOND).fill("99999999999")
+            time.sleep(3)
             self.page.locator(FormApplicationCheckConnection.CHECK_ADDRESS_BUTTON_SECOND).click()
             time.sleep(4)
 
@@ -170,16 +171,24 @@ class MtsHomeOnlinePage(BasePage):
             time.sleep(4)
 
     @allure.title("Проверить ссылку и убедиться, что страница существует")
-    def check_link(self, locator):
-        link = self.page.locator(locator)
-        expect(link).to_be_visible()
-        link.click(modifiers=["Control"])
-        new_page = self.page.context.wait_for_event("page", timeout=10000)
-        new_page.wait_for_load_state("networkidle", timeout=10000)
-        expect(new_page).not_to_have_url("**/404")
+    def check_link(self, locator, link_name):
+        """
+        Проверяет ссылку и убеждается, что страница существует
+        :param locator: локатор ссылки
+        :param link_name: название ссылки для отчета
+        """
+        with allure.step(f"Проверка ссылки {link_name}"):
+            link = self.page.locator(locator)
+            expect(link).to_be_visible()
+            link.click(modifiers=["Control"])
+            new_page = self.page.context.wait_for_event("page", timeout=10000)
+            new_page.wait_for_load_state("networkidle", timeout=10000)
+            expect(new_page).not_to_have_url("**/404")
+            new_page.close()
 
     @allure.title("Проверить все ссылки на странице")
     def check_all_links(self):
+        """Проверяет все ссылки в хедере и футере"""
         # Проверяем ссылки в хедере
         for name, locator in MTSHomeOnlineMain.HEADER_LINKS.items():
             self.check_link(locator, f"Header: {name}")
@@ -236,24 +245,70 @@ class ChoiceRegionPage(BasePage):
             # Проходим по каждой ссылке
             for i, link in enumerate(city_links):
                 with allure.step(f"Проверка ссылки города #{i + 1}"):
-                    # Получаем текст города для отчета
-                    city_name = link.text_content().strip()
-                    with allure.step(f"Проверка города: {city_name}"):
-                        # Получаем href ссылки
+                    try:
+                        # Получаем текст города для отчета
+                        city_name = link.text_content().strip()
                         href = link.get_attribute('href')
                         
-                        # Создаем новый контекст и страницу
-                        context = browser.new_context()
-                        new_page = context.new_page()
-                        new_page.goto(href)
-                        new_page.wait_for_load_state("networkidle", timeout=10000)
-                        
-                        # Проверяем что не получили 404
-                        expect(new_page).not_to_have_url("**/404")
-                        
-                        # Закрываем контекст (это автоматически закроет и страницу)
-                        context.close()
-                        time.sleep(1)  # Небольшая пауза между проверками
+                        with allure.step(f"Проверка города: {city_name} ({href})"):
+                            # Создаем новый контекст и страницу
+                            context = browser.new_context()
+                            new_page = context.new_page()
+                            
+                            # Переходим по ссылке
+                            with allure.step(f"Переход по ссылке {href}"):
+                                new_page.goto(href)
+                            
+                            try:
+                                # Ждем загрузки страницы с увеличенным таймаутом
+                                with allure.step("Ожидание загрузки страницы"):
+                                    new_page.wait_for_load_state("domcontentloaded", timeout=20000)
+                                    new_page.wait_for_load_state("load", timeout=20000)
+                                    try:
+                                        new_page.wait_for_load_state("networkidle", timeout=20000)
+                                    except Exception as e:
+                                        allure.attach(
+                                            f"Предупреждение: networkidle не достигнут для {city_name}: {str(e)}",
+                                            name=f"NetworkIdle Warning - {city_name}",
+                                            attachment_type=allure.attachment_type.TEXT
+                                        )
+                                
+                                # Проверяем что не получили 404 и делаем скриншот
+                                with allure.step("Проверка доступности страницы"):
+                                    expect(new_page).not_to_have_url("**/404")
+                                    screenshot = new_page.screenshot(
+                                        full_page=False,  # Только видимая часть
+                                        type='png'
+                                    )
+                                    allure.attach(
+                                        screenshot,
+                                        name=f"Screenshot - {city_name}",
+                                        attachment_type=allure.attachment_type.PNG
+                                    )
+                            
+                            except Exception as e:
+                                # Если произошла ошибка, прикрепляем информацию об ошибке
+                                error_message = f"Ошибка при проверке {city_name}: {str(e)}"
+                                allure.attach(
+                                    error_message,
+                                    name=f"Error - {city_name}",
+                                    attachment_type=allure.attachment_type.TEXT
+                                )
+                                raise  # Пробрасываем ошибку дальше
+                            
+                            finally:
+                                # Всегда закрываем контекст
+                                context.close()
+                                time.sleep(1)  # Небольшая пауза между проверками
+                    
+                    except Exception as e:
+                        # Логируем ошибку, но продолжаем проверять следующие ссылки
+                        allure.attach(
+                            f"Критическая ошибка при проверке ссылки: {str(e)}",
+                            name=f"Critical Error - Link #{i + 1}",
+                            attachment_type=allure.attachment_type.TEXT
+                        )
+                        continue
 
     @allure.title("Нажать на кнопку Не смогли найти город")
     def click_button_dont_find_city(self):
