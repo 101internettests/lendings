@@ -82,6 +82,17 @@ class MtsGponHomeOnlinePage(BasePage):
             
             while retry_count < max_retries:
                 try:
+                    # Закрываем всплывающие окна, если они есть
+                    try:
+                        popup = self.page.locator("#popup-lead-catcher")
+                        if popup.is_visible():
+                            close_button = self.page.locator(MskMtsMainWeb.SUPER_OFFER_CLOSE)
+                            if close_button.is_visible():
+                                close_button.click()
+                                time.sleep(1)
+                    except Exception as e:
+                        allure.attach(f"Не удалось закрыть всплывающее окно: {str(e)}", "warning")
+                    
                     link = self.page.locator(locator)
                     expect(link).to_be_visible()
                     
@@ -90,9 +101,30 @@ class MtsGponHomeOnlinePage(BasePage):
                     if not href:
                         allure.attach(f"Ссылка {link_name} не имеет атрибута href", "warning")
                         return
+                    
+                    # Прокручиваем к элементу перед кликом
+                    link.scroll_into_view_if_needed()
+                    time.sleep(1)  # Даем время для завершения прокрутки
+                    
+                    # Проверяем, не перекрыт ли элемент
+                    try:
+                        is_clickable = link.evaluate("""element => {
+                            const rect = element.getBoundingClientRect();
+                            const centerX = rect.left + rect.width / 2;
+                            const centerY = rect.top + rect.height / 2;
+                            const elementAtPoint = document.elementFromPoint(centerX, centerY);
+                            return elementAtPoint === element || element.contains(elementAtPoint);
+                        }""")
                         
+                        if not is_clickable:
+                            # Если элемент перекрыт, пробуем прокрутить еще раз
+                            self.page.evaluate("window.scrollBy(0, -100)")
+                            time.sleep(1)
+                    except Exception as e:
+                        allure.attach(f"Не удалось проверить кликабельность элемента: {str(e)}", "warning")
+                    
                     # Кликаем с увеличенным таймаутом
-                    link.click(modifiers=["Control"])
+                    link.click(modifiers=["Control"], timeout=30000)
                     
                     # Ждем новую страницу с увеличенным таймаутом
                     new_page = self.page.context.wait_for_event("page", timeout=30000)
