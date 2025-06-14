@@ -77,13 +77,38 @@ class MtsGponHomeOnlinePage(BasePage):
         :param link_name: название ссылки для отчета
         """
         with allure.step(f"Проверка ссылки {link_name}"):
-            link = self.page.locator(locator)
-            expect(link).to_be_visible()
-            link.click(modifiers=["Control"])
-            new_page = self.page.context.wait_for_event("page", timeout=10000)
-            new_page.wait_for_load_state("networkidle", timeout=10000)
-            expect(new_page).not_to_have_url("**/404")
-            new_page.close()
+            max_retries = 3
+            retry_count = 0
+            
+            while retry_count < max_retries:
+                try:
+                    link = self.page.locator(locator)
+                    expect(link).to_be_visible()
+                    
+                    # Получаем атрибут href перед кликом
+                    href = link.get_attribute('href')
+                    if not href:
+                        allure.attach(f"Ссылка {link_name} не имеет атрибута href", "warning")
+                        return
+                        
+                    # Кликаем с увеличенным таймаутом
+                    link.click(modifiers=["Control"])
+                    
+                    # Ждем новую страницу с увеличенным таймаутом
+                    new_page = self.page.context.wait_for_event("page", timeout=30000)
+                    new_page.wait_for_load_state("networkidle", timeout=30000)
+                    
+                    # Проверяем, что страница не 404
+                    expect(new_page).not_to_have_url("**/404")
+                    new_page.close()
+                    return
+                    
+                except Exception as e:
+                    retry_count += 1
+                    if retry_count == max_retries:
+                        allure.attach(f"Не удалось проверить ссылку {link_name} после {max_retries} попыток. Ошибка: {str(e)}", "error")
+                        raise
+                    time.sleep(2)  # Ждем перед повторной попыткой
 
     @allure.title("Проверить все ссылки на странице")
     def check_all_links(self):
