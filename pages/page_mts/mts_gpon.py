@@ -82,13 +82,23 @@ class MtsGponHomeOnlinePage(BasePage):
             
             while retry_count < max_retries:
                 try:
-                    # Закрываем всплывающие окна, если они есть
+                    # Закрываем все возможные всплывающие окна
                     try:
+                        # Пробуем закрыть основное всплывающее окно
                         popup = self.page.locator("#popup-lead-catcher")
                         if popup.is_visible():
+                            # Сначала пробуем найти и кликнуть по кнопке закрытия
                             close_button = self.page.locator(MskMtsMainWeb.SUPER_OFFER_CLOSE)
                             if close_button.is_visible():
-                                close_button.click()
+                                close_button.click(force=True)
+                                time.sleep(2)
+                            
+                            # Если окно все еще видимо, пробуем удалить его через JavaScript
+                            if popup.is_visible():
+                                self.page.evaluate("""() => {
+                                    const popup = document.querySelector('#popup-lead-catcher');
+                                    if (popup) popup.remove();
+                                }""")
                                 time.sleep(1)
                     except Exception as e:
                         allure.attach(f"Не удалось закрыть всплывающее окно: {str(e)}", "warning")
@@ -104,27 +114,26 @@ class MtsGponHomeOnlinePage(BasePage):
                     
                     # Прокручиваем к элементу перед кликом
                     link.scroll_into_view_if_needed()
-                    time.sleep(1)  # Даем время для завершения прокрутки
+                    time.sleep(2)  # Увеличиваем время ожидания после прокрутки
                     
-                    # Проверяем, не перекрыт ли элемент
+                    # Пробуем кликнуть обычным способом
                     try:
-                        is_clickable = link.evaluate("""element => {
-                            const rect = element.getBoundingClientRect();
-                            const centerX = rect.left + rect.width / 2;
-                            const centerY = rect.top + rect.height / 2;
-                            const elementAtPoint = document.elementFromPoint(centerX, centerY);
-                            return elementAtPoint === element || element.contains(elementAtPoint);
-                        }""")
-                        
-                        if not is_clickable:
-                            # Если элемент перекрыт, пробуем прокрутить еще раз
-                            self.page.evaluate("window.scrollBy(0, -100)")
-                            time.sleep(1)
-                    except Exception as e:
-                        allure.attach(f"Не удалось проверить кликабельность элемента: {str(e)}", "warning")
-                    
-                    # Кликаем с увеличенным таймаутом
-                    link.click(modifiers=["Control"], timeout=30000)
+                        link.click(modifiers=["Control"], timeout=30000)
+                    except Exception as click_error:
+                        allure.attach(f"Обычный клик не удался, пробуем через JavaScript: {str(click_error)}", "warning")
+                        # Если обычный клик не удался, пробуем через JavaScript
+                        self.page.evaluate("""(selector) => {
+                            const element = document.querySelector(selector);
+                            if (element) {
+                                const event = new MouseEvent('click', {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    view: window,
+                                    ctrlKey: true
+                                });
+                                element.dispatchEvent(event);
+                            }
+                        }""", locator)
                     
                     # Ждем новую страницу с увеличенным таймаутом
                     new_page = self.page.context.wait_for_event("page", timeout=30000)
