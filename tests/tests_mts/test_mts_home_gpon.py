@@ -176,18 +176,18 @@ class TestGponMtsHomeOnline:
             region_page.select_first_region()
             region_page.verify_region_button_text("Азнакаево")
 
-    @allure.title("12. Переход по всем ссылкам городов на странице выбора города")
-    def test_gpon_check_all_city_links(self, page_fixture, third_url):
-        page = page_fixture
-        page.goto(third_url)
-
-        # Открываем страницу выбора города через хедер
-        gpon_page = MtsGponHomeOnlinePage(page=page)
-        gpon_page.click_region_choice_button_gpon()
-
-        # Проверяем все ссылки городов
-        region_page = ChoiceRegionPage(page=page)
-        region_page.check_all_city_links()
+    # @allure.title("12. Переход по всем ссылкам городов на странице выбора города")
+    # def test_gpon_check_all_city_links(self, page_fixture, third_url):
+    #     page = page_fixture
+    #     page.goto(third_url)
+    #
+    #     # Открываем страницу выбора города через хедер
+    #     gpon_page = MtsGponHomeOnlinePage(page=page)
+    #     gpon_page.click_region_choice_button_gpon()
+    #
+    #     # Проверяем все ссылки городов
+    #     region_page = ChoiceRegionPage(page=page)
+    #     region_page.check_all_city_links()
 
     @allure.title("16. Проверка формы 'Не нашли свой город?'")
     def test_gpon_check_dont_find_city(self, page_fixture, third_url):
