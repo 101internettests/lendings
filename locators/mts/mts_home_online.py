@@ -8,6 +8,7 @@ class MTSHomeOnlineMain:
     THANKYOU_TEXT = "xpath=//div[@class='thanks']"
     RED_BUTTON = "xpath=//button[@class='button-lead-catcher']"
     CLOSE_BUTTON = "xpath=//a[@class='thanks__close']//img[@alt='Вектор закрытия']"
+    CLOSE_BUTTON_SECOND = "xpath=(//button[@class='popup__close'])[4]"
     CONNECT_BUTTON = "xpath=(//button[contains(text(),'Подключить')])[1]"
     CONNECT_BUTTON_FUTER = "xpath=//div[@class='footer__block']//button[contains(text(),'Подключить')]"
     CHECK_ADDRESS_BUTTON = "xpath=(//button[contains(text(),'Проверить адрес')])[1]"

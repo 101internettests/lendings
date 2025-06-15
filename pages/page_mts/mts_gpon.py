@@ -7,6 +7,10 @@ from locators.mts.mts_home_online import FormApplicationCheckConnection, RegionC
 
 
 class MtsGponHomeOnlinePage(BasePage):
+    @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
+    def close_thankyou_page(self):
+        self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_SECOND).click()
+
     @allure.title("Проверить, что попап Выгодное приложение появился")
     def check_popup_super_offer(self):
         expect(self.page.locator(MskMtsMainWeb.SUPER_OFFER_HEADER)).to_be_visible()
@@ -157,7 +161,7 @@ class MtsGponHomeOnlinePage(BasePage):
         # Проверяем ссылки в хедере
         for name, locator in MskMtsMainWeb.HEADER_LINKS_GPON.items():
             self.check_link(locator, f"Header: {name}")
-
+        self.close_thankyou_page()
         # Проверяем ссылки в футере
         for name, locator in MTSHomeOnlineMain.FOOTER_LINKS.items():
             self.check_link(locator, f"Footer: {name}")
