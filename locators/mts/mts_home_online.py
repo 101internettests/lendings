@@ -72,6 +72,7 @@ class FormApplicationCheckConnection:
 class RegionChoice:
     REGION_CHOICE_BUTTON = "xpath=(//a[@id='city'])[1]"
     REGION_CHOICE_BUTTON_FUTER = "xpath=(//a[@id='city'])[2]"
+    REGION_CHOICE_BUTTON_THREE = "xpath=(//a[@id='city'])[3]"
     CITY_INPUT = "xpath=//input[@placeholder='Введите название города']"
     FIRST_CHOICE = "xpath=(//a[@class='region_item'])[1]"
     ALL_CHOICES = "xpath=//a[@class='region_item']"

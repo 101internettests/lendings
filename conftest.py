@@ -2,7 +2,7 @@ import os
 import pytest
 from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright
-
+from config import bot, chat_id
 # Загружаем переменные окружения из .env файла
 load_dotenv()
 
@@ -23,6 +23,18 @@ def second_url():
 def third_url():
     """Базовый URL для тестов"""
     return "https://mts-home-gpon.ru/"
+
+
+@pytest.fixture(scope="session")
+def four_url():
+    """Базовый URL для тестов"""
+    return "https://mts-home-online.ru/"
+
+
+@pytest.fixture(scope="session")
+def five_url():
+    """Базовый URL для тестов"""
+    return "https://internet-mts-home.online/"
 
 
 @pytest.fixture(scope="function")
@@ -80,3 +92,8 @@ def page_fixture_ignore_https(browser_fixture_ignore_https):
     page = context.new_page()
     yield page
     context.close()
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_sessionfinish(session, exitstatus):
+    bot.send_message(chat_id, "Тесты мтс прошли")
