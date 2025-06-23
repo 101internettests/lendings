@@ -19,7 +19,6 @@ class MtsHomeOnlinePage(BasePage):
             self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()
             time.sleep(4)
 
-
     @allure.title("Отправить заявку в попап для других страниц и проверить успешность")
     def send_popup_super_offer_other_pages(self):
         with allure.step("Заполнить попап и отправить заявку"):
@@ -173,84 +172,25 @@ class MtsHomeOnlinePage(BasePage):
     @allure.title("Проверить ссылку и убедиться, что страница существует")
     def check_link(self, locator, link_name):
         """
-        Проверяет ссылку и убеждается, что страница существует
+        Упрощённая проверка ссылки: видимость, href, клик, отсутствие 404
         :param locator: локатор ссылки
         :param link_name: название ссылки для отчета
         """
         with allure.step(f"Проверка ссылки {link_name}"):
-            max_retries = 3
-            retry_count = 0
-            
-            while retry_count < max_retries:
-                try:
-                    # Закрываем все возможные всплывающие окна
-                    try:
-                        # Пробуем закрыть основное всплывающее окно
-                        popup = self.page.locator("#popup-lead-catcher")
-                        if popup.is_visible():
-                            # Сначала пробуем найти и кликнуть по кнопке закрытия
-                            close_button = self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_CLOSE)
-                            if close_button.is_visible():
-                                close_button.click(force=True)
-                                time.sleep(2)
-                            
-                            # Если окно все еще видимо, пробуем удалить его через JavaScript
-                            if popup.is_visible():
-                                self.page.evaluate("""() => {
-                                    const popup = document.querySelector('#popup-lead-catcher');
-                                    if (popup) popup.remove();
-                                }""")
-                                time.sleep(1)
-                    except Exception as e:
-                        allure.attach(f"Не удалось закрыть всплывающее окно: {str(e)}", "warning")
-                    
-                    link = self.page.locator(locator)
-                    expect(link).to_be_visible()
-                    
-                    # Получаем атрибут href перед кликом
-                    href = link.get_attribute('href')
-                    if not href:
-                        allure.attach(f"Ссылка {link_name} не имеет атрибута href", "warning")
-                        return
-                    
-                    # Прокручиваем к элементу перед кликом
-                    link.scroll_into_view_if_needed()
-                    time.sleep(2)  # Увеличиваем время ожидания после прокрутки
-                    
-                    # Пробуем кликнуть обычным способом
-                    try:
-                        link.click(modifiers=["Control"], timeout=30000)
-                    except Exception as click_error:
-                        allure.attach(f"Обычный клик не удался, пробуем через JavaScript: {str(click_error)}", "warning")
-                        # Если обычный клик не удался, пробуем через JavaScript
-                        self.page.evaluate("""(selector) => {
-                            const element = document.querySelector(selector);
-                            if (element) {
-                                const event = new MouseEvent('click', {
-                                    bubbles: true,
-                                    cancelable: true,
-                                    view: window,
-                                    ctrlKey: true
-                                });
-                                element.dispatchEvent(event);
-                            }
-                        }""", locator)
-                    
-                    # Ждем новую страницу с увеличенным таймаутом
-                    new_page = self.page.context.wait_for_event("page", timeout=30000)
-                    new_page.wait_for_load_state("networkidle", timeout=30000)
-                    
-                    # Проверяем, что страница не 404
-                    expect(new_page).not_to_have_url("**/404")
-                    new_page.close()
-                    return
-                    
-                except Exception as e:
-                    retry_count += 1
-                    if retry_count == max_retries:
-                        allure.attach(f"Не удалось проверить ссылку {link_name} после {max_retries} попыток. Ошибка: {str(e)}", "error")
-                        raise
-                    time.sleep(2)  # Ждем перед повторной попыткой
+            link = self.page.locator(locator)
+            expect(link).to_be_visible()
+            href = link.get_attribute('href')
+            if not href:
+                allure.attach(f"Ссылка {link_name} не имеет атрибута href", "warning")
+                return
+            link.scroll_into_view_if_needed()
+            time.sleep(1)
+            with self.page.context.expect_page() as new_page_info:
+                link.click(modifiers=["Control"])
+            new_page = new_page_info.value
+            new_page.wait_for_load_state("networkidle", timeout=15000)
+            expect(new_page).not_to_have_url("**/404")
+            new_page.close()
 
     @allure.title("Проверить все ссылки на странице")
     def check_all_links(self):
@@ -302,79 +242,31 @@ class ChoiceRegionPage(BasePage):
 
     @allure.title("Проверить все ссылки городов на странице")
     def check_all_city_links(self):
-        """Проверяет все ссылки городов на странице выбора региона"""
-        with allure.step("Проверка всех ссылок городов"):
-            # Получаем все ссылки городов
+        """Проверяет все ссылки городов на странице выбора региона без вложений в Allure"""
+        with allure.step("Проверка всех ссылок городов (без вложений)"):
             city_links = self.page.locator(RegionChoice.ALL_CHOICES).all()
             browser = self.page.context.browser
-            
-            # Проходим по каждой ссылке
             for i, link in enumerate(city_links):
-                with allure.step(f"Проверка ссылки города #{i + 1}"):
+                city_name = link.text_content().strip()
+                href = link.get_attribute('href')
+                try:
+                    context = browser.new_context()
+                    new_page = context.new_page()
+                    new_page.goto(href)
+                    new_page.wait_for_load_state("domcontentloaded", timeout=20000)
+                    new_page.wait_for_load_state("load", timeout=20000)
                     try:
-                        # Получаем текст города для отчета
-                        city_name = link.text_content().strip()
-                        href = link.get_attribute('href')
-                        
-                        with allure.step(f"Проверка города: {city_name} ({href})"):
-                            # Создаем новый контекст и страницу
-                            context = browser.new_context()
-                            new_page = context.new_page()
-                            
-                            # Переходим по ссылке
-                            with allure.step(f"Переход по ссылке {href}"):
-                                new_page.goto(href)
-                            
-                            try:
-                                # Ждем загрузки страницы с увеличенным таймаутом
-                                with allure.step("Ожидание загрузки страницы"):
-                                    new_page.wait_for_load_state("domcontentloaded", timeout=20000)
-                                    new_page.wait_for_load_state("load", timeout=20000)
-                                    try:
-                                        new_page.wait_for_load_state("networkidle", timeout=20000)
-                                    except Exception as e:
-                                        allure.attach(
-                                            f"Предупреждение: networkidle не достигнут для {city_name}: {str(e)}",
-                                            name=f"NetworkIdle Warning - {city_name}",
-                                            attachment_type=allure.attachment_type.TEXT
-                                        )
-                                
-                                # Проверяем что не получили 404 и делаем скриншот
-                                with allure.step("Проверка доступности страницы"):
-                                    expect(new_page).not_to_have_url("**/404")
-                                    screenshot = new_page.screenshot(
-                                        full_page=False,  # Только видимая часть
-                                        type='png'
-                                    )
-                                    allure.attach(
-                                        screenshot,
-                                        name=f"Screenshot - {city_name}",
-                                        attachment_type=allure.attachment_type.PNG
-                                    )
-                            
-                            except Exception as e:
-                                # Если произошла ошибка, прикрепляем информацию об ошибке
-                                error_message = f"Ошибка при проверке {city_name}: {str(e)}"
-                                allure.attach(
-                                    error_message,
-                                    name=f"Error - {city_name}",
-                                    attachment_type=allure.attachment_type.TEXT
-                                )
-                                raise  # Пробрасываем ошибку дальше
-                            
-                            finally:
-                                # Всегда закрываем контекст
-                                context.close()
-                                time.sleep(1)  # Небольшая пауза между проверками
-                    
-                    except Exception as e:
-                        # Логируем ошибку, но продолжаем проверять следующие ссылки
-                        allure.attach(
-                            f"Критическая ошибка при проверке ссылки: {str(e)}",
-                            name=f"Critical Error - Link #{i + 1}",
-                            attachment_type=allure.attachment_type.TEXT
-                        )
-                        continue
+                        new_page.wait_for_load_state("networkidle", timeout=20000)
+                    except Exception:
+                        pass  # Не логируем networkidle, чтобы не раздувать отчёт
+                    expect(new_page).not_to_have_url("**/404")
+                except Exception as e:
+                    # Только простое логирование ошибки, без вложений
+                    with allure.step(f"Ошибка при проверке {city_name}: {str(e)}"):
+                        pass
+                finally:
+                    context.close()
+                    time.sleep(1)
 
     @allure.title("Нажать на кнопку Не смогли найти город")
     def click_button_dont_find_city(self):
