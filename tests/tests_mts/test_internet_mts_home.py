@@ -18,21 +18,6 @@ class TestInternetMtsHome:
                 error_text = str(error)
                 assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
                     "Ожидалась ошибка SSL/сертификата"
-                with allure.step("Создание скриншота и сохранение данных об ошибке"):
-                    screenshot = page.screenshot(
-                        full_page=True,
-                        type='png'
-                    )
-                    allure.attach(
-                        screenshot,
-                        name="SSL Error Screenshot",
-                        attachment_type=allure.attachment_type.PNG
-                    )
-                    allure.attach(
-                        error_text,
-                        name="SSL Error Details",
-                        attachment_type=allure.attachment_type.TEXT
-                    )
 
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")

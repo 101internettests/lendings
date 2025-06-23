@@ -74,43 +74,25 @@ class MtsMSKHomeOnlinePage(BasePage):
     @allure.title("Проверить ссылку и убедиться, что страница существует")
     def check_link(self, locator, link_name):
         """
-        Проверяет ссылку и убеждается, что страница существует
+        Упрощённая проверка ссылки: видимость, href, клик, отсутствие 404
         :param locator: локатор ссылки
         :param link_name: название ссылки для отчета
         """
         with allure.step(f"Проверка ссылки {link_name}"):
-            max_retries = 3
-            retry_count = 0
-            
-            while retry_count < max_retries:
-                try:
-                    link = self.page.locator(locator)
-                    expect(link).to_be_visible()
-                    
-                    # Получаем атрибут href перед кликом
-                    href = link.get_attribute('href')
-                    if not href:
-                        allure.attach(f"Ссылка {link_name} не имеет атрибута href", "warning")
-                        return
-                        
-                    # Кликаем с увеличенным таймаутом
-                    link.click(modifiers=["Control"])
-                    
-                    # Ждем новую страницу с увеличенным таймаутом
-                    new_page = self.page.context.wait_for_event("page", timeout=30000)
-                    new_page.wait_for_load_state("networkidle", timeout=30000)
-                    
-                    # Проверяем, что страница не 404
-                    expect(new_page).not_to_have_url("**/404")
-                    new_page.close()
-                    return
-                    
-                except Exception as e:
-                    retry_count += 1
-                    if retry_count == max_retries:
-                        allure.attach(f"Не удалось проверить ссылку {link_name} после {max_retries} попыток. Ошибка: {str(e)}", "error")
-                        raise
-                    time.sleep(2)  # Ждем перед повторной попыткой
+            link = self.page.locator(locator)
+            expect(link).to_be_visible()
+            href = link.get_attribute('href')
+            if not href:
+                with allure.step(f"Ссылка {link_name} не имеет атрибута href"):
+                    pass
+                return
+            link.scroll_into_view_if_needed()
+            with self.page.context.expect_page() as new_page_info:
+                link.click(modifiers=["Control"])
+            new_page = new_page_info.value
+            new_page.wait_for_load_state("networkidle", timeout=15000)
+            expect(new_page).not_to_have_url("**/404")
+            new_page.close()
 
     @allure.title("Проверить все ссылки на странице")
     def check_all_links(self):
