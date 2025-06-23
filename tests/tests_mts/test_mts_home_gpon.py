@@ -19,21 +19,6 @@ class TestGponMtsHomeOnline:
                 error_text = str(error)
                 assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
                     "Ожидалась ошибка SSL/сертификата"
-                with allure.step("Создание скриншота и сохранение данных об ошибке"):
-                    screenshot = page.screenshot(
-                        full_page=True,
-                        type='png'
-                    )
-                    allure.attach(
-                        screenshot,
-                        name="SSL Error Screenshot",
-                        attachment_type=allure.attachment_type.PNG
-                    )
-                    allure.attach(
-                        error_text,
-                        name="SSL Error Details",
-                        attachment_type=allure.attachment_type.TEXT
-                    )
 
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")
@@ -176,18 +161,18 @@ class TestGponMtsHomeOnline:
             region_page.select_first_region()
             region_page.verify_region_button_text("Азнакаево")
 
-    # @allure.title("12. Переход по всем ссылкам городов на странице выбора города")
-    # def test_gpon_check_all_city_links(self, page_fixture, third_url):
-    #     page = page_fixture
-    #     page.goto(third_url)
-    #
-    #     # Открываем страницу выбора города через хедер
-    #     gpon_page = MtsGponHomeOnlinePage(page=page)
-    #     gpon_page.click_region_choice_button_gpon()
-    #
-    #     # Проверяем все ссылки городов
-    #     region_page = ChoiceRegionPage(page=page)
-    #     region_page.check_all_city_links()
+    @allure.title("12. Переход по всем ссылкам городов на странице выбора города")
+    def test_gpon_check_all_city_links(self, page_fixture, third_url):
+        page = page_fixture
+        page.goto(third_url)
+
+        # Открываем страницу выбора города через хедер
+        gpon_page = MtsGponHomeOnlinePage(page=page)
+        gpon_page.click_region_choice_button_gpon()
+
+        # Проверяем все ссылки городов
+        region_page = ChoiceRegionPage(page=page)
+        region_page.check_all_city_links()
 
     @allure.title("16. Проверка формы 'Не нашли свой город?'")
     def test_gpon_check_dont_find_city(self, page_fixture, third_url):
