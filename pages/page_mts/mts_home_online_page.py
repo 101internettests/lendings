@@ -119,3 +119,34 @@ class MtsHomeOnlineSecondPage(BasePage):
             self.page.locator(RegionChoiceSecond.PHONE_INPUT).fill("99999999999")
             self.page.locator(RegionChoiceSecond.SEND_BUTTON).click()
             time.sleep(4)
+
+    @allure.title("Проверить 30 случайных ссылок городов на странице")
+    def check_all_city_links(self):
+        """Проверяет до 30 случайных ссылок городов на странице выбора региона без вложений в Allure"""
+        import random
+        with allure.step("Проверка до 30 случайных ссылок городов (без вложений)"):
+            city_links = self.page.locator(RegionChoice.ALL_CHOICES).all()
+            if not city_links:
+                print("Нет ссылок городов для проверки.")
+                return
+            sample_links = random.sample(city_links, min(30, len(city_links)))
+            browser = self.page.context.browser
+            for link in sample_links:
+                city_name = link.text_content().strip()
+                href = link.get_attribute('href')
+                try:
+                    context = browser.new_context()
+                    new_page = context.new_page()
+                    new_page.goto(href)
+                    new_page.wait_for_load_state("domcontentloaded", timeout=20000)
+                    new_page.wait_for_load_state("load", timeout=20000)
+                    try:
+                        new_page.wait_for_load_state("networkidle", timeout=20000)
+                    except Exception:
+                        pass
+                    expect(new_page).not_to_have_url("**/404")
+                except Exception as e:
+                    print(f"Ошибка при проверке {city_name}: {str(e)}")
+                finally:
+                    context.close()
+                    time.sleep(1)

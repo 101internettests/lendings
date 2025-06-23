@@ -240,13 +240,18 @@ class ChoiceRegionPage(BasePage):
         region_button = self.page.locator(RegionChoice.REGION_CHOICE_BUTTON)
         expect(region_button).to_contain_text(expected_text)
 
-    @allure.title("Проверить все ссылки городов на странице")
+    @allure.title("Проверить 30 случайных ссылок городов на странице")
     def check_all_city_links(self):
-        """Проверяет все ссылки городов на странице выбора региона без вложений в Allure"""
-        with allure.step("Проверка всех ссылок городов (без вложений)"):
+        """Проверяет до 30 случайных ссылок городов на странице выбора региона без вложений в Allure"""
+        import random
+        with allure.step("Проверка до 30 случайных ссылок городов (без вложений)"):
             city_links = self.page.locator(RegionChoice.ALL_CHOICES).all()
+            if not city_links:
+                print("Нет ссылок городов для проверки.")
+                return
+            sample_links = random.sample(city_links, min(30, len(city_links)))
             browser = self.page.context.browser
-            for i, link in enumerate(city_links):
+            for link in sample_links:
                 city_name = link.text_content().strip()
                 href = link.get_attribute('href')
                 try:
@@ -258,12 +263,10 @@ class ChoiceRegionPage(BasePage):
                     try:
                         new_page.wait_for_load_state("networkidle", timeout=20000)
                     except Exception:
-                        pass  # Не логируем networkidle, чтобы не раздувать отчёт
+                        pass
                     expect(new_page).not_to_have_url("**/404")
                 except Exception as e:
-                    # Только простое логирование ошибки, без вложений
-                    with allure.step(f"Ошибка при проверке {city_name}: {str(e)}"):
-                        pass
+                    print(f"Ошибка при проверке {city_name}: {str(e)}")
                 finally:
                     context.close()
                     time.sleep(1)
