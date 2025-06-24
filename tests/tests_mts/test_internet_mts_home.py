@@ -6,6 +6,7 @@ from playwright.sync_api import Error as PlaywrightError
 from pages.page_mts.internet_mts_page import MtsInternetHomeOnlinePage
 
 
+@allure.feature("https://internet-mts-home.online/")
 class TestInternetMtsHome:
     @allure.title("1.1. Проверка работы сайта при отсутствии сертификата")
     def test_check_website_without_certificate(self, page_fixture, five_url):

@@ -7,6 +7,7 @@ from pages.page_mts.msk_mts_page import MtsMSKHomeOnlinePage
 from playwright.sync_api import Error as PlaywrightError
 
 
+@allure.feature("https://mts-home-gpon.ru/")
 class TestGponMtsHomeOnline:
     @allure.title("1.1. Проверка работы сайта при отсутствии сертификата")
     def test_gpon_check_website_without_certificate(self, page_fixture, third_url):

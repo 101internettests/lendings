@@ -6,6 +6,7 @@ from pages.page_mts.msk_mts_page import MtsMSKHomeOnlinePage
 from playwright.sync_api import Error as PlaywrightError
 
 
+@allure.feature("https://moskva.mts-home.online/")
 class TestMoskvaMtsHomeOnline:
     @allure.title("1.1. Проверка работы сайта при отсутствии сертификата")
     def test_msk_check_website_without_certificate(self, page_fixture, second_url):
@@ -18,7 +19,6 @@ class TestMoskvaMtsHomeOnline:
                 error_text = str(error)
                 assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
                     "Ожидалась ошибка SSL/сертификата"
-                    
 
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")
