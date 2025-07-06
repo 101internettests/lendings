@@ -37,6 +37,17 @@ def five_url():
     return "https://internet-mts-home.online/"
 
 
+@pytest.fixture(scope="session")
+def six_url():
+    """Базовый URL для тестов"""
+    return "https://mts-internet.online/"
+
+
+@pytest.fixture(scope="session")
+def seven_url():
+    """Базовый URL для тестов"""
+    return "http://mts-ru.ru/"
+
 @pytest.fixture(scope="function")
 def browser_fixture():
     """

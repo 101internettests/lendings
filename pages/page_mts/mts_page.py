@@ -2,8 +2,8 @@ import time
 import allure
 from playwright.sync_api import expect
 from pages.base_page import BasePage
-from locators.mts.mts_home_online import MTSHomeOnlineMain, ApplicationPopupWithName, ApplicationPopupCheckConnection
-from locators.mts.mts_home_online import FormApplicationCheckConnection, RegionChoice, MskMtsMainWeb
+from locators.mts.mts_home_online import MTSHomeOnlineMain, ApplicationPopupWithName, ApplicationPopupCheckConnection, MtsRuLocators
+from locators.mts.mts_home_online import FormApplicationCheckConnection, RegionChoice, MskMtsMainWeb, MtsThirdOnline
 
 
 class MtsHomeOnlinePage(BasePage):
@@ -112,7 +112,19 @@ class MtsHomeOnlinePage(BasePage):
     def send_popup_application_check_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
             self.page.locator(FormApplicationCheckConnection.ADDRESS).fill("Тестимя")
+            time.sleep(3)
             self.page.locator(FormApplicationCheckConnection.PHONE_INPUT).fill("99999999999")
+            time.sleep(3)
+            self.page.locator(FormApplicationCheckConnection.CHECK_ADDRESS_BUTTON).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в форму Проверьте возможность подключения по вашему адресу в Москве под баннером")
+    def send_popup_application_check_connection_new(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(FormApplicationCheckConnection.ADDRESS).fill("Тестоулица11111")
+            time.sleep(3)
+            self.page.locator(FormApplicationCheckConnection.PHONE_INPUT).fill("99999999999")
+            time.sleep(3)
             self.page.locator(FormApplicationCheckConnection.CHECK_ADDRESS_BUTTON).click()
             time.sleep(4)
 
@@ -287,3 +299,88 @@ class ChoiceRegionPage(BasePage):
     @allure.title("Закрыть попап Выгодное предложение")
     def close_popup_super_offer(self):
         self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_CLOSE).click()
+
+
+class MTSSecondOnlinePage(BasePage):
+    @allure.title("Нажать на кнопку Принять на главной странице")
+    def click_confirm_button(self):
+        self.page.locator(MtsThirdOnline.BUTTON_CONFIRM).click()
+
+    @allure.title("Нажать на кнопку Подобрать тариф")
+    def click_choose_tariff_button(self):
+        self.page.locator(MtsThirdOnline.TARIFF_BUTTON).click()
+
+    @allure.title("Нажать на кнопку Подробнее")
+    def click_more_details_button(self):
+        self.page.locator(MtsThirdOnline.MORE_INFO_BUTTON).click()
+
+    @allure.title("Отправить заявку в форму Проверьте возможность подключения по вашему адресу в Москве под баннером")
+    def send_popup_application_check_connection(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(FormApplicationCheckConnection.ADDRESS).fill("Тестоулица1111")
+            time.sleep(3)
+            self.page.locator(FormApplicationCheckConnection.PHONE_INPUT).fill("99999999999")
+            time.sleep(3)
+            self.page.locator(FormApplicationCheckConnection.CHECK_ADDRESS_BUTTON).click()
+            time.sleep(4)
+
+    @allure.title("Проверить ссылку и убедиться, что страница существует")
+    def check_link(self, locator, link_name):
+        """
+        Упрощённая проверка ссылки: видимость, href, клик, отсутствие 404
+        :param locator: локатор ссылки
+        :param link_name: название ссылки для отчета
+        """
+        with allure.step(f"Проверка ссылки {link_name}"):
+            link = self.page.locator(locator)
+            expect(link).to_be_visible()
+            href = link.get_attribute('href')
+            if not href:
+                with allure.step(f"Ссылка {link_name} не имеет атрибута href"):
+                    pass
+                return
+            link.scroll_into_view_if_needed()
+            with self.page.context.expect_page() as new_page_info:
+                link.click(modifiers=["Control"])
+            new_page = new_page_info.value
+            new_page.wait_for_load_state("networkidle", timeout=15000)
+            expect(new_page).not_to_have_url("**/404")
+            new_page.close()
+
+    @allure.title("Проверить все ссылки на странице")
+    def check_all_links(self):
+        """Проверяет все ссылки в хедере и футере"""
+        # Проверяем ссылки в хедере
+        for name, locator in MtsThirdOnline.HEADER_LINKS.items():
+            self.check_link(locator, f"Header: {name}")
+
+        # Проверяем ссылки в футере
+        for name, locator in MtsThirdOnline.FOOTER_LINKS.items():
+            self.check_link(locator, f"Footer: {name}")
+
+
+class MTSRuPage(BasePage):
+    @allure.title("Отправить заявку c баннера на первой странице")
+    def send_popup_application_connection(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(MtsRuLocators.ADDRESS_INPUT).fill("Тестулица")
+            self.page.locator(MtsRuLocators.PHONE_INPUT).fill("99999999999")
+            self.page.locator(MtsRuLocators.SEND_BUTTON).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку на подключение тарифа")
+    def send_tariff_connection_request(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
+            self.page.locator(ApplicationPopupWithName.PHONE_INPUT).fill("99999999999")
+            self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            time.sleep(4)
+
+    @allure.title("Получить список всех тарифных карточек")
+    def get_tariff_cards(self):
+        return self.page.locator(MtsRuLocators.TARIFF_CARDS).all()
+
+    @allure.title("Нажать кнопку Подключить на тарифной карточке")
+    def click_tariff_connect_button(self, card_index):
+        self.page.locator(MtsRuLocators.TARIFF_CONNECT_BUTTONS).nth(card_index).click()
+
