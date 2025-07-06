@@ -15,7 +15,7 @@ class MTSHomeOnlineMain:
     CHECK_ADDRESS_BUTTON_FUTER = "xpath=(//button[contains(text(),'Проверить адрес')])[3]"
     BANNER = "xpath=//div[@class='banner button-application']"
     # Тарифные карточки
-    TARIFF_CARDS = "xpath=//div[@id='sale']"
+    TARIFF_CARDS = "xpath=//div[@class='konvergent-one__cards']//div[@id='sale']"
     TARIFF_NAMES = "xpath=//h3[contains(text(),'')]"
     TARIFF_CONNECT_BUTTONS = "xpath=//button[@class='button button-red card-one__button  button-application']"
     POPUP_TARIFF_NAME = "xpath=(//div[@class='popup__wrapper']//div[contains(text(),'')])[1]"
@@ -54,6 +54,7 @@ class ApplicationPopupWithName:
 class ApplicationPopupCheckConnection:
     ADDRESS_INPUT_SECOND = "xpath=(//input[@placeholder='Адрес'])[2]"
     ADDRESS_INPUT = "xpath=(//input[@placeholder='Адрес'])[3]"
+    NAME_INPUT = "xpath=(//input[@placeholder='Имя'])[1]"
     PHONE_INPUT_SECOND = "xpath=(//input[@name='Phone'])[2]"
     PHONE_INPUT = "xpath=(//input[@name='Phone'])[3]"
     CHECK_ADDRESS_BUTTON_SECOND = "xpath=(//input[@value='Проверить адрес'])[2]"
@@ -108,3 +109,25 @@ class MskMtsMainWeb:
     REGION_CHOICE_BUTTON_SECOND = "xpath=(//a[@id='city'])[2]"
     REGION_CHOICE_BUTTON_FUTER = "xpath=(//a[@href='/city'])[5]"
     SUPER_OFFER_CLOSE = "xpath=(//button[@class='popup__close'])[3]"
+    SUPER_OFFER_CLOSE_NEW = "xpath=(//button[@class='popup__close'])[4]"
+
+
+class MtsThirdOnline:
+    BUTTON_CONFIRM = "xpath=//button[@class=' button-red cookie-btn']"
+    TARIFF_BUTTON = "xpath=(//button[@id='btnup'])[4]"
+    MORE_INFO_BUTTON = "xpath=(//button[@id='btnup'])[3]"
+    HEADER_LINKS = {
+        "all_in_one": "xpath=(//a[contains(text(),'Всё в одном')])[1]",
+        "mobile": "xpath=(//a[contains(text(),'Мобильная связь')])[1]"
+    }
+    FOOTER_LINKS = {
+        "cookie_policy": "xpath=//a[contains(text(),'Политики обработки файлов cookie')]"
+    }
+
+
+class MtsRuLocators:
+    ADDRESS_INPUT = "xpath=(//input[@placeholder='Адрес'])[1]"
+    PHONE_INPUT = "xpath=(//input[@name='Phone'])[1]"
+    SEND_BUTTON = "xpath=(//input[@value='Проверить адрес'])[1]"
+    TARIFF_CONNECT_BUTTONS = "xpath=//div[@class='card-one__buttons']"
+    TARIFF_CARDS = "xpath=//div[@class='konvergent-one__cards']//div[@id='sale']"

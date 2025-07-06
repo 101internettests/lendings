@@ -67,7 +67,7 @@ class TestInternetMtsHome:
         mts_page = MtsHomeOnlinePage(page=page)
         mts_page.click_check_address_button()
         internet_page = MtsInternetHomeOnlinePage(page=page)
-        internet_page.send_popup_application_connection_your_address()
+        internet_page.send_popup_application_connection_your_address_new()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -106,7 +106,7 @@ class TestInternetMtsHome:
         page = page_fixture
         page.goto(five_url)
         mts_page = MtsHomeOnlinePage(page=page)
-        mts_page.send_popup_application_check_connection()
+        mts_page.send_popup_application_check_connection_new()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -128,6 +128,7 @@ class TestInternetMtsHome:
         mts_page = MtsHomeOnlinePage(page=page)
         mts_page.click_check_address_button_futer()
         internet_page = MtsInternetHomeOnlinePage(page=page)
+        time.sleep(2)
         internet_page.send_popup_application_connection_your_address()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()

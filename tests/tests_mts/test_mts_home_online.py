@@ -209,8 +209,8 @@ class TestMolMainRegionPage:
         # Работаем с формой "Не нашли свой город?"
         region_page = ChoiceRegionPage(page=page)
         region_page.click_button_dont_find_city()
-        region_page.close_popup_super_offer()
-        time.sleep(4)
+        # region_page.close_popup_super_offer()
+        # time.sleep(4)
         region_page.send_form_dont_find_city()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()

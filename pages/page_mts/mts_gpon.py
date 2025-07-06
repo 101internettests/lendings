@@ -121,4 +121,4 @@ class MtsGponHomeOnlinePage(BasePage):
 
     @allure.title("Закрыть попап Выгодное предложение")
     def close_popup_super_offer(self):
-        self.page.locator(MskMtsMainWeb.SUPER_OFFER_CLOSE).click()
+        self.page.locator(MskMtsMainWeb.SUPER_OFFER_CLOSE_NEW).click()
