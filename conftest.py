@@ -48,6 +48,31 @@ def seven_url():
     """Базовый URL для тестов"""
     return "http://mts-ru.ru/"
 
+
+@pytest.fixture(scope="session")
+def eight_url():
+    """Базовый URL для тестов"""
+    return "https://mega-premium.ru/"
+
+
+@pytest.fixture(scope="session")
+def eight_two_url():
+    """Базовый URL для тестов"""
+    return "https://mega-premium.ru/sankt-peterburg"
+
+
+@pytest.fixture(scope="session")
+def nine_url():
+    """Базовый URL для тестов"""
+    return "https://mega-home-internet.ru/"
+
+
+@pytest.fixture(scope="session")
+def nine_two_url():
+    """Базовый URL для тестов"""
+    return "https://sankt-peterburg.mega-home-internet.ru/"
+
+
 @pytest.fixture(scope="function")
 def browser_fixture():
     """
@@ -107,4 +132,4 @@ def page_fixture_ignore_https(browser_fixture_ignore_https):
 
 @pytest.hookimpl(trylast=True)
 def pytest_sessionfinish(session, exitstatus):
-    bot.send_message(chat_id, "Тесты мтс прошли")
+    bot.send_message(chat_id, "🤖 Отчет по лендингам готов!")
