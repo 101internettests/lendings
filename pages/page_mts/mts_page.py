@@ -51,7 +51,9 @@ class MtsHomeOnlinePage(BasePage):
     def send_popup_application_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
             self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
+            time.sleep(1)
             self.page.locator(ApplicationPopupWithName.PHONE_INPUT).fill("99999999999")
+            time.sleep(1)
             self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
             time.sleep(4)
 
