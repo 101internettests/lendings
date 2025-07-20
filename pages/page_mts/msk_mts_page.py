@@ -57,6 +57,7 @@ class MtsMSKHomeOnlinePage(BasePage):
     @allure.title("Отправить заявку на подключение тарифа")
     def send_tariff_connection_request(self):
         with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(ApplicationPopupWithName.ADDRESS_INPUT).fill("Тестоадрес")
             self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
             self.page.locator(ApplicationPopupWithName.PHONE_INPUT).fill("99999999999")
             self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()

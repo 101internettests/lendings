@@ -31,7 +31,7 @@ class TestMtsMskHomeOnlineThird:
         time.sleep(25)
         mts_second_page.check_popup_super_offer()
         time.sleep(2)
-        mts_page.send_popup_super_offer()
+        mts_page.send_popup_super_offer_new()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -47,7 +47,7 @@ class TestMtsMskHomeOnlineThird:
         mts_second_page = MtsHomeOnlineSecondPage(page=page)
         mts_second_page.check_popup_super_offer()
         time.sleep(2)
-        mts_page.send_popup_super_offer()
+        mts_page.send_popup_super_offer_new()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -57,7 +57,7 @@ class TestMtsMskHomeOnlineThird:
         page.goto(six_url)
         mts_page = MtsHomeOnlinePage(page=page)
         mts_page.click_connect_button()
-        mts_page.send_popup_application_connection()
+        mts_page.send_popup_application_connection_new()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -68,7 +68,7 @@ class TestMtsMskHomeOnlineThird:
         mts_page = MtsHomeOnlinePage(page=page)
         mts_third_page = MTSSecondOnlinePage(page=page)
         mts_third_page.click_choose_tariff_button()
-        mts_page.send_popup_application_connection()
+        mts_page.send_popup_application_connection_new()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -92,7 +92,7 @@ class TestMtsMskHomeOnlineThird:
         mts_third_page = MTSSecondOnlinePage(page=page)
         mts_third_page.click_more_details_button()
         mts_page = MtsHomeOnlinePage(page=page)
-        mts_page.send_popup_application_connection()
+        mts_page.send_popup_application_connection_new()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -112,7 +112,7 @@ class TestMtsMskHomeOnlineThird:
         page.goto(six_url)
         mts_page = MtsHomeOnlinePage(page=page)
         mts_page.click_connect_button_futer()
-        mts_page.send_popup_application_connection()
+        mts_page.send_popup_application_connection_new()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 

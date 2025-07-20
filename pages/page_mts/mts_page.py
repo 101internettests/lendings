@@ -20,6 +20,13 @@ class MtsHomeOnlinePage(BasePage):
             self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()
             time.sleep(4)
 
+    @allure.title("Отправить заявку в попап и проверить успешность")
+    def send_popup_super_offer_new(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP).fill("99999999999")
+            self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()
+            time.sleep(4)
+
     @allure.title("Отправить заявку в попап для других страниц и проверить успешность")
     def send_popup_super_offer_other_pages(self):
         with allure.step("Заполнить попап и отправить заявку"):
@@ -53,6 +60,16 @@ class MtsHomeOnlinePage(BasePage):
         with allure.step("Заполнить попап и отправить заявку"):
             self.page.locator(ApplicationPopupWithName.ADDRESS_INPUT).fill("Тестадрес")
             time.sleep(1)
+            self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
+            time.sleep(1)
+            self.page.locator(ApplicationPopupWithName.PHONE_INPUT).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в попап с названием Заявка на подключение")
+    def send_popup_application_connection_new(self):
+        with allure.step("Заполнить попап и отправить заявку"):
             self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
             time.sleep(1)
             self.page.locator(ApplicationPopupWithName.PHONE_INPUT).fill("99999999999")
@@ -165,7 +182,15 @@ class MtsHomeOnlinePage(BasePage):
     @allure.title("Отправить заявку на подключение тарифа")
     def send_tariff_connection_request(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(ApplicationPopupWithName.ADDRESS_INPUT).fill("Тестимя")
+            self.page.locator(ApplicationPopupWithName.ADDRESS_INPUT).fill("Тестоадрес")
+            self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
+            self.page.locator(ApplicationPopupWithName.PHONE_INPUT).fill("99999999999")
+            self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку на подключение тарифа")
+    def send_tariff_connection_request_new(self):
+        with allure.step("Заполнить попап и отправить заявку"):
             self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
             self.page.locator(ApplicationPopupWithName.PHONE_INPUT).fill("99999999999")
             self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
