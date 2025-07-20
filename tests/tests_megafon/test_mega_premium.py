@@ -29,7 +29,7 @@ class TestMegaPremium:
         time.sleep(20)
         mts_page.check_popup_super_offer()
         time.sleep(2)
-        mts_page.send_popup_super_offer()
+        mts_page.send_popup_super_offer_new()
         mts_page.check_sucess()
 
     @allure.title("3. Отправка заявки из попапа Выгодное спецпредложение! по нажатию фиксированной зеленой кнопки "
@@ -41,7 +41,7 @@ class TestMegaPremium:
         mts_page.click_on_red_button()
         mts_page.check_popup_super_offer()
         time.sleep(2)
-        mts_page.send_popup_super_offer()
+        mts_page.send_popup_super_offer_new()
         mts_page.check_sucess()
 
     @allure.title("4. Отправка заявки из попапа по кнопке Подключить из хедера")
@@ -50,7 +50,7 @@ class TestMegaPremium:
         page.goto(eight_url)
         mts_page = MtsHomeOnlinePage(page=page)
         mts_page.click_connect_button()
-        mts_page.send_popup_application_connection()
+        mts_page.send_popup_application_connection_new()
         mts_page.check_sucess()
 
     @allure.title("5. Отправка заявки со ВСЕХ форм на странице с названием Проверьте возможность подключения по "
@@ -82,7 +82,7 @@ class TestMegaPremium:
         mts_page = MtsHomeOnlinePage(page=page)
         mega_page = MegaPremiumOnline(page=page)
         mega_page.click_clarify_button()
-        mts_page.send_popup_application_connection()
+        mts_page.send_popup_application_connection_new()
         mts_page.check_sucess()
 
     @allure.title("8. Отправка заявки из попапа по кнопке Подключить из футера")
@@ -91,7 +91,7 @@ class TestMegaPremium:
         page.goto(eight_url)
         mts_page = MtsHomeOnlinePage(page=page)
         mts_page.click_connect_button_futer()
-        mts_page.send_popup_application_connection()
+        mts_page.send_popup_application_connection_new()
         mts_page.check_sucess()
         mega_page = MegaPremiumOnline(page=page)
         mega_page.close_thankyou_page()
@@ -107,7 +107,7 @@ class TestMegaPremium:
             with allure.step(f"Подключение тарифа {i + 1}"):
                 mega_page.click_tariff_connect_button(i)
                 time.sleep(3)
-                mts_page.send_tariff_connection_request()
+                mts_page.send_tariff_connection_request_new()
                 mts_page.check_sucess()
                 mega_page.close_thankyou_page()
                 time.sleep(2)
@@ -156,7 +156,7 @@ class TestMegaPremium:
         time.sleep(20)
         mts_page.check_popup_super_offer()
         time.sleep(2)
-        mts_page.send_popup_super_offer()
+        mts_page.send_popup_super_offer_new()
         mts_page.check_sucess()
 
     @allure.title("16. Отправка заявки из попапа Выгодное спецпредложение! по нажатию фиксированной зеленой кнопки "
@@ -168,7 +168,7 @@ class TestMegaPremium:
         mts_page.click_on_red_button()
         mts_page.check_popup_super_offer()
         time.sleep(2)
-        mts_page.send_popup_super_offer()
+        mts_page.send_popup_super_offer_new()
         mts_page.check_sucess()
 
     @allure.title("17. Отправка заявки из попапа по кнопке Подключить из хедера СПБ")
@@ -177,7 +177,7 @@ class TestMegaPremium:
         page.goto(eight_two_url)
         mts_page = MtsHomeOnlinePage(page=page)
         mts_page.click_connect_button()
-        mts_page.send_popup_application_connection()
+        mts_page.send_popup_application_connection_new()
         mts_page.check_sucess()
 
     @allure.title("18. Отправка заявки со ВСЕХ форм на странице с названием Проверьте возможность подключения по "
@@ -209,7 +209,7 @@ class TestMegaPremium:
         mts_page = MtsHomeOnlinePage(page=page)
         mega_page = MegaPremiumOnline(page=page)
         mega_page.click_clarify_button()
-        mts_page.send_popup_application_connection()
+        mts_page.send_popup_application_connection_new()
         mts_page.check_sucess()
 
     @allure.title("21. Отправка заявки из попапа по кнопке Подключить из футера СПБ")
@@ -218,7 +218,7 @@ class TestMegaPremium:
         page.goto(eight_two_url)
         mts_page = MtsHomeOnlinePage(page=page)
         mts_page.click_connect_button_futer()
-        mts_page.send_popup_application_connection()
+        mts_page.send_popup_application_connection_new()
         mts_page.check_sucess()
         mega_page = MegaPremiumOnline(page=page)
         mega_page.close_thankyou_page()
@@ -234,7 +234,7 @@ class TestMegaPremium:
             with allure.step(f"Подключение тарифа {i + 1}"):
                 mega_page.click_tariff_connect_button(i)
                 time.sleep(3)
-                mts_page.send_tariff_connection_request()
+                mts_page.send_tariff_connection_request_new()
                 mts_page.check_sucess()
                 mega_page.close_thankyou_page()
                 time.sleep(2)

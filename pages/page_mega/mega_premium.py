@@ -92,7 +92,7 @@ class MegaPremiumOnline(BasePage):
     def check_footer_links(self):
         """Проверяет все ссылки в хедере и футере"""
         # Проверяем ссылки в хедере
-        for name, locator in MainPageLocs.FOOTER_LINKS.items():
+        for name, locator in MainPageLocs.POPUP_LINKS.items():
             self.check_link(locator, f"Header: {name}")
 
     @allure.title("Проверить все ссылки на странице")

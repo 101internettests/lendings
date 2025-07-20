@@ -4,6 +4,7 @@ import pytest
 from pages.page_mts.mts_page import MtsHomeOnlinePage, ChoiceRegionPage, MTSSecondOnlinePage, MTSRuPage
 from pages.page_mts.mts_home_online_page import MtsHomeOnlineSecondPage
 from pages.page_mts.internet_mts_page import MtsInternetHomeOnlinePage
+from pages.page_mts.mts_ru_page import MtsRuPage
 from playwright.sync_api import Error as PlaywrightError
 
 
@@ -31,7 +32,8 @@ class TestMtsRu:
         time.sleep(25)
         mts_second_page.check_popup_super_offer()
         time.sleep(2)
-        mts_page.send_popup_super_offer()
+        ru_page = MtsRuPage(page=page)
+        ru_page.send_popup_super_offer()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -47,7 +49,8 @@ class TestMtsRu:
         mts_second_page = MtsHomeOnlineSecondPage(page=page)
         mts_second_page.check_popup_super_offer()
         time.sleep(2)
-        mts_page.send_popup_super_offer()
+        ru_page = MtsRuPage(page=page)
+        ru_page.send_popup_super_offer()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -57,7 +60,8 @@ class TestMtsRu:
         page.goto(seven_url)
         mts_page = MtsHomeOnlinePage(page=page)
         mts_page.click_connect_button()
-        mts_page.send_popup_application_connection()
+        ru_page = MtsRuPage(page=page)
+        ru_page.send_popup_application_connection()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -101,7 +105,7 @@ class TestMtsRu:
     #     mts_page.send_popup_application_check_connection_near_futer()
     #     mts_page.check_sucess()
     #     mts_page.close_thankyou_page()
-    #
+
     @allure.title("7. Отправка заявки из попапа по кнопке Подробнее из банера с заголовком Акции от МТС")
     def test_application_popup_banner(self, page_fixture, seven_url):
         page = page_fixture
@@ -109,7 +113,8 @@ class TestMtsRu:
         mts_third_page = MTSSecondOnlinePage(page=page)
         mts_third_page.click_more_details_button()
         mts_page = MtsHomeOnlinePage(page=page)
-        mts_page.send_popup_application_connection()
+        ru_page = MtsRuPage(page=page)
+        ru_page.send_popup_application_connection()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -129,7 +134,8 @@ class TestMtsRu:
         page.goto(seven_url)
         mts_page = MtsHomeOnlinePage(page=page)
         mts_page.click_connect_button_futer()
-        mts_page.send_popup_application_connection()
+        ru_page = MtsRuPage(page=page)
+        ru_page.send_popup_application_connection()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
