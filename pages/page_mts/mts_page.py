@@ -15,6 +15,7 @@ class MtsHomeOnlinePage(BasePage):
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer(self):
         with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(ApplicationPopupWithName.ADDRESS_INPUT_FIVE).fill("Тестоадрес")
             self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP).fill("99999999999")
             self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()
             time.sleep(4)
@@ -50,6 +51,8 @@ class MtsHomeOnlinePage(BasePage):
     @allure.title("Отправить заявку в попап с названием Заявка на подключение")
     def send_popup_application_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(ApplicationPopupWithName.ADDRESS_INPUT).fill("Тестадрес")
+            time.sleep(1)
             self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
             time.sleep(1)
             self.page.locator(ApplicationPopupWithName.PHONE_INPUT).fill("99999999999")
@@ -162,6 +165,7 @@ class MtsHomeOnlinePage(BasePage):
     @allure.title("Отправить заявку на подключение тарифа")
     def send_tariff_connection_request(self):
         with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(ApplicationPopupWithName.ADDRESS_INPUT).fill("Тестимя")
             self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
             self.page.locator(ApplicationPopupWithName.PHONE_INPUT).fill("99999999999")
             self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
