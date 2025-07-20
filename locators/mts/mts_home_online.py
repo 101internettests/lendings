@@ -48,6 +48,8 @@ class ApplicationPopupWithName:
     PHONE_INPUT_OTHER = "xpath=(//input[@name='Phone'])[3]"
     PHONE_INPUT = "xpath=(//input[@name='Phone'])[4]"
     SEND_BUTTON = "xpath=(//input[@value='Отправить'])[1]"
+    ADDRESS_INPUT = "xpath=(//input[@placeholder='Адрес'])[4]"
+    ADDRESS_INPUT_FIVE = "xpath=(//input[@placeholder='Адрес'])[5]"
 
 
 # попап по кнопке подключить Проверить адрес
@@ -66,6 +68,7 @@ class FormApplicationCheckConnection:
     PHONE_INPUT = "xpath=(//input[@name='Phone'])[1]"
     CHECK_ADDRESS_BUTTON = "xpath=(//input[@value='Проверить адрес'])[1]"
     ADDRESS_SECOND = "xpath=(//input[@placeholder='Адрес'])[2]"
+    ADDRESS_THIRD = "xpath=(//input[@placeholder='Адрес'])[3]"
     PHONE_INPUT_SECOND = "xpath=(//input[@name='Phone'])[2]"
     CHECK_ADDRESS_BUTTON_SECOND = "xpath=(//input[@value='Проверить адрес'])[2]"
 
@@ -110,6 +113,7 @@ class MskMtsMainWeb:
     REGION_CHOICE_BUTTON_FUTER = "xpath=(//a[@href='/city'])[5]"
     SUPER_OFFER_CLOSE = "xpath=(//button[@class='popup__close'])[3]"
     SUPER_OFFER_CLOSE_NEW = "xpath=(//button[@class='popup__close'])[4]"
+    ADDRESS_FIVE = "xpath=(//input[@placeholder='Адрес'])[5]"
 
 
 class MtsThirdOnline:

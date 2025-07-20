@@ -4,6 +4,7 @@ class MTSHomeOnlineSecondMain:
     INPUT_OFFER_POPUP = "xpath=(//input[@name='Phone'])[6]"
     CONNECT_BUTTON = "xpath=(//button[contains(text(),'Подключить')])[2]"
     CHECK_ADDRESS_BUTTON_FUTER = "xpath=(//button[contains(text(),'Проверить адрес')])[2]"
+    ADDRESS_INPUT = "xpath=(//input[@placeholder='Адрес'])[6]"
 
 
 class ApplicationPopupWithNameS:
@@ -18,6 +19,7 @@ class FormApplicationCheckConnectionSecond:
 
 class ApplicationPopupCheckConnectionSecond:
     ADDRESS_INPUT_SECOND = "xpath=(//input[@placeholder='Адрес'])[3]"
+    ADDRESS_INPUT_FOUR = "xpath=(//input[@placeholder='Адрес'])[4]"
     PHONE_INPUT_SECOND = "xpath=(//input[@name='Phone'])[4]"
     CHECK_ADDRESS_BUTTON = "xpath=(//input[@value='Проверить адрес'])[3]"
 # Ссылки в хедере
