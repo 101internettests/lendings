@@ -73,6 +73,24 @@ def nine_two_url():
     return "https://sankt-peterburg.mega-home-internet.ru/"
 
 
+@pytest.fixture(scope="session")
+def providerdom_url():
+    """Базовый URL для тестов"""
+    return "https://providerdom.ru/"
+
+
+@pytest.fixture(scope="session")
+def msk_providerdom_url():
+    """Базовый URL для тестов"""
+    return "https://moskva.providerdom.ru/"
+
+
+@pytest.fixture(scope="session")
+def dom_provider_online_url():
+    """Базовый URL для тестов"""
+    return "https://dom-provider.online/"
+
+
 @pytest.fixture(scope="function")
 def browser_fixture():
     """
