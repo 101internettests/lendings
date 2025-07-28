@@ -67,7 +67,7 @@ class TestInternetMtsHome:
         mts_page = MtsHomeOnlinePage(page=page)
         mts_page.click_check_address_button()
         internet_page = MtsInternetHomeOnlinePage(page=page)
-        internet_page.send_popup_application_connection_your_address_new()
+        internet_page.send_popup_application_connection_your_address()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
