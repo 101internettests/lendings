@@ -1,10 +1,113 @@
 import os
 import pytest
+import allure
 from dotenv import load_dotenv
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, Error as PlaywrightError
 from config import bot, chat_id
 # Загружаем переменные окружения из .env файла
 load_dotenv()
+
+
+def check_page_status_code(page, url):
+    """
+    Проверяет статус код страницы и добавляет информацию в Allure отчет
+    """
+    try:
+        # Получаем все ответы для данного URL
+        responses = []
+        for response_obj in page.context.request.all():
+            if url in response_obj.url:
+                responses.append(response_obj)
+        
+        if responses:
+            # Берем последний ответ для основного URL
+            main_response = responses[-1]
+            status_code = main_response.status
+            
+            with allure.step(f"Проверка статус кода для {url}"):
+                allure.attach(
+                    f"URL: {url}\nСтатус код: {status_code}",
+                    name="Статус код страницы",
+                    attachment_type=allure.attachment_type.TEXT
+                )
+                
+                if status_code >= 400:
+                    allure.attach(
+                        f"Ошибка HTTP: {status_code}\nURL: {url}",
+                        name="Ошибка HTTP",
+                        attachment_type=allure.attachment_type.TEXT
+                    )
+                    return False, status_code
+                return True, status_code
+        else:
+            with allure.step(f"Не удалось получить статус код для {url}"):
+                allure.attach(
+                    f"URL: {url}\nПричина: Нет ответов от сервера",
+                    name="Ошибка получения статус кода",
+                    attachment_type=allure.attachment_type.TEXT
+                )
+                return False, None
+                
+    except Exception as e:
+        with allure.step(f"Ошибка при проверке статус кода для {url}"):
+            allure.attach(
+                f"URL: {url}\nОшибка: {str(e)}",
+                name="Исключение при проверке статус кода",
+                attachment_type=allure.attachment_type.TEXT
+            )
+            return False, None
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_makereport(item, call):
+    """
+    Хук для перехвата ошибок и добавления информации о статус коде в Allure отчет
+    """
+    if call.when == "call" and call.excinfo is not None:
+        # Получаем фикстуру page если она есть
+        page_fixture = None
+        for fixture_name in item.funcargs:
+            if 'page' in fixture_name:
+                page_fixture = item.funcargs[fixture_name]
+                break
+        
+        if page_fixture:
+            try:
+                # Получаем URL из параметров теста
+                url = None
+                for param_name, param_value in item.funcargs.items():
+                    if 'url' in param_name and isinstance(param_value, str):
+                        url = param_value
+                        break
+                
+                if url:
+                    success, status_code = check_page_status_code(page_fixture, url)
+                    
+                    # Добавляем информацию об ошибке в отчет
+                    with allure.step("Анализ ошибки"):
+                        allure.attach(
+                            f"Тип ошибки: {type(call.excinfo.value).__name__}\n"
+                            f"Сообщение: {str(call.excinfo.value)}\n"
+                            f"URL: {url}\n"
+                            f"Статус код: {status_code if status_code else 'Не определен'}",
+                            name="Детали ошибки",
+                            attachment_type=allure.attachment_type.TEXT
+                        )
+                        
+                        if isinstance(call.excinfo.value, PlaywrightError):
+                            allure.attach(
+                                f"Playwright ошибка: {str(call.excinfo.value)}",
+                                name="Playwright ошибка",
+                                attachment_type=allure.attachment_type.TEXT
+                            )
+                            
+            except Exception as e:
+                with allure.step("Ошибка при анализе статус кода"):
+                    allure.attach(
+                        f"Не удалось проверить статус код: {str(e)}",
+                        name="Ошибка анализа",
+                        attachment_type=allure.attachment_type.TEXT
+                    )
 
 
 @pytest.fixture(scope="session")
