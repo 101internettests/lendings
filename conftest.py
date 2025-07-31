@@ -194,6 +194,12 @@ def dom_provider_online_url():
     return "https://dom-provider.online/"
 
 
+@pytest.fixture(scope="session")
+def beeline_online():
+    """Базовый URL для тестов"""
+    return "https://beeline-ru.online/"
+
+
 @pytest.fixture(scope="function")
 def browser_fixture():
     """
