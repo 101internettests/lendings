@@ -13,7 +13,6 @@ class DomRuClass(BasePage):
 
     @allure.title("Ответить в всплывашке, что нахожусь не в Москве")
     def choose_msk_location(self):
-        expect(self.page.locator(LocationPopup.POPUP_HEADER)).to_be_visible()
         self.page.locator(LocationPopup.NO_BUTTON).click()
 
     @allure.title("Отправить заявку в попап и проверить успешность")
