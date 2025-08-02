@@ -148,68 +148,71 @@ class TestBeelineOnline:
         page.goto(beeline_online)
         domru_page = DomRuClass(page=page)
         domru_page.close_popup_location()
-        domru_page.check_all_links_sec()
+        beeline_page = BeelineOnlinePage(page=page)
+        beeline_page.check_all_links_sec()
 
+    @allure.title("9. Выбор региона из хедера")
+    def test_choose_region_header_spb(self, page_fixture, beeline_online):
+        page = page_fixture
+        page.goto(beeline_online)
+        mts_page = MtsHomeOnlinePage(page=page)
+        domru_page = DomRuClass(page=page)
+        domru_page.close_popup_location()
+        mts_page.click_region_choice_button()
+        region_page = ChoiceRegionPage(page=page)
+        with allure.step("Выбрать Санкт Петербург"):
+            region_page.fill_region_search("Санк")
+            region_page.verify_first_region_choice("Санкт-Петербург")
+            region_page.select_first_region()
+            region_page.verify_region_button_text("Санкт-Петербург")
+            time.sleep(3)
+        with allure.step("Выбрать Аксай"):
+            domru_page.close_popup_location()
+            mts_page.click_region_choice_button()
+            region_page.fill_region_search("Аксай")
+            region_page.verify_first_region_choice("Аксай (Ростовская область)")
+            region_page.select_first_region()
+            region_page.verify_region_button_text("Аксай")
 
-    #
-    # @allure.title("8. Отправка заявки из попапа Заявка на подключение с кнопки Подключить интернет с группы блоков "
-    #               "под заголовком Дом.ру — ваш план для самых разных задач")
-    # def test_popup_application_connection(self, page_fixture, beeline_online):
-    #     page = page_fixture
-    #     page.goto(beeline_online)
-    #     mts_page = MtsHomeOnlinePage(page=page)
-    #     domru_page = DomRuClass(page=page)
-    #     domru_page.close_popup_location()
-    #     with allure.step("Нажать на кнопку Подключить интернет первую"):
-    #         domru_page.open_popup_connection()
-    #         domru_page.send_tariff_connection_request_second()
-    #         mts_page.check_sucess()
-    #         domru_page.close_thankyou_page()
-    #         time.sleep(2)
-    #     with allure.step("Нажать на кнопку Подключить интернет вторую"):
-    #         domru_page.open_popup_connection_second()
-    #         domru_page.send_tariff_connection_request_second()
-    #         mts_page.check_sucess()
-    #         domru_page.close_thankyou_page()
-    #         time.sleep(2)
-    #     with allure.step("Нажать на кнопку Подключить интернет вторую"):
-    #         domru_page.open_popup_connection_third()
-    #         domru_page.send_tariff_connection_request_second()
-    #         mts_page.check_sucess()
-    #         domru_page.close_thankyou_page()
-    #         time.sleep(2)
-    #
-    # @allure.title("11. Выбор региона Абинск из хедера")
-    # def test_choose_region_header_spb(self, page_fixture, beeline_online):
-    #     page = page_fixture
-    #     page.goto(beeline_online)
-    #     mts_page = MtsHomeOnlinePage(page=page)
-    #     domru_page = DomRuClass(page=page)
-    #     domru_page.close_popup_location()
-    #     mts_page.click_region_choice_button()
-    #     region_page = ChoiceRegionPage(page=page)
-    #     with allure.step("Выбрать Абинск"):
-    #         region_page.fill_region_search("Аби")
-    #         region_page.verify_first_region_choice("Абинск")
-    #         region_page.select_first_region()
-    #         region_page.verify_region_button_text("Абинск")
-    #
-    # @allure.title("13. Проверка формы 'Не нашли свой город?'")
-    # def test_check_dont_find_city(self, page_fixture, beeline_online):
-    #     page = page_fixture
-    #     page.goto(beeline_online)
-    #     domru_page = DomRuClass(page=page)
-    #     domru_page.close_popup_location()
-    #     # Открываем страницу выбора города через хедер
-    #     mts_page = MtsHomeOnlinePage(page=page)
-    #     mts_page.click_region_choice_button()
-    #
-    #     # Работаем с формой "Не нашли свой город?"
-    #     region_page = ChoiceRegionPage(page=page)
-    #     region_page.click_button_dont_find_city()
-    #     # region_page.close_popup_super_offer()
-    #     # time.sleep(4)
-    #     region_page.send_form_dont_find_city()
-    #     mts_page.check_sucess()
-    #     domru_page.close_thankyou_page()
-    #     time.sleep(2)
+    @allure.title("10. Выбор региона из футера")
+    def test_choose_region_futer_spb(self, page_fixture, beeline_online):
+        page = page_fixture
+        page.goto(beeline_online)
+        mts_page = MtsHomeOnlinePage(page=page)
+        domru_page = DomRuClass(page=page)
+        domru_page.close_popup_location()
+        mts_page.click_region_choice_button_futer()
+        region_page = ChoiceRegionPage(page=page)
+        with allure.step("Выбрать Санкт Петербург"):
+            region_page.fill_region_search("Санк")
+            region_page.verify_first_region_choice("Санкт-Петербург")
+            region_page.select_first_region()
+            region_page.verify_region_button_text("Санкт-Петербург")
+            time.sleep(3)
+        with allure.step("Выбрать Аксай"):
+            domru_page.close_popup_location()
+            mts_page.click_region_choice_button_futer()
+            region_page.fill_region_search("Аксай")
+            region_page.verify_first_region_choice("Аксай (Ростовская область)")
+            region_page.select_first_region()
+            region_page.verify_region_button_text("Аксай")
+
+    @allure.title("12. Проверка формы 'Не нашли свой город?'")
+    def test_check_dont_find_city(self, page_fixture, beeline_online):
+        page = page_fixture
+        page.goto(beeline_online)
+        domru_page = DomRuClass(page=page)
+        domru_page.close_popup_location()
+        # Открываем страницу выбора города через хедер
+        mts_page = MtsHomeOnlinePage(page=page)
+        mts_page.click_region_choice_button()
+
+        # Работаем с формой "Не нашли свой город?"
+        region_page = ChoiceRegionPage(page=page)
+        region_page.click_button_dont_find_city()
+        # region_page.close_popup_super_offer()
+        # time.sleep(4)
+        region_page.send_form_dont_find_city()
+        mts_page.check_sucess()
+        domru_page.close_thankyou_page()
+        time.sleep(2)

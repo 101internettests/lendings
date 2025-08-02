@@ -23,13 +23,37 @@ class BeelineMain:
         "family_tariffs": "xpath=(//a[contains(text(),'Семейные тарифы')])[1]",
         "business": "xpath=(//a[contains(text(),'Бизнесу')])[1]"
     }
-
+    HEADER_LINKS_SECOND = {
+        "home_internet": "xpath=(//a[contains(text(),'Домашний интернет')])[1]",
+        "internet_tv": "xpath=(//a[contains(text(),'Интернет + ТВ')])[1]",
+        "family_tariffs": "xpath=(//a[contains(text(),'Семейные тарифы')])[1]",
+        "all_tariffs": "xpath=(//a[contains(text(),'Все тарифы')])[1]",
+        "business": "xpath=(//a[contains(text(),'Бизнесу')])[1]"
+    }
+    HEADER_LINKS_THIRD = {
+        "home_internet": "xpath=(//a[contains(text(),'домашний интернет')])[1]",
+        "internet_tv": "xpath=(//a[contains(text(),'интернет и ТВ')])[1]",
+        "for_you_and_house": "xpath=(//a[contains(text(),'для тебя и дома')])[1]",
+        "business": "xpath=(//a[contains(text(),'бизнесу')])[1]"
+    }
     # Ссылки в футере
     FOOTER_LINKS = {
         "home_internet": "xpath=(//a[contains(text(),'Домашний интернет')])[2]",
-        "internet_tv": "xpath=(//a[contains(text(),'Интернет + ТВ')])[2]",
+        "internet_tv": "xpath=(//a[contains(text(),'Интернет и Телевидение')])[1]",
         "family_tariffs": "xpath=(//a[contains(text(),'Семейные тарифы')])[2]",
         "business": "xpath=(//a[contains(text(),'Бизнесу')])[2]"
+    }
+    FOOTER_LINKS_SECOND = {
+        "home_internet": "xpath=(//a[contains(text(),'Домашний интернет')])[2]",
+        "internet_tv": "xpath=(//a[contains(text(),'Интернет и Телевидение')])[1]",
+        "family_tariffs": "xpath=(//a[contains(text(),'Семейные тарифы')])[2]",
+        "all_tariffs": "xpath=(//a[contains(text(),'Все тарифы')])[2]",
+        "business": "xpath=(//a[contains(text(),'Бизнесу')])[2]"
+    }
+    FOOTER_LINKS_THIRD = {
+        "home_internet": "xpath=(//a[contains(text(),'домашний интернет')])[2]",
+        "internet_tv": "xpath=(//a[contains(text(),'интернет + телевидение')])[1]",
+        "family_tariffs": "xpath=(//a[contains(text(),'тарифы для семьи')])[1]"
     }
 
     OTHER_HEADERS = {
@@ -41,3 +65,16 @@ class BeelineMain:
     FOOTER_LINKS_SEC = {
         "privacy_policy": "xpath=(//a[contains(text(),'cookies')])[1]"
     }
+
+
+class OnlineBeeline:
+    CHOOSE_YOUR_CITY_HEADER = "xpath=//p[text()=' Уточните ваш город']"
+    CHOOSE_YOUR_CITY_BUTTON =  "xpath=//button[text()='Выбрать город']"
+    CLOSE_CITY_POPUP = "xpath=(//button[@class='popup__close'])[2]"
+    FILL_THE_ADDRESS = "xpath=(//input[@placeholder='введите адрес'])[1]"
+    FILL_THE_ADDRESS_SECOND = "xpath=(//input[@placeholder='введите адрес'])[2]"
+    BUTTON_FIND_TARIFFS ="xpath=(//input[@value='найти тарифы'])[1]"
+    BUTTON_FIND_TARIFFS_SECOND = "xpath=(//input[@value='найти тарифы'])[2]"
+    CONNECT_BUTTON_FUTER = "xpath=(//button[contains(text(),'подключиться')])[2]"
+    BUTTON_FAST_CONNECTION  = "xpath=//button[contains(text(),'быстрое подключение')]"
+    BUTTON_DONT_CITY = "xpath=//button[@class='region-search__button button button-yellow']"

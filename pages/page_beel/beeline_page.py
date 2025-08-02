@@ -3,7 +3,7 @@ import allure
 from playwright.sync_api import expect
 from pages.base_page import BasePage
 from locators.mts.mts_home_online import MTSHomeOnlineMain
-from locators.beeline.beeline_locators import BeelineMain
+from locators.beeline.beeline_locators import BeelineMain, OnlineBeeline
 
 
 class BeelineOnlinePage(BasePage):
@@ -11,6 +11,13 @@ class BeelineOnlinePage(BasePage):
     def send_popup_super_offer(self):
         with allure.step("Заполнить попап и отправить заявку"):
             self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP).fill("99999999999")
+            self.page.locator(BeelineMain.SEND_BUTTON).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в попап и проверить успешность")
+    def send_popup_super_offer_dom(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SOME_PAGE).fill("99999999999")
             self.page.locator(BeelineMain.SEND_BUTTON).click()
             time.sleep(4)
 
@@ -34,6 +41,18 @@ class BeelineOnlinePage(BasePage):
             self.page.locator(BeelineMain.INPUT_HOUSE).fill("1")
             time.sleep(1)
             self.page.locator(BeelineMain.PHONE_INPUT_OTHER).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(BeelineMain.INPUT_CONNECT).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в попап с названием Заявка на подключение")
+    def send_popup_application_connection_dom(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(BeelineMain.INPUT_STREET).fill("Тестовая")
+            time.sleep(1)
+            self.page.locator(BeelineMain.INPUT_HOUSE).fill("1")
+            time.sleep(1)
+            self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
             time.sleep(1)
             self.page.locator(BeelineMain.INPUT_CONNECT).click()
             time.sleep(4)
@@ -116,3 +135,104 @@ class BeelineOnlinePage(BasePage):
 
         for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
             self.check_link(locator, f"Footer: {name}")
+
+    @allure.title("Проверить все ссылки на странице")
+    def check_all_links_msk(self):
+        """Проверяет все ссылки в хедере и футере"""
+        # Проверяем ссылки в хедере
+        for name, locator in BeelineMain.HEADER_LINKS_SECOND.items():
+            self.check_link(locator, f"Header: {name}")
+
+        # Проверяем ссылки в футере
+        for name, locator in BeelineMain.FOOTER_LINKS_SECOND.items():
+            self.check_link(locator, f"Footer: {name}")
+
+        for name, locator in BeelineMain.OTHER_HEADERS.items():
+            self.check_link(locator, f"Footer: {name}")
+
+        for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
+            self.check_link(locator, f"Footer: {name}")
+
+    @allure.title("Проверить все ссылки на странице")
+    def check_all_links_msk_dom(self):
+        """Проверяет все ссылки в хедере и футере"""
+        # Проверяем ссылки в хедере
+        for name, locator in BeelineMain.HEADER_LINKS_SECOND.items():
+            self.check_link(locator, f"Header: {name}")
+
+        # Проверяем ссылки в футере
+        for name, locator in BeelineMain.FOOTER_LINKS_SECOND.items():
+            self.check_link(locator, f"Footer: {name}")
+
+        for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
+            self.check_link(locator, f"Footer: {name}")
+
+    @allure.title("Проверить все ссылки на странице")
+    def check_all_links_online_beeline(self):
+        """Проверяет все ссылки в хедере и футере"""
+        # Проверяем ссылки в хедере
+        for name, locator in BeelineMain.HEADER_LINKS_THIRD.items():
+            self.check_link(locator, f"Header: {name}")
+
+        # Проверяем ссылки в футере
+        for name, locator in BeelineMain.FOOTER_LINKS_THIRD.items():
+            self.check_link(locator, f"Footer: {name}")
+
+        for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
+            self.check_link(locator, f"Footer: {name}")
+
+
+class OnlineBeelinePage(BasePage):
+    @allure.title("Проверить, что попап появился и нажать на  кнопку выбора города")
+    def popup_choose_city(self):
+        with allure.step("Проверить попап и нажать на кнопку Выбрать город"):
+            expect(self.page.locator(OnlineBeeline.CHOOSE_YOUR_CITY_HEADER)).to_be_visible()
+            self.page.locator(OnlineBeeline.CHOOSE_YOUR_CITY_BUTTON).click()
+            time.sleep(4)
+
+    @allure.title("Закрыть попап Указать город")
+    def popup_choose_city(self):
+        self.page.locator(OnlineBeeline.CLOSE_CITY_POPUP).click()
+
+    @allure.title("Отправить заявку в форму подключить тарифы билайн в Москве")
+    def send_popup_from_connection(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(OnlineBeeline.FILL_THE_ADDRESS).fill("Город улица дом")
+            time.sleep(1)
+            self.page.locator(BeelineMain.PHONE_INPUT_FIRST).fill("99999999999")
+            time.sleep(4)
+            self.page.locator(OnlineBeeline.BUTTON_FIND_TARIFFS).click()
+            time.sleep(3)
+
+    @allure.title("Отправить  заявку вформу проверьте адрес подключения")
+    def send_popup_from_connection_second(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(OnlineBeeline.FILL_THE_ADDRESS_SECOND).fill("Город улица дом")
+            time.sleep(1)
+            self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            time.sleep(4)
+            self.page.locator(OnlineBeeline.BUTTON_FIND_TARIFFS_SECOND).click()
+            time.sleep(3)
+
+    @allure.title("Нажать на кнопку Подключиться футер")
+    def click_connect_button_futer(self):
+        self.page.locator(OnlineBeeline.CONNECT_BUTTON_FUTER).click()
+
+    @allure.title("Отправить заявку в попап скнопки Подключиться")
+    def send_popup_application_connection_dom(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(BeelineMain.INPUT_ADDRES).fill("Город улица дом")
+            time.sleep(1)
+            self.page.locator(BeelineMain.PHONE_INPUT_OTHER).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(BeelineMain.INPUT_CONNECT).click()
+            time.sleep(4)
+
+    @allure.title("Нажать на кноку быстрое подключение")
+    def click_button_fast_connection(self):
+        self.page.locator(OnlineBeeline.BUTTON_FAST_CONNECTION).click()
+
+    @allure.title("Нажать на кнопку Не нашли свой город")
+    def click_button_dont_find_city(self):
+        self.page.locator(OnlineBeeline.BUTTON_DONT_CITY).click()
+        time.sleep(2)
