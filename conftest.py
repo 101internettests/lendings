@@ -213,6 +213,18 @@ def msk_beeline_online():
 
 
 @pytest.fixture(scope="session")
+def beeline_internet_online():
+    """Базовый URL для тестов"""
+    return "https://beeline-internet.online/"
+
+
+@pytest.fixture(scope="session")
+def beeline_pro():
+    """Базовый URL для тестов"""
+    return "https://beeline-ru.pro/"
+
+
+@pytest.fixture(scope="session")
 def msk_beeline_online_dom():
     """Базовый URL для тестов"""
     return "https://moskva.beeline-ru.online/domashnij-internet"

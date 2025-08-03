@@ -14,9 +14,11 @@ class BeelineMain:
     CHECK_ADDRESS = "xpath=(//input[@value='Проверить адрес'])[1]"
     CHECK_ADDRESS_TWO = "xpath=(//input[@value='Проверить адрес'])[2]"
     TARIFF_CARDS = "xpath=(//div[@itemtype='http://schema.org/Product'])"
+    TARIFF_CARDS_SECOND = "xpath=(//div[@id='tariffs']//div[@itemtype='http://schema.org/Product'])"
     TARIFF_BUTTON = "xpath=(//button[text()='Подключить'])"
     TARIFF_NAMES = "xpath=(//div[@id='tariffs']//div[@itemprop='name'])"
     POPUP_TARIFF_NAME = "xpath=(//div[@class='popup__title popup-new__title'])[1]"
+    POPUP_NAME = "xpath=(//div[@class='popup__title popup-new__title'])"
     HEADER_LINKS = {
         "home_internet": "xpath=(//a[contains(text(),'Домашний интернет')])[1]",
         "internet_tv": "xpath=(//a[contains(text(),'Интернет + ТВ')])[1]",
@@ -35,6 +37,17 @@ class BeelineMain:
         "internet_tv": "xpath=(//a[contains(text(),'интернет и ТВ')])[1]",
         "for_you_and_house": "xpath=(//a[contains(text(),'для тебя и дома')])[1]",
         "business": "xpath=(//a[contains(text(),'бизнесу')])[1]"
+    }
+    HEADER_LINKS_FOUR = {
+        "home_internet": "xpath=(//a[contains(text(),'Домашний интернет')])[1]",
+        "internet_tv": "xpath=(//a[contains(text(),'Интернет и ТВ')])[1]",
+        "three_in_one": "xpath=(//a[contains(text(),'Тарифы 3 в 1')])[1]",
+        "business": "xpath=(//a[contains(text(),'Бизнесу')])[1]"
+    }
+    HEADER_LINKS_PRO = {
+        "home_internet": "xpath=(//a[contains(text(),'домашний интернет')])[1]",
+        "internet_tv": "xpath=(//a[contains(text(),'интернет и ТВ')])[1]",
+        "for_you_and_home": "xpath=(//a[contains(text(),'для тебя и дома')])[1]"
     }
     # Ссылки в футере
     FOOTER_LINKS = {
@@ -55,6 +68,12 @@ class BeelineMain:
         "internet_tv": "xpath=(//a[contains(text(),'интернет + телевидение')])[1]",
         "family_tariffs": "xpath=(//a[contains(text(),'тарифы для семьи')])[1]"
     }
+    FOOTER_LINKS_FOUR = {
+        "home_internet": "xpath=(//a[contains(text(),'Домашний интернет')])[2]",
+        "internet_tv": "xpath=(//a[contains(text(),'Интернет и ТВ')])[1]",
+        "three_in_one": "xpath=(//a[contains(text(),'Тарифы 3 в 1')])[2]"
+    }
+
 
     OTHER_HEADERS = {
         "return_bonuses": "xpath=//a[contains(text(),'Вернём бонусы на счёт за покупку бронзового номера')]",
@@ -76,5 +95,13 @@ class OnlineBeeline:
     BUTTON_FIND_TARIFFS ="xpath=(//input[@value='найти тарифы'])[1]"
     BUTTON_FIND_TARIFFS_SECOND = "xpath=(//input[@value='найти тарифы'])[2]"
     CONNECT_BUTTON_FUTER = "xpath=(//button[contains(text(),'подключиться')])[2]"
+    CONNECT_BUTTON_FUTER_FR = "xpath=(//button[contains(text(),'подключиться')])[1]"
+    CONNECT_BUTTON_FUTER_TH = "xpath=(//button[contains(text(),'подключиться')])[3]"
     BUTTON_FAST_CONNECTION  = "xpath=//button[contains(text(),'быстрое подключение')]"
     BUTTON_DONT_CITY = "xpath=//button[@class='region-search__button button button-yellow']"
+    CITY_INPUT = "xpath=//input[@placeholder='Город']"
+    STREET_HOME_INPUT = "xpath=//input[@placeholder='Улица, дом']"
+    CONNECT_BANNER = "xpath=(//a[@id='btnup'])[1]"
+    GET_CONSULTATION = "xpath=(//button[@id='btnup'])[3]"
+    TARIFF_BUTTON = "xpath=(//button[text()='подключить'])"
+    TARIFF_BUTTON_NEW = "xpath=(//button[text()='подключить'])"

@@ -167,3 +167,7 @@ class DomRuClass(BasePage):
     @allure.title("Нажать на лого на главной странице и проверить")
     def click_on_logo(self):
         self.page.locator(LocationPopup.MAIN_LOGO).click()
+
+    @allure.title("Нажать на лого на главной странице и проверить")
+    def click_on_logo_beeline(self):
+        self.page.locator(LocationPopup.MAIN_LOGO_BEELINE).click()
