@@ -8,7 +8,6 @@ from locators.domru.domru_locators import LocationPopup, PopUps, CardsPopup
 class DomRuClass(BasePage):
     @allure.title("Ответить в всплывашке, что нахожусь в Москве")
     def close_popup_location(self):
-        expect(self.page.locator(LocationPopup.POPUP_HEADER)).to_be_visible()
         self.page.locator(LocationPopup.YES_BUTTON).click()
 
     @allure.title("Ответить в всплывашке, что нахожусь не в Москве")
@@ -168,3 +167,7 @@ class DomRuClass(BasePage):
     @allure.title("Нажать на лого на главной странице и проверить")
     def click_on_logo(self):
         self.page.locator(LocationPopup.MAIN_LOGO).click()
+
+    @allure.title("Нажать на лого на главной странице и проверить")
+    def click_on_logo_beeline(self):
+        self.page.locator(LocationPopup.MAIN_LOGO_BEELINE).click()

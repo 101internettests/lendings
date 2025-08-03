@@ -34,6 +34,7 @@ class LocationPopup:
         NAME_INPUT = "xpath=//input[@name='Name']"
         BUTTON_SEND = "xpath=(//input[@value='Отправить'])[1]"
         MAIN_LOGO = "xpath=//div[@class='header__logo']"
+        MAIN_LOGO_BEELINE = "xpath=(//img[@alt='Логотип компании билайн'])[1]"
 
 
 class PopUps:

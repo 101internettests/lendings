@@ -200,6 +200,54 @@ def beeline_online():
     return "https://beeline-ru.online/"
 
 
+@pytest.fixture(scope="session")
+def online_beeline():
+    """Базовый URL для тестов"""
+    return "https://online-beeline.ru/"
+
+
+@pytest.fixture(scope="session")
+def msk_beeline_online():
+    """Базовый URL для тестов"""
+    return "https://moskva.beeline-ru.online/"
+
+
+@pytest.fixture(scope="session")
+def beeline_internet_online():
+    """Базовый URL для тестов"""
+    return "https://beeline-internet.online/"
+
+
+@pytest.fixture(scope="session")
+def beeline_pro():
+    """Базовый URL для тестов"""
+    return "https://beeline-ru.pro/"
+
+
+@pytest.fixture(scope="session")
+def msk_beeline_online_dom():
+    """Базовый URL для тестов"""
+    return "https://moskva.beeline-ru.online/domashnij-internet"
+
+
+@pytest.fixture(scope="session")
+def msk_beeline_online_tv():
+    """Базовый URL для тестов"""
+    return "https://moskva.beeline-ru.online/domashnij-internet-tv"
+
+
+@pytest.fixture(scope="session")
+def msk_beeline_online_tariffs():
+    """Базовый URL для тестов"""
+    return "https://moskva.beeline-ru.online/tariffs-up"
+
+
+@pytest.fixture(scope="session")
+def msk_beeline_online_all_tariffs():
+    """Базовый URL для тестов"""
+    return "https://moskva.beeline-ru.online/all-tariffs"
+
+
 @pytest.fixture(scope="function")
 def browser_fixture():
     """
