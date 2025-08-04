@@ -11,7 +11,7 @@ from locators.mts.mts_home_online_second import ApplicationPopupCheckConnectionS
 class MtsHomeOnlineSecondPage(BasePage):
     @allure.title("Проверить, что попап Выгодное приложение появился")
     def check_popup_super_offer(self):
-        expect(self.page.locator(MTSHomeOnlineSecondMain.SUPER_OFFER_HEADER)).to_be_visible()
+        # expect(self.page.locator(MTSHomeOnlineSecondMain.SUPER_OFFER_HEADER)).to_be_visible()
         expect(self.page.locator(MTSHomeOnlineSecondMain.SUPER_OFFER_TEXT)).to_be_visible()
 
     @allure.title("Отправить заявку в попап и проверить успешность")

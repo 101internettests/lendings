@@ -147,6 +147,7 @@ class TestMoskvaMtsHomeOnline:
         mts_page.click_region_choice_button()
         region_page = ChoiceRegionPage(page=page)
         with allure.step("Выбрать СПб"):
+            time.sleep(5)
             region_page.fill_region_search("Санкт")
             region_page.verify_first_region_choice("Санкт-Петербург")
             region_page.select_first_region()

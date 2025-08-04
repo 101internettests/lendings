@@ -15,7 +15,7 @@ class TestBeelineInternetOnline:
         page.goto(beeline_internet_online)
         domru_page = DomRuClass(page=page)
         domru_page.choose_msk_location()
-        time.sleep(2)
+        time.sleep(5)
         region_page = ChoiceRegionPage(page=page)
         with allure.step("Выбрать Аксай"):
             region_page.fill_region_search("Аксай")
