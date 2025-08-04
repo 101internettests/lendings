@@ -28,7 +28,7 @@ class TestMtsMskHomeOnlineThird:
         page.goto(six_url)
         mts_page = MtsHomeOnlinePage(page=page)
         mts_second_page = MtsHomeOnlineSecondPage(page=page)
-        time.sleep(25)
+        time.sleep(35)
         mts_second_page.check_popup_super_offer()
         time.sleep(2)
         mts_page.send_popup_super_offer_new()
@@ -72,18 +72,23 @@ class TestMtsMskHomeOnlineThird:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
-    @allure.title("6. Отправка заявки со ВСЕХ форм на странице")
-    def test_application_from_all_forms(self, page_fixture, six_url):
+    @allure.title("6. Отправка заявок с карточек тарифа")
+    def test_application_from_tariff_cards(self, page_fixture, five_url):
         page = page_fixture
-        page.goto(six_url)
+        page.goto(five_url)
         mts_page = MtsHomeOnlinePage(page=page)
-        mts_page.send_popup_application_check_connection()
-        mts_page.check_sucess()
-        mts_page.close_thankyou_page()
-        time.sleep(3)
-        mts_page.send_popup_application_check_connection_near_futer()
-        mts_page.check_sucess()
-        mts_page.close_thankyou_page()
+        tariff_cards = mts_page.get_tariff_cards()
+        for i in range(len(tariff_cards)):
+            with allure.step(f"Подключение тарифа {i + 1}"):
+                tariff_name = mts_page.get_tariff_name(i)
+                mts_page.click_tariff_connect_button(i)
+                mts_page.verify_popup_tariff_name(tariff_name)
+                time.sleep(3)
+                nternet_page = MtsInternetHomeOnlinePage(page=page)
+                nternet_page.send_tariff_connection_request()
+                mts_page.check_sucess()
+                mts_page.close_thankyou_page()
+                time.sleep(2)
 
     @allure.title("7. Отправка заявки из попапа по кнопке Подробнее из банера с заголовком Акции от МТС")
     def test_application_popup_banner(self, page_fixture, six_url):
@@ -102,7 +107,7 @@ class TestMtsMskHomeOnlineThird:
         page = page_fixture
         page.goto(six_url)
         mts_page = MtsHomeOnlinePage(page=page)
-        mts_page.send_popup_application_check_connection_near_futer()
+        mts_page.send_popup_application_check_connection_third()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -123,7 +128,7 @@ class TestMtsMskHomeOnlineThird:
         mts_page = MtsHomeOnlinePage(page=page)
         mts_second_page = MtsHomeOnlineSecondPage(page=page)
         mts_second_page.click_check_address_button_futer()
-        mts_page.send_popup_application_connection_your_address()
+        mts_page.send_popup_application_connection_your_address_third()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -159,19 +164,6 @@ class TestMtsMskHomeOnlineThird:
             region_page.verify_first_region_choice("Азнакаево")
             region_page.select_first_region()
             region_page.verify_region_button_text("Азнакаево")
-    #
-    # @allure.title("12. Переход по всем ссылкам городов на странице выбора города")
-    # def test_check_all_city_links(self, page_fixture, six_url):
-    #     page = page_fixture
-    #     page.goto(six_url)
-    #
-    #     # Открываем страницу выбора города через хедер
-    #     mts_second_page = MtsHomeOnlineSecondPage(page=page)
-    #     mts_second_page.click_region_choice_button()
-    #
-    #     # Проверяем все ссылки городов
-    #     region_page = ChoiceRegionPage(page=page)
-    #     region_page.check_all_city_links()
 
     @allure.title("15. Проверка формы 'Не нашли свой город?'")
     def test_check_dont_find_city(self, page_fixture, six_url):

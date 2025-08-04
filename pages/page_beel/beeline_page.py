@@ -264,6 +264,16 @@ class OnlineBeelinePage(BasePage):
             self.page.locator(OnlineBeeline.BUTTON_FIND_TARIFFS_SECOND).click()
             time.sleep(3)
 
+    @allure.title("Отправить  заявку вформу проверьте адрес подключения")
+    def send_popup_from_connection_home(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(BeelineMain.INPUT_ADDRES_TWO).fill("Город улица дом")
+            time.sleep(1)
+            self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            time.sleep(4)
+            self.page.locator(BeelineMain.CHECK_ADDRESS_TWO).click()
+            time.sleep(3)
+
     @allure.title("Нажать на кнопку Подключиться футер")
     def click_connect_button_futer(self):
         self.page.locator(OnlineBeeline.CONNECT_BUTTON_FUTER).click()
@@ -276,6 +286,16 @@ class OnlineBeelinePage(BasePage):
             self.page.locator(BeelineMain.PHONE_INPUT_OTHER).fill("99999999999")
             time.sleep(1)
             self.page.locator(BeelineMain.INPUT_CONNECT).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в попап скнопки Подключиться")
+    def send_popup_application_connection_home(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(BeelineMain.INPUT_ADDRES).fill("Город улица дом")
+            time.sleep(1)
+            self.page.locator(BeelineMain.PHONE_INPUT_FIRST).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(BeelineMain.CHECK_ADDRESS).click()
             time.sleep(4)
 
     @allure.title("Нажать на кноку быстрое подключение")
@@ -321,6 +341,10 @@ class BeelineInternetOnlinePage(BasePage):
     @allure.title("Закрыть попап Выгодное предложение")
     def close_popup_super_offer(self):
         self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_CLOSE_SECOND).click()
+
+    @allure.title("Закрыть попап Выгодное предложение")
+    def close_popup_super_offer_home(self):
+        self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_CLOSE_HOME).click()
 
     @allure.title("Нажать на кнопку Подключиться хедер")
     def click_connect_button_header(self):

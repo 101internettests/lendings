@@ -109,12 +109,22 @@ class MtsHomeOnlinePage(BasePage):
             self.page.locator(ApplicationPopupCheckConnection.CHECK_ADDRESS_BUTTON).click()
             time.sleep(4)
 
+
     @allure.title("Отправить заявку в попап с названием Проверьте возможность подключения по вашему адресу с другой страницы")
     def send_popup_application_connection_your_address_other(self):
         with allure.step("Заполнить попап и отправить заявку"):
             self.page.locator(ApplicationPopupCheckConnection.ADDRESS_INPUT_SECOND).fill("Тестимя")
             self.page.locator(ApplicationPopupCheckConnection.PHONE_INPUT_SECOND).fill("99999999999")
             self.page.locator(ApplicationPopupCheckConnection.CHECK_ADDRESS_BUTTON_SECOND).click()
+            time.sleep(4)
+
+    @allure.title(
+        "Отправить заявку в попап с названием Проверьте возможность подключения по вашему адресу с другой страницы")
+    def send_popup_application_connection_your_address_third(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(ApplicationPopupCheckConnection.ADDRESS_INPUT_SECOND).fill("Тестимя")
+            self.page.locator(ApplicationPopupCheckConnection.PHONE_INPUT).fill("99999999999")
+            self.page.locator(ApplicationPopupCheckConnection.CHECK_ADDRESS_BUTTON).click()
             time.sleep(4)
 
     @allure.title(
@@ -149,6 +159,17 @@ class MtsHomeOnlinePage(BasePage):
             time.sleep(3)
             self.page.locator(FormApplicationCheckConnection.CHECK_ADDRESS_BUTTON).click()
             time.sleep(4)
+
+    @allure.title("Отправить заявку в форму Проверьте возможность подключения по вашему адресу в Москве под баннером")
+    def send_popup_application_check_connection_third(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(FormApplicationCheckConnection.ADDRESS).fill("Тестоулица11111")
+            time.sleep(3)
+            self.page.locator(FormApplicationCheckConnection.PHONE_INPUT_SECOND).fill("99999999999")
+            time.sleep(3)
+            self.page.locator(FormApplicationCheckConnection.CHECK_ADDRESS_BUTTON_SECOND).click()
+            time.sleep(4)
+
 
     @allure.title("Отправить заявку в форму Проверьте возможность подключения по вашему адресу в Москве в конце страницы")
     def send_popup_application_check_connection_near_futer(self):
