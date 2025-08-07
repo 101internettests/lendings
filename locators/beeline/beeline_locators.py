@@ -49,6 +49,11 @@ class BeelineMain:
         "internet_tv": "xpath=(//a[contains(text(),'интернет и ТВ')])[1]",
         "for_you_and_home": "xpath=(//a[contains(text(),'для тебя и дома')])[1]"
     }
+    HEADER_LINKS_TELE = {
+        "tariffs": "xpath=(//a[text()='Тарифы'])[1]",
+        "news": "xpath=(//a[text()='Новости'])[1]",
+        "check_the_address": "xpath=(//a[text()='Проверить адрес'])[1]"
+    }
     # Ссылки в футере
     FOOTER_LINKS = {
         "home_internet": "xpath=(//a[contains(text(),'Домашний интернет')])[2]",
@@ -73,7 +78,11 @@ class BeelineMain:
         "internet_tv": "xpath=(//a[contains(text(),'Интернет и ТВ')])[1]",
         "three_in_one": "xpath=(//a[contains(text(),'Тарифы 3 в 1')])[2]"
     }
-
+    FUTER_LINKS_TELE = {
+        "tariffs": "xpath=(//a[text()='Тарифы'])[2]",
+        "check_the_address": "xpath=(//a[text()='Проверить адрес'])[2]",
+        "help": "xpath=(//a[text()='Помощь'])[1]"
+    }
 
     OTHER_HEADERS = {
         "return_bonuses": "xpath=//a[contains(text(),'Вернём бонусы на счёт за покупку бронзового номера')]",

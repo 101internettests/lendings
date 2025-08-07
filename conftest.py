@@ -260,6 +260,18 @@ def msk_beeline_online_all_tariffs():
     return "https://moskva.beeline-ru.online/all-tariffs"
 
 
+@pytest.fixture(scope="session")
+def tele_two():
+    """Базовый URL для тестов"""
+    return "https://t2-official.ru/"
+
+
+@pytest.fixture(scope="session")
+def msk_rtk_online():
+    """Базовый URL для тестов"""
+    return "https://moskva.rtk-ru.online/"
+
+
 @pytest.fixture(scope="function")
 def browser_fixture():
     """
