@@ -4,6 +4,7 @@ from playwright.sync_api import expect
 from pages.base_page import BasePage
 from locators.mts.mts_home_online import MTSHomeOnlineMain
 from locators.beeline.beeline_locators import BeelineMain, OnlineBeeline
+from locators.tele_two.tele_two_locators import TeleTwoMain
 
 
 class BeelineOnlinePage(BasePage):
@@ -226,6 +227,20 @@ class BeelineOnlinePage(BasePage):
 
         # Проверяем ссылки в футере
         for name, locator in BeelineMain.FOOTER_LINKS_THIRD.items():
+            self.check_link(locator, f"Footer: {name}")
+
+        for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
+            self.check_link(locator, f"Footer: {name}")
+
+    @allure.title("Проверить все ссылки на странице")
+    def check_all_links_online_tele(self):
+        """Проверяет все ссылки в хедере и футере"""
+        # Проверяем ссылки в хедере
+        for name, locator in BeelineMain.HEADER_LINKS_TELE.items():
+            self.check_link(locator, f"Header: {name}")
+
+        # Проверяем ссылки в футере
+        for name, locator in BeelineMain.FUTER_LINKS_TELE.items():
             self.check_link(locator, f"Footer: {name}")
 
         for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
