@@ -60,6 +60,14 @@ class MtsInternetHomeOnlinePage(BasePage):
             self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
             time.sleep(4)
 
+    @allure.title("Отправить заявку на подключение тарифа")
+    def send_tariff_connection_internet_online(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
+            self.page.locator(ApplicationPopupWithName.PHONE_INPUT).fill("99999999999")
+            self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            time.sleep(4)
+
     @allure.title("Проверить ссылку и убедиться, что страница существует")
     def check_link(self, locator, link_name):
         """

@@ -272,6 +272,12 @@ def msk_rtk_online():
     return "https://moskva.rtk-ru.online/"
 
 
+@pytest.fixture(scope="session")
+def msk_rtk_online_home_inter():
+    """Базовый URL для тестов"""
+    return "https://moskva.rtk-ru.online/domashnij-internet"
+
+
 @pytest.fixture(scope="function")
 def browser_fixture():
     """

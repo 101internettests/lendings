@@ -114,3 +114,15 @@ class OnlineBeeline:
     GET_CONSULTATION = "xpath=(//button[@id='btnup'])[3]"
     TARIFF_BUTTON = "xpath=(//button[text()='подключить'])"
     TARIFF_BUTTON_NEW = "xpath=(//button[text()='подключить'])"
+
+
+class OnlineBeelineNew:
+    STREET_INPUT = "xpath=(//input[@placeholder='Улица'])[1]"
+    STREET_INPUT_SECOND = "xpath=(//input[@placeholder='Улица'])[2]"
+    FIRST_CHOICE = "xpath=(//div[@class='autocomplete-item'])[1]"
+    HOUSE_INPUT = "xpath=(//input[@placeholder='Дом'])[1]"
+    HOUSE_INPUT_SECOND = "xpath=(//input[@placeholder='Дом'])[2]"
+    PHONE_BUTTON = "xpath=(//input[@placeholder='+7(999)-999-99-99'])[1]"
+    PHONE_BUTTON_SECOND = "xpath=(//input[@placeholder='+7(999)-999-99-99'])[2]"
+    SEND_BUTTON_CONNECT_FIRST = "xpath=(//input[@value='Проверить адрес'])[1]"
+    SEND_BUTTON_CONNECT = "xpath=(//input[@value='Проверить адрес'])[2]"
