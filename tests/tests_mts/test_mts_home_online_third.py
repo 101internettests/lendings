@@ -73,9 +73,9 @@ class TestMtsMskHomeOnlineThird:
         mts_page.close_thankyou_page()
 
     @allure.title("6. Отправка заявок с карточек тарифа")
-    def test_application_from_tariff_cards(self, page_fixture, five_url):
+    def test_application_from_tariff_cards(self, page_fixture, six_url):
         page = page_fixture
-        page.goto(five_url)
+        page.goto(six_url)
         mts_page = MtsHomeOnlinePage(page=page)
         tariff_cards = mts_page.get_tariff_cards()
         for i in range(len(tariff_cards)):
@@ -85,7 +85,7 @@ class TestMtsMskHomeOnlineThird:
                 mts_page.verify_popup_tariff_name(tariff_name)
                 time.sleep(3)
                 nternet_page = MtsInternetHomeOnlinePage(page=page)
-                nternet_page.send_tariff_connection_request()
+                nternet_page.send_tariff_connection_internet_online()
                 mts_page.check_sucess()
                 mts_page.close_thankyou_page()
                 time.sleep(2)

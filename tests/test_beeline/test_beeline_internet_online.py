@@ -48,7 +48,7 @@ class TestBeelineInternetOnline:
         mts_page = MtsHomeOnlinePage(page=page)
         domru_page = DomRuClass(page=page)
         domru_page.close_popup_location()
-        time.sleep(15)
+        time.sleep(30)
         mts_page.check_popup_super_offer()
         time.sleep(2)
         beeline_internet_page = BeelineInternetOnlinePage(page=page)
@@ -75,7 +75,7 @@ class TestBeelineInternetOnline:
     #     domru_page.close_thankyou_page()
 
     @allure.title("4. Отправка заявки из попапа по кнопке Подключить из хедера")
-    def test_application_popup_button_connect(self, page_fixture, beeline_internet_online):
+    def test_application_header_button(self, page_fixture, beeline_internet_online):
         page = page_fixture
         page.goto(beeline_internet_online)
         mts_page = MtsHomeOnlinePage(page=page)
@@ -84,7 +84,7 @@ class TestBeelineInternetOnline:
         beeline_page = BeelineOnlinePage(page=page)
         beeline_page.click_connect_button()
         beeline_internet_page = BeelineInternetOnlinePage(page=page)
-        beeline_internet_page.send_popup_application_connection_internet()
+        beeline_internet_page.send_popup_application_connection_new()
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
@@ -97,7 +97,7 @@ class TestBeelineInternetOnline:
         domru_page.close_popup_location()
         beeline_internet_page = BeelineInternetOnlinePage(page=page)
         beeline_internet_page.click_button_dont_find_city()
-        beeline_internet_page.send_popup_application_connection_internet()
+        beeline_internet_page.send_popup_application_connection_new()
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
         time.sleep(3)
@@ -112,7 +112,8 @@ class TestBeelineInternetOnline:
         domru_page.close_popup_location()
         with allure.step("Проверить возможность подключения билайн по вашему адресу в Москве первый"):
             beeline_page = BeelineOnlinePage(page=page)
-            beeline_page.send_popup_from_connection()
+            beeline_internet_page = BeelineInternetOnlinePage(page=page)
+            beeline_internet_page.send_popup_from_connection_new()
             mts_page.check_sucess()
             domru_page.close_thankyou_page()
 
@@ -125,8 +126,7 @@ class TestBeelineInternetOnline:
         domru_page.close_popup_location()
         beeline_internet_page = BeelineInternetOnlinePage(page=page)
         beeline_internet_page.click_button_get_consultation()
-        beeline_page = BeelineOnlinePage(page=page)
-        beeline_internet_page.send_popup_application_connection_internet()
+        beeline_internet_page.send_popup_application_connection_new()
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
@@ -146,7 +146,7 @@ class TestBeelineInternetOnline:
                 beeline_page.verify_popup_tariff_name(tariff_name)
                 time.sleep(3)
                 beeline_internet_page = BeelineInternetOnlinePage(page=page)
-                beeline_internet_page.send_popup_application_connection_internet()
+                beeline_internet_page.send_popup_application_connection_new()
                 mts_page.check_sucess()
                 domru_page.close_thankyou_page()
                 time.sleep(2)
@@ -161,7 +161,7 @@ class TestBeelineInternetOnline:
         beeline_page = BeelineOnlinePage(page=page)
         beeline_page.click_connect_button_futer()
         beeline_internet_page = BeelineInternetOnlinePage(page=page)
-        beeline_internet_page.send_popup_application_connection_internet()
+        beeline_internet_page.send_popup_application_connection_new()
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
@@ -174,7 +174,7 @@ class TestBeelineInternetOnline:
         beeline_page = BeelineOnlinePage(page=page)
         beeline_page.check_all_links_online()
         beeline_internet_page = BeelineInternetOnlinePage(page=page)
-        beeline_internet_page.close_popup_super_offer()
+        # beeline_internet_page.close_popup_super_offer()
         beeline_page.check_all_links_online_second()
 
     @allure.title("11. Выбор региона из хедера")

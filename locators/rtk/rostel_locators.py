@@ -26,3 +26,29 @@ class Rostelecom:
     POPUP_TARIFF_NAME = "xpath=(//div[@class='popup__title'])[2]"
     NAME_INPUT = "xpath=//input[@name='Name']"
     SEND_BUTTON_SECOND = "xpath=(//input[@value='Отправить'])[2]"
+    HEADER_LINKS = {
+        "home_imternet": "xpath=(//a[contains(text(),'Домашний интернет')])[1]",
+        "internet_tv": "xpath=(//a[contains(text(),'Интернет  ТВ')])[1]",
+        "all_in_one": "xpath=(//a[contains(text(),'Все в одном')])[1]",
+        "all_tariffs": "xpath=(//a[contains(text(),'Все тарифы')])[1]",
+        "for_business": "xpath=(//a[contains(text(),'Бизнесу')])[1]",
+    }
+    FOOTER_LINKS = {
+        "home_imternet": "xpath=(//a[contains(text(),'Домашний интернет')])[3]",
+        "internet_tv": "xpath=(//a[contains(text(),'Интернет Телевидение')])[1]",
+        "family_tariffs": "xpath=(//a[contains(text(),'Тарифы для семьи')])[1]",
+        "all_tariffs": "xpath=(//a[contains(text(),'Все тарифы')])[3]",
+        "bonuses": "xpath=(//a[contains(text(),'Бонусы')])[1]",
+        "for_business": "xpath=(//a[contains(text(),'Бизнесу')])[3]",
+    }
+    FOOTER_LINKS_SECOND = {
+        "news": "xpath=(//a[contains(text(),'Новости')])[1]",
+        "check_address": "xpath=(//a[contains(text(),'Проверить адрес подключения')])[1]",
+        "map": "xpath=(//a[contains(text(),'Карта сайта')])[1]",
+        "policy": "xpath=(//a[contains(text(),'Политика обработки cookie')])[1]",
+        "abonent": "xpath=(//a[contains(text(),'Как стать абонентом Ростелеком')])[1]",
+        "feedback": "xpath=(//a[contains(text(),'Форма обратной связи')])[1]",
+        "help": "xpath=(//a[contains(text(),'Помощь')])[1]",
+        "applience": "xpath=(//a[contains(text(),'Оборудование')])[1]",
+    }
+    REGION_CHOICE_BUTTON_FUTER = "xpath=()"

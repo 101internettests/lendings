@@ -179,6 +179,7 @@ class TestMolMainRegionPage:
         region_page = ChoiceRegionPage(page=page)
         with allure.step("Выбрать Азнакаево"):
             mts_page.click_region_choice_button_futer()
+            time.sleep(3)
             region_page.fill_region_search("Азнак")
             region_page.verify_first_region_choice("Азнакаево")
             region_page.select_first_region()

@@ -101,3 +101,45 @@ class RostelecomPage(BasePage):
         popup_tariff_name = self.page.locator(Rostelecom.POPUP_TARIFF_NAME)
         expect(popup_tariff_name).to_be_visible()
         expect(popup_tariff_name).to_have_text(expected_name)
+
+    @allure.title("Проверить ссылку и убедиться, что страница существует")
+    def check_link(self, locator, link_name):
+        """
+        Упрощённая проверка ссылки: видимость, href, клик, отсутствие 404
+        :param locator: локатор ссылки
+        :param link_name: название ссылки для отчета
+        """
+        with allure.step(f"Проверка ссылки {link_name}"):
+            link = self.page.locator(locator)
+            expect(link).to_be_visible()
+            href = link.get_attribute('href')
+            if not href:
+                with allure.step(f"Ссылка {link_name} не имеет атрибута href"):
+                    pass
+                return
+            link.scroll_into_view_if_needed()
+            with self.page.context.expect_page() as new_page_info:
+                link.click(modifiers=["Control"])
+            new_page = new_page_info.value
+            new_page.wait_for_load_state("networkidle", timeout=15000)
+            expect(new_page).not_to_have_url("**/404")
+            new_page.close()
+
+    @allure.title("Проверить все ссылки на странице")
+    def check_all_links(self):
+        """Проверяет все ссылки в хедере и футере"""
+        # Проверяем ссылки в хедере
+        for name, locator in Rostelecom.HEADER_LINKS.items():
+            self.check_link(locator, f"Header: {name}")
+
+        # Проверяем ссылки в футере
+        for name, locator in Rostelecom.FOOTER_LINKS.items():
+            self.check_link(locator, f"Footer: {name}")
+        for name, locator in Rostelecom.FOOTER_LINKS_SECOND.items():
+            self.check_link(locator, f"Footer: {name}")
+
+    @allure.title("Нажать на кнопку выбора региона в хедере")
+    def click_region_choice_button(self):
+        region_button = self.page.locator(Rostelecom.REGION_CHOICE_BUTTON_FUTER)
+        region_button.click()
+        time.sleep(2)

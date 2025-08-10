@@ -3,7 +3,7 @@ import allure
 from playwright.sync_api import expect
 from pages.base_page import BasePage
 from locators.mts.mts_home_online import MTSHomeOnlineMain
-from locators.beeline.beeline_locators import BeelineMain, OnlineBeeline
+from locators.beeline.beeline_locators import BeelineMain, OnlineBeeline, OnlineBeelineNew
 from locators.tele_two.tele_two_locators import TeleTwoMain
 
 
@@ -388,3 +388,31 @@ class BeelineInternetOnlinePage(BasePage):
     @allure.title("Нажать на кнопку Подключиться футер")
     def click_connect_button_pro(self):
         self.page.locator(OnlineBeeline.CONNECT_BUTTON_FUTER_TH).click()
+
+    @allure.title("Новая форма для отправления заявок")
+    def send_popup_application_connection_new(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(OnlineBeelineNew.STREET_INPUT_SECOND).type("Тестовая улица", delay=100)
+            self.page.locator(OnlineBeelineNew.FIRST_CHOICE).click()
+            time.sleep(1)
+            self.page.locator(OnlineBeelineNew.HOUSE_INPUT_SECOND).fill("1")
+            self.page.locator(OnlineBeelineNew.FIRST_CHOICE).click()
+            time.sleep(1)
+            self.page.locator(OnlineBeelineNew.PHONE_BUTTON_SECOND).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(OnlineBeelineNew.SEND_BUTTON_CONNECT).click()
+            time.sleep(4)
+
+    @allure.title("Проверить возможность подключения билайн по вашему адресу в Москве")
+    def send_popup_from_connection_new(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(OnlineBeelineNew.STREET_INPUT).type("Тестовая улица", delay=100)
+            self.page.locator(OnlineBeelineNew.FIRST_CHOICE).click()
+            time.sleep(1)
+            self.page.locator(OnlineBeelineNew.HOUSE_INPUT).fill("1")
+            self.page.locator(OnlineBeelineNew.FIRST_CHOICE).click()
+            time.sleep(1)
+            self.page.locator(OnlineBeelineNew.PHONE_BUTTON).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(OnlineBeelineNew.SEND_BUTTON_CONNECT_FIRST).click()
+            time.sleep(4)
