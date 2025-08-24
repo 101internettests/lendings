@@ -14,18 +14,18 @@ class TestBeelineInternetOnline:
         page = page_fixture
         page.goto(beeline_internet_online)
         domru_page = DomRuClass(page=page)
-        domru_page.choose_msk_location()
+        domru_page.choose_msk_location_new()
         time.sleep(5)
         region_page = ChoiceRegionPage(page=page)
         with allure.step("Выбрать Аксай"):
-            region_page.fill_region_search("Аксай")
+            region_page.fill_region_search_new("Аксай")
             time.sleep(2)
             region_page.verify_first_region_choice("Аксай (Ростовская область)")
             region_page.select_first_region()
             time.sleep(2)
             domru_page.click_on_logo_beeline()
             time.sleep(2)
-            region_page.verify_region_button_text("Москва")
+            region_page.verify_region_button_text_new("Москва")
             time.sleep(3)
 
     @allure.title("1.1. Проверка работы сайта при отсутствии сертификата")
@@ -48,7 +48,7 @@ class TestBeelineInternetOnline:
         mts_page = MtsHomeOnlinePage(page=page)
         domru_page = DomRuClass(page=page)
         domru_page.close_popup_location()
-        time.sleep(30)
+        time.sleep(60)
         mts_page.check_popup_super_offer()
         time.sleep(2)
         beeline_internet_page = BeelineInternetOnlinePage(page=page)
@@ -84,7 +84,7 @@ class TestBeelineInternetOnline:
         beeline_page = BeelineOnlinePage(page=page)
         beeline_page.click_connect_button()
         beeline_internet_page = BeelineInternetOnlinePage(page=page)
-        beeline_internet_page.send_popup_application_connection_new()
+        beeline_internet_page.send_popup_application_connection_more()
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
@@ -97,7 +97,7 @@ class TestBeelineInternetOnline:
         domru_page.close_popup_location()
         beeline_internet_page = BeelineInternetOnlinePage(page=page)
         beeline_internet_page.click_button_dont_find_city()
-        beeline_internet_page.send_popup_application_connection_new()
+        beeline_internet_page.send_popup_application_connection_more()
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
         time.sleep(3)
@@ -113,7 +113,13 @@ class TestBeelineInternetOnline:
         with allure.step("Проверить возможность подключения билайн по вашему адресу в Москве первый"):
             beeline_page = BeelineOnlinePage(page=page)
             beeline_internet_page = BeelineInternetOnlinePage(page=page)
-            beeline_internet_page.send_popup_from_connection_new()
+            beeline_internet_page.send_popup_from_connection_new_address()
+            mts_page.check_sucess()
+            domru_page.close_thankyou_page()
+        with allure.step("Проверить возможность подключения билайн по вашему адресу в Москве вторая"):
+            beeline_page = BeelineOnlinePage(page=page)
+            beeline_internet_page = BeelineInternetOnlinePage(page=page)
+            beeline_internet_page.send_popup_from_connection_new_address_se()
             mts_page.check_sucess()
             domru_page.close_thankyou_page()
 
@@ -126,7 +132,7 @@ class TestBeelineInternetOnline:
         domru_page.close_popup_location()
         beeline_internet_page = BeelineInternetOnlinePage(page=page)
         beeline_internet_page.click_button_get_consultation()
-        beeline_internet_page.send_popup_application_connection_new()
+        beeline_internet_page.send_popup_application_connection_more()
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
@@ -146,7 +152,7 @@ class TestBeelineInternetOnline:
                 beeline_page.verify_popup_tariff_name(tariff_name)
                 time.sleep(3)
                 beeline_internet_page = BeelineInternetOnlinePage(page=page)
-                beeline_internet_page.send_popup_application_connection_new()
+                beeline_internet_page.send_popup_application_connection_more()
                 mts_page.check_sucess()
                 domru_page.close_thankyou_page()
                 time.sleep(2)
@@ -161,7 +167,7 @@ class TestBeelineInternetOnline:
         beeline_page = BeelineOnlinePage(page=page)
         beeline_page.click_connect_button_futer()
         beeline_internet_page = BeelineInternetOnlinePage(page=page)
-        beeline_internet_page.send_popup_application_connection_new()
+        beeline_internet_page.send_popup_application_connection_more()
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
@@ -178,34 +184,37 @@ class TestBeelineInternetOnline:
         beeline_page.check_all_links_online_second()
 
     @allure.title("11. Выбор региона из хедера")
-    def test_choose_region_header_spb(self, page_fixture, online_beeline):
-        page = page_fixture
-        page.goto(online_beeline)
-        mts_page = MtsHomeOnlinePage(page=page)
-        mts_page.click_region_choice_button()
-        region_page = ChoiceRegionPage(page=page)
-        with allure.step("Выбрать Аксай"):
-            region_page.fill_region_search("Аксай")
-            region_page.verify_first_region_choice("Аксай (Ростовская область)")
-            region_page.select_first_region()
-            region_page.verify_region_button_text("Аксай")
-
-    @allure.title("13. Проверка формы 'Не нашли свой город?'")
-    def test_check_dont_find_city(self, page_fixture, beeline_internet_online):
+    def test_choose_region_header_spb(self, page_fixture, beeline_internet_online):
         page = page_fixture
         page.goto(beeline_internet_online)
         domru_page = DomRuClass(page=page)
         domru_page.close_popup_location()
-        # Открываем страницу выбора города через хедер
         mts_page = MtsHomeOnlinePage(page=page)
-        mts_page.click_region_choice_button()
-
-        # Работаем с формой "Не нашли свой город?"
+        mts_page.click_region_choice_button_new()
         region_page = ChoiceRegionPage(page=page)
-        region_page.click_button_dont_find_city()
-        # region_page.close_popup_super_offer()
-        # time.sleep(4)
-        region_page.send_form_dont_find_city()
-        mts_page.check_sucess()
-        domru_page.close_thankyou_page()
-        time.sleep(2)
+        with allure.step("Выбрать Аксай"):
+            region_page.fill_region_search_new("Аксай")
+            region_page.verify_first_region_choice("Аксай (Ростовская область)")
+            region_page.select_first_region()
+            region_page.verify_region_button_text_new("Аксай")
+
+    # пока больше не актуален
+    # @allure.title("13. Проверка формы 'Не нашли свой город?'")
+    # def test_check_dont_find_city(self, page_fixture, beeline_internet_online):
+    #     page = page_fixture
+    #     page.goto(beeline_internet_online)
+    #     domru_page = DomRuClass(page=page)
+    #     domru_page.close_popup_location()
+    #     # Открываем страницу выбора города через хедер
+    #     mts_page = MtsHomeOnlinePage(page=page)
+    #     mts_page.click_region_choice_button()
+    #
+    #     # Работаем с формой "Не нашли свой город?"
+    #     region_page = ChoiceRegionPage(page=page)
+    #     region_page.click_button_dont_find_city()
+    #     # region_page.close_popup_super_offer()
+    #     # time.sleep(4)
+    #     region_page.send_form_dont_find_city()
+    #     mts_page.check_sucess()
+    #     domru_page.close_thankyou_page()
+    #     time.sleep(2)
