@@ -18,7 +18,9 @@ def browser_fixture():
     
     with sync_playwright() as playwright:
         # Запускаем браузер с нужными настройками
-        browser = playwright.chromium.launch(headless=headless)
+        browser = playwright.chromium.launch(
+            headless=headless
+        )
         yield browser
         browser.close()
 
@@ -46,7 +48,9 @@ def page_fixture(browser_fixture):
     Фикстура для создания новой страницы в браузере
     """
     # Создаем контекст и страницу
-    context = browser_fixture.new_context()
+    context = browser_fixture.new_context(
+        viewport={'width': 1920, 'height': 1080}
+    )
     page = context.new_page()
     yield page
     # Закрываем контекст после использования

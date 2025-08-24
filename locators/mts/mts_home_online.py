@@ -41,6 +41,14 @@ class MTSHomeOnlineMain:
     FORM_LINKS = {
         "terms_and_conditions": "xpath=//h1[contains(text(),'Политика в отношении обработки персональных данных Россия')]"
     }
+    STREET_BUTTON = "xpath=(//input[@placeholder='Улица'])[4]"
+    STREET_BUTTON_THREE = "xpath=(//input[@placeholder='Улица'])[3]"
+    HOUSE_BUTTON = "xpath=(//input[@placeholder='Дом'])[4]"
+    HOUSE_BUTTON_THREE = "xpath=(//input[@placeholder='Дом'])[3]"
+    FIRST_STREET = "xpath=(//div[@class='autocomplete-street'])[1]"
+    FIRST_HOUSE = "xpath=(//div[@class='autocomplete-item'])[1]"
+    SEND_BUTTON = "xpath=(//input[@value='Отправить'])[1]"
+    ANOTHER_CITY_BUTTON = "xpath=//button[text()='Выбрать город']"
 
 
 # попап по кнопке подключить Заявка на подключение
@@ -76,10 +84,12 @@ class FormApplicationCheckConnection:
 
 
 class RegionChoice:
+    NEW_REGION_CHOICE_BUTTON = "xpath=(//span[@id='city'])[1]"
     REGION_CHOICE_BUTTON = "xpath=(//a[@id='city'])[1]"
     REGION_CHOICE_BUTTON_FUTER = "xpath=(//a[@id='city'])[2]"
     REGION_CHOICE_BUTTON_THREE = "xpath=(//a[@id='city'])[3]"
     CITY_INPUT = "xpath=//input[@placeholder='Введите название города']"
+    NEW_CITY_INPUT = "xpath=//input[@id='city-input']"
     FIRST_CHOICE = "xpath=(//a[@class='region_item'])[1]"
     ALL_CHOICES = "xpath=//a[@class='region_item']"
     BUTTON_DONT_CITY = "xpath=//button[@class='region-search__button button button-red']"

@@ -273,6 +273,12 @@ class MtsHomeOnlinePage(BasePage):
         region_button.click()
         time.sleep(2)
 
+    @allure.title("Нажать на кнопку выбора региона в хедере")
+    def click_region_choice_button_new(self):
+        region_button = self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON)
+        region_button.click()
+        time.sleep(2)
+
     @allure.title("Нажать на кнопку выбора региона в футере")
     def click_region_choice_button_futer(self):
         region_button = self.page.locator(RegionChoice.REGION_CHOICE_BUTTON_FUTER)
@@ -284,6 +290,12 @@ class ChoiceRegionPage(BasePage):
     @allure.title("Ввести текст в поле поиска региона")
     def fill_region_search(self, search_text):
         city_input = self.page.locator(RegionChoice.CITY_INPUT)
+        city_input.fill(search_text)
+        time.sleep(2)
+
+    @allure.title("Ввести текст в поле поиска региона")
+    def fill_region_search_new(self, search_text):
+        city_input = self.page.locator(RegionChoice.NEW_CITY_INPUT)
         city_input.fill(search_text)
         time.sleep(2)
 
@@ -302,6 +314,11 @@ class ChoiceRegionPage(BasePage):
     @allure.title("Проверить текст кнопки выбора региона")
     def verify_region_button_text(self, expected_text):
         region_button = self.page.locator(RegionChoice.REGION_CHOICE_BUTTON)
+        expect(region_button).to_contain_text(expected_text)
+
+    @allure.title("Проверить текст кнопки выбора региона")
+    def verify_region_button_text_new(self, expected_text):
+        region_button = self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON)
         expect(region_button).to_contain_text(expected_text)
 
     @allure.title("Проверить 30 случайных ссылок городов на странице")
@@ -409,6 +426,10 @@ class MTSSecondOnlinePage(BasePage):
         # Проверяем ссылки в футере
         for name, locator in MtsThirdOnline.FOOTER_LINKS.items():
             self.check_link(locator, f"Footer: {name}")
+
+    @allure.title("Открыть попап выбора")
+    def other_city_popup_choice(self):
+        self.page.locator(MTSHomeOnlineMain.ANOTHER_CITY_BUTTON).click()
 
 
 class MTSRuPage(BasePage):

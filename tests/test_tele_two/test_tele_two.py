@@ -63,7 +63,7 @@ class TestTeleTwo:
             with allure.step(f"Подключение тарифа {i + 1}"):
                 tele_page.click_tariff_connect_button(i)
                 time.sleep(3)
-                tele_page.send_popup_application_connection_cards()
+                tele_page.send_popup_application_connection_cards_new()
                 mts_page.check_sucess()
                 domru_page.close_thankyou_page()
                 time.sleep(2)
@@ -81,7 +81,7 @@ class TestTeleTwo:
             with allure.step(f"Подключение тарифа {i + 1}"):
                 tele_page.click_tariff_connect_button(i)
                 time.sleep(3)
-                tele_page.send_popup_application_connection_cards()
+                tele_page.send_popup_application_connection_cards_new()
                 mts_page.check_sucess()
                 domru_page.close_thankyou_page()
                 time.sleep(2)
@@ -130,6 +130,7 @@ class TestTeleTwo:
         mts_page.click_region_choice_button()
         region_page = ChoiceRegionPage(page=page)
         with allure.step("Выбрать Абакан"):
+            time.sleep(4)
             region_page.fill_region_search("Абак")
             region_page.verify_first_region_choice("Абакан")
             region_page.select_first_region()

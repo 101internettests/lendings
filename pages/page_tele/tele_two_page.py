@@ -46,6 +46,16 @@ class TeleTwoPage(BasePage):
             self.page.locator(TeleTwoMain.SEND_BUTTON_TWO).click()
             time.sleep(2)
 
+    @allure.title("Отправить заявку в попап с названием Заявка на подключение")
+    def send_popup_application_connection_cards_new(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(TeleTwoMain.NAME_INPUT).fill("Тест")
+            time.sleep(2)
+            self.page.locator(TeleTwoMain.PHONE_INPUT).fill("9999999999")
+            time.sleep(2)
+            self.page.locator(TeleTwoMain.SEND_BUTTON).click()
+            time.sleep(2)
+
     @allure.title("Отправить заявку в форму Проверьте возможность подключения по вашему адресу")
     def send_popup_from_your_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
