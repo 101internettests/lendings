@@ -43,8 +43,10 @@ class MTSHomeOnlineMain:
     }
     STREET_BUTTON = "xpath=(//input[@placeholder='Улица'])[4]"
     STREET_BUTTON_THREE = "xpath=(//input[@placeholder='Улица'])[3]"
+    STREET_BUTTON_FIVE = "xpath=(//input[@placeholder='Улица'])[5]"
     HOUSE_BUTTON = "xpath=(//input[@placeholder='Дом'])[4]"
     HOUSE_BUTTON_THREE = "xpath=(//input[@placeholder='Дом'])[3]"
+    HOUSE_BUTTON_FIVE = "xpath=(//input[@placeholder='Дом'])[5]"
     FIRST_STREET = "xpath=(//div[@class='autocomplete-street'])[1]"
     FIRST_HOUSE = "xpath=(//div[@class='autocomplete-item'])[1]"
     SEND_BUTTON = "xpath=(//input[@value='Отправить'])[1]"
@@ -88,6 +90,7 @@ class RegionChoice:
     REGION_CHOICE_BUTTON = "xpath=(//a[@id='city'])[1]"
     REGION_CHOICE_BUTTON_FUTER = "xpath=(//a[@id='city'])[2]"
     REGION_CHOICE_BUTTON_THREE = "xpath=(//a[@id='city'])[3]"
+    FUTER_CHOICE = "xpath=(//span[@id='city'])[2]"
     CITY_INPUT = "xpath=//input[@placeholder='Введите название города']"
     NEW_CITY_INPUT = "xpath=//input[@id='city-input']"
     FIRST_CHOICE = "xpath=(//a[@class='region_item'])[1]"
