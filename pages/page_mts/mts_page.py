@@ -285,6 +285,12 @@ class MtsHomeOnlinePage(BasePage):
         region_button.click()
         time.sleep(2)
 
+    @allure.title("Нажать на кнопку выбора региона в футере")
+    def click_region_choice_button_futer_new(self):
+        region_button = self.page.locator(RegionChoice.FUTER_CHOICE)
+        region_button.click()
+        time.sleep(2)
+
 
 class ChoiceRegionPage(BasePage):
     @allure.title("Ввести текст в поле поиска региона")

@@ -39,6 +39,7 @@ class TestBeelinePro:
                 assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
                     "Ожидалась ошибка SSL/сертификата"
 
+    @pytest.mark.skip("Попап не высвечивается")
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")
     def test_application_popup_super_offer(self, page_fixture, beeline_pro):
@@ -180,24 +181,25 @@ class TestBeelinePro:
             region_page.verify_first_region_choice("Аксай (Ростовская область)")
             region_page.select_first_region()
             region_page.verify_region_button_text_new("Аксай")
-    # пока больше не актуален
-    # @allure.title("12. Проверка формы 'Не нашли свой город?'")
-    # def test_check_dont_find_city(self, page_fixture, beeline_pro):
-    #     page = page_fixture
-    #     page.goto(beeline_pro)
-    #     domru_page = DomRuClass(page=page)
-    #     domru_page.close_popup_location()
-    #     # Открываем страницу выбора города через хедер
-    #     mts_page = MtsHomeOnlinePage(page=page)
-    #     mts_page.click_region_choice_button()
-    #
-    #     # Работаем с формой "Не нашли свой город?"
-    #     region_page = ChoiceRegionPage(page=page)
-    #     online_beeline_page = OnlineBeelinePage(page=page)
-    #     online_beeline_page.click_button_dont_find_city()
-    #     # region_page.close_popup_super_offer()
-    #     # time.sleep(4)
-    #     region_page.send_form_dont_find_city()
-    #     mts_page.check_sucess()
-    #     domru_page.close_thankyou_page()
-    #     time.sleep(2)
+
+    @pytest.mark.skip("Пока не актуален, нет возможности проверить сценарий")
+    @allure.title("12. Проверка формы 'Не нашли свой город?'")
+    def test_check_dont_find_city(self, page_fixture, beeline_pro):
+        page = page_fixture
+        page.goto(beeline_pro)
+        domru_page = DomRuClass(page=page)
+        domru_page.close_popup_location()
+        # Открываем страницу выбора города через хедер
+        mts_page = MtsHomeOnlinePage(page=page)
+        mts_page.click_region_choice_button()
+
+        # Работаем с формой "Не нашли свой город?"
+        region_page = ChoiceRegionPage(page=page)
+        online_beeline_page = OnlineBeelinePage(page=page)
+        online_beeline_page.click_button_dont_find_city()
+        # region_page.close_popup_super_offer()
+        # time.sleep(4)
+        region_page.send_form_dont_find_city()
+        mts_page.check_sucess()
+        domru_page.close_thankyou_page()
+        time.sleep(2)

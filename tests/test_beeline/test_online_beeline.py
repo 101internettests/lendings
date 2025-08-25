@@ -130,6 +130,7 @@ class TestOnlineBeeline:
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Кнопка не появляется в режиме инкогнито")
     @allure.title("7. Отправка заявки из попапа по кнопке быстрое подключение закрепленной на экране")
     def test_application_popup_button_fast(self, page_fixture, online_beeline):
         page = page_fixture
@@ -169,22 +170,22 @@ class TestOnlineBeeline:
             region_page.select_first_region()
             region_page.verify_region_button_text_new("Аксай")
 
-    # пока больше не актуален
-    # @allure.title("11. Проверка формы 'Не нашли свой город?'")
-    # def test_check_dont_find_city(self, page_fixture, online_beeline):
-    #     page = page_fixture
-    #     page.goto(online_beeline)
-    #     domru_page = DomRuClass(page=page)
-    #     online_beeline_page = OnlineBeelinePage(page=page)
-    #     # Открываем страницу выбора города через хедер
-    #     mts_page = MtsHomeOnlinePage(page=page)
-    #     mts_page.click_region_choice_button()
-    #
-    #     region_page = ChoiceRegionPage(page=page)
-    #     online_beeline_page.click_button_dont_find_city()
-    #     # region_page.close_popup_super_offer()
-    #     # time.sleep(4)
-    #     region_page.send_form_dont_find_city()
-    #     mts_page.check_sucess()
-    #     domru_page.close_thankyou_page()
-    #     time.sleep(2)
+    @pytest.mark.skip("Пока не актуален, нет возможности проверить сценарий")
+    @allure.title("11. Проверка формы 'Не нашли свой город?'")
+    def test_check_dont_find_city(self, page_fixture, online_beeline):
+        page = page_fixture
+        page.goto(online_beeline)
+        domru_page = DomRuClass(page=page)
+        online_beeline_page = OnlineBeelinePage(page=page)
+        # Открываем страницу выбора города через хедер
+        mts_page = MtsHomeOnlinePage(page=page)
+        mts_page.click_region_choice_button()
+
+        region_page = ChoiceRegionPage(page=page)
+        online_beeline_page.click_button_dont_find_city()
+        # region_page.close_popup_super_offer()
+        # time.sleep(4)
+        region_page.send_form_dont_find_city()
+        mts_page.check_sucess()
+        domru_page.close_thankyou_page()
+        time.sleep(2)
