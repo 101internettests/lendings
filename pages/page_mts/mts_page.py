@@ -327,6 +327,11 @@ class ChoiceRegionPage(BasePage):
         region_button = self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON)
         expect(region_button).to_contain_text(expected_text)
 
+    @allure.title("Проверить текст кнопки выбора региона")
+    def verify_region_button_text_new_gpon(self, expected_text):
+        region_button = self.page.locator(RegionChoice.REGION_CHOICE_BUTTON_FUTER)
+        expect(region_button).to_contain_text(expected_text)
+
     @allure.title("Проверить 30 случайных ссылок городов на странице")
     def check_all_city_links(self):
         """Проверяет до 30 случайных ссылок городов на странице выбора региона без вложений в Allure"""

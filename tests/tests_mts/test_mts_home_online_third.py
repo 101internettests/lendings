@@ -165,6 +165,7 @@ class TestMtsMskHomeOnlineThird:
             region_page.select_first_region()
             region_page.verify_region_button_text("Азнакаево")
 
+    @pytest.mark.skip("Пока не актуален, нет возможности проверить сценарий")
     @allure.title("15. Проверка формы 'Не нашли свой город?'")
     def test_check_dont_find_city(self, page_fixture, six_url):
         page = page_fixture

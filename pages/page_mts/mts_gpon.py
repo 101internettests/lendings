@@ -122,6 +122,12 @@ class MtsGponHomeOnlinePage(BasePage):
         region_button.click()
         time.sleep(2)
 
+    @allure.title("Нажать на кнопку выбора региона в футере новый")
+    def click_region_choice_button_futer_gpon_new(self):
+        region_button = self.page.locator(MskMtsMainWeb.REGION_CHOICE_GPON)
+        region_button.click()
+        time.sleep(2)
+
     @allure.title("Закрыть попап Выгодное предложение")
     def close_popup_super_offer(self):
         self.page.locator(MskMtsMainWeb.SUPER_OFFER_CLOSE_NEW).click()

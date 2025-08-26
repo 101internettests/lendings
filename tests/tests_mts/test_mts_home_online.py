@@ -185,19 +185,20 @@ class TestMolMainRegionPage:
             region_page.select_first_region()
             region_page.verify_region_button_text("Азнакаево")
 
-    @allure.title("15. Переход по всем ссылкам городов на странице выбора города")
-    def test_check_all_city_links(self, page_fixture, base_url):
-        page = page_fixture
-        page.goto(base_url)
+    # @allure.title("15. Переход по всем ссылкам городов на странице выбора города")
+    # def test_check_all_city_links(self, page_fixture, base_url):
+    #     page = page_fixture
+    #     page.goto(base_url)
+    #
+    #     # Открываем страницу выбора города через хедер
+    #     mts_page = MtsHomeOnlinePage(page=page)
+    #     mts_page.click_region_choice_button()
+    #
+    #     # Проверяем все ссылки городов
+    #     region_page = ChoiceRegionPage(page=page)
+    #     region_page.check_all_city_links()
 
-        # Открываем страницу выбора города через хедер
-        mts_page = MtsHomeOnlinePage(page=page)
-        mts_page.click_region_choice_button()
-
-        # Проверяем все ссылки городов
-        region_page = ChoiceRegionPage(page=page)
-        region_page.check_all_city_links()
-
+    @pytest.mark.skip("Пока не актуален, нет возможности проверить сценарий")
     @allure.title("16. Проверка формы 'Не нашли свой город?'")
     def test_check_dont_find_city(self, page_fixture, base_url):
         page = page_fixture

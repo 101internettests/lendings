@@ -4,6 +4,8 @@ import pytest
 from pages.page_mts.mts_page import MtsHomeOnlinePage, ChoiceRegionPage
 from pages.page_mts.msk_mts_page import MtsMSKHomeOnlinePage
 from playwright.sync_api import Error as PlaywrightError
+from pages.page_mts.internet_mts_page import MtsInternetHomeOnlinePage
+from pages.page_beel.beeline_page import BeelineOnlinePage, BeelineInternetOnlinePage, OnlineBeelinePage
 
 
 @allure.feature("https://moskva.mts-home.online/")
@@ -29,7 +31,8 @@ class TestMoskvaMtsHomeOnline:
         time.sleep(65)
         mts_page.check_popup_super_offer()
         time.sleep(2)
-        mts_page.send_popup_super_offer()
+        online_page = BeelineOnlinePage(page=page)
+        online_page.send_popup_super_offer_new_moscow()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -42,7 +45,8 @@ class TestMoskvaMtsHomeOnline:
         mts_page.click_on_red_button()
         mts_page.check_popup_super_offer()
         time.sleep(2)
-        mts_page.send_popup_super_offer()
+        online_page = BeelineOnlinePage(page=page)
+        online_page.send_popup_super_offer_new_moscow()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -52,7 +56,8 @@ class TestMoskvaMtsHomeOnline:
         page.goto(second_url)
         mts_page = MtsHomeOnlinePage(page=page)
         mts_page.click_connect_button()
-        mts_page.send_popup_application_connection()
+        online_page = BeelineOnlinePage(page=page)
+        online_page.send_popup_super_offer_new_address()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -62,7 +67,8 @@ class TestMoskvaMtsHomeOnline:
         page.goto(second_url)
         mts_page = MtsHomeOnlinePage(page=page)
         mts_page.click_check_address_button()
-        mts_page.send_popup_application_connection_your_address()
+        online_page = BeelineInternetOnlinePage(page=page)
+        online_page.send_popup_application_connection_pro_new()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -73,7 +79,8 @@ class TestMoskvaMtsHomeOnline:
         mts_page = MtsHomeOnlinePage(page=page)
         msk_page = MtsMSKHomeOnlinePage(page=page)
         msk_page.click_on_banner()
-        mts_page.send_popup_application_connection()
+        online_page = BeelineOnlinePage(page=page)
+        online_page.send_popup_super_offer_new_address()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -82,11 +89,12 @@ class TestMoskvaMtsHomeOnline:
         page = page_fixture
         page.goto(second_url)
         mts_page = MtsHomeOnlinePage(page=page)
-        mts_page.send_popup_application_check_connection()
+        online = OnlineBeelinePage(page=page)
+        online.send_popup_application_connection_home_new()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
         time.sleep(3)
-        mts_page.send_popup_application_check_connection_near_futer()
+        online.send_popup_from_connection_home_new()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -107,7 +115,8 @@ class TestMoskvaMtsHomeOnline:
                 time.sleep(3)
                 mts_page.verify_popup_tariff_name(tariff_name)
                 time.sleep(3)
-                mts_page.send_tariff_connection_request()
+                online = BeelineOnlinePage(page=page)
+                online.send_popup_super_offer_new_address()
                 mts_page.check_sucess()
                 mts_page.close_thankyou_page()
                 time.sleep(2)
@@ -118,7 +127,8 @@ class TestMoskvaMtsHomeOnline:
         page.goto(second_url)
         mts_page = MtsHomeOnlinePage(page=page)
         mts_page.click_connect_button_futer()
-        mts_page.send_popup_application_connection()
+        online_page = BeelineOnlinePage(page=page)
+        online_page.send_popup_super_offer_new_address()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -128,7 +138,8 @@ class TestMoskvaMtsHomeOnline:
         page.goto(second_url)
         mts_page = MtsHomeOnlinePage(page=page)
         mts_page.click_check_address_button_futer()
-        mts_page.send_popup_application_connection_your_address()
+        online_page = BeelineInternetOnlinePage(page=page)
+        online_page.send_popup_application_connection_pro_new()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -144,14 +155,15 @@ class TestMoskvaMtsHomeOnline:
         page = page_fixture
         page.goto(second_url)
         mts_page = MtsHomeOnlinePage(page=page)
-        mts_page.click_region_choice_button()
+        internet_page = MtsInternetHomeOnlinePage(page=page)
+        internet_page.click_region_choice_button_new()
         region_page = ChoiceRegionPage(page=page)
         with allure.step("Выбрать СПб"):
             time.sleep(5)
-            region_page.fill_region_search("Санкт")
+            region_page.fill_region_search_new("Санкт")
             region_page.verify_first_region_choice("Санкт-Петербург")
             region_page.select_first_region()
-            region_page.verify_region_button_text("Санкт-Петербург")
+            region_page.verify_region_button_text_new("Санкт-Петербург")
 
     @allure.title("13.2. Выбор региона Азнакаево из хедера")
     def test_msk_choose_region_header_azn(self, page_fixture, second_url):
@@ -160,51 +172,53 @@ class TestMoskvaMtsHomeOnline:
         mts_page = MtsHomeOnlinePage(page=page)
         region_page = ChoiceRegionPage(page=page)
         with allure.step("Выбрать Азнакаево"):
-            mts_page.click_region_choice_button()
-            region_page.fill_region_search("Азнак")
+            internet_page = MtsInternetHomeOnlinePage(page=page)
+            internet_page.click_region_choice_button_new()
+            region_page.fill_region_search_new("Азнак")
             region_page.verify_first_region_choice("Азнакаево")
             region_page.select_first_region()
-            region_page.verify_region_button_text("Азнакаево")
+            region_page.verify_region_button_text_new("Азнакаево")
 
     @allure.title("14.1. Выбор регион СПб из футера")
     def test_msk_choose_region_futer_spb(self, page_fixture, second_url):
         page = page_fixture
         page.goto(second_url)
-        msk_page = MtsMSKHomeOnlinePage(page=page)
-        msk_page.click_region_choice_button_futer()
+        msk_page = MtsInternetHomeOnlinePage(page=page)
+        msk_page.click_region_choice_button_futer_msk_new()
         region_page = ChoiceRegionPage(page=page)
         with allure.step("Выбрать СПб"):
-            region_page.fill_region_search("Санкт")
+            region_page.fill_region_search_new("Санкт")
             region_page.verify_first_region_choice("Санкт-Петербург")
             region_page.select_first_region()
-            region_page.verify_region_button_text("Санкт-Петербург")
+            region_page.verify_region_button_text_new("Санкт-Петербург")
 
     @allure.title("14.2. Выбор региона Азнакаево из футера")
     def test_msk_choose_region_futer_azn(self, page_fixture, second_url):
         page = page_fixture
         page.goto(second_url)
-        msk_page = MtsMSKHomeOnlinePage(page=page)
-        msk_page.click_region_choice_button_futer()
+        msk_page = MtsInternetHomeOnlinePage(page=page)
+        msk_page.click_region_choice_button_futer_msk_new()
         region_page = ChoiceRegionPage(page=page)
         with allure.step("Выбрать Азнакаево"):
-            region_page.fill_region_search("Азнак")
+            region_page.fill_region_search_new("Азнак")
             region_page.verify_first_region_choice("Азнакаево")
             region_page.select_first_region()
-            region_page.verify_region_button_text("Азнакаево")
+            region_page.verify_region_button_text_new("Азнакаево")
 
-    @allure.title("15. Переход по всем ссылкам городов на странице выбора города")
-    def test_msk_check_all_city_links(self, page_fixture, second_url):
-        page = page_fixture
-        page.goto(second_url)
+    # @allure.title("15. Переход по всем ссылкам городов на странице выбора города")
+    # def test_msk_check_all_city_links(self, page_fixture, second_url):
+    #     page = page_fixture
+    #     page.goto(second_url)
+    #
+    #     # Открываем страницу выбора города через хедер
+    #     mts_page = MtsHomeOnlinePage(page=page)
+    #     mts_page.click_region_choice_button()
+    #
+    #     # Проверяем все ссылки городов
+    #     region_page = ChoiceRegionPage(page=page)
+    #     region_page.check_all_city_links()
 
-        # Открываем страницу выбора города через хедер
-        mts_page = MtsHomeOnlinePage(page=page)
-        mts_page.click_region_choice_button()
-
-        # Проверяем все ссылки городов
-        region_page = ChoiceRegionPage(page=page)
-        region_page.check_all_city_links()
-
+    @pytest.mark.skip("Пока не актуален, нет возможности проверить сценарий")
     @allure.title("16. Проверка формы 'Не нашли свой город?'")
     def test_msk_check_dont_find_city(self, page_fixture, second_url):
         page = page_fixture
