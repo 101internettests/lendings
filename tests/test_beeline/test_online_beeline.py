@@ -85,11 +85,11 @@ class TestOnlineBeeline:
         domru_page.close_popup_location()
         with allure.step("Проверить возможность подключения подключить тарифы билайн в Москве"):
             online_beeline_page = OnlineBeelinePage(page=page)
-            online_beeline_page.send_popup_from_connection()
+            online_beeline_page.send_popup_application_connection_home_new()
             mts_page.check_sucess()
             domru_page.close_thankyou_page()
         with allure.step("Проверить возможность подключения проверьте адрес подключения"):
-            online_beeline_page.send_popup_from_connection_second()
+            online_beeline_page.send_popup_from_connection_home_new()
             mts_page.check_sucess()
             domru_page.close_thankyou_page()
 

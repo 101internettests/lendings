@@ -112,13 +112,12 @@ class TestBeelineInternetOnline:
         domru_page = DomRuClass(page=page)
         domru_page.close_popup_location()
         with allure.step("Проверить возможность подключения билайн по вашему адресу в Москве первый"):
-            beeline_page = BeelineOnlinePage(page=page)
             beeline_internet_page = BeelineInternetOnlinePage(page=page)
             beeline_internet_page.send_popup_from_connection_new_address()
             mts_page.check_sucess()
             domru_page.close_thankyou_page()
+            time.sleep(3)
         with allure.step("Проверить возможность подключения билайн по вашему адресу в Москве вторая"):
-            beeline_page = BeelineOnlinePage(page=page)
             beeline_internet_page = BeelineInternetOnlinePage(page=page)
             beeline_internet_page.send_popup_from_connection_new_address_se()
             mts_page.check_sucess()
