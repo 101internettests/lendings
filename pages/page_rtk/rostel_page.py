@@ -31,6 +31,34 @@ class RostelecomPage(BasePage):
             self.page.locator(Rostelecom.SEND_BUTTON_CONNECT).click()
             time.sleep(4)
 
+    @allure.title("Отправить заявку в попап скнопки Подключиться")
+    def send_popup_application_connection_home_new_four(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(Rostelecom.STREET_INPUT_FOUR).type("Тестовая улица", delay=100)
+            self.page.locator(Rostelecom.FIRST_STREET).click()
+            time.sleep(1)
+            self.page.locator(Rostelecom.HOUSE_INPUT_FOUR).fill("1")
+            self.page.locator(Rostelecom.FIRST_HOUSE).click()
+            time.sleep(1)
+            self.page.locator(Rostelecom.PHONE_BUTTON).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(Rostelecom.SEND_BUTTON_OFFER_POPUP).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в попап скнопки Подключиться")
+    def send_popup_application_connection_home_new_five(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(Rostelecom.INPUT_STREET_FIVE).type("Тестовая улица", delay=100)
+            self.page.locator(Rostelecom.FIRST_STREET).click()
+            time.sleep(1)
+            self.page.locator(Rostelecom.INPUT_HOUSE_FIVE).fill("1")
+            self.page.locator(Rostelecom.FIRST_HOUSE).click()
+            time.sleep(1)
+            self.page.locator(Rostelecom.PHONE_BUTTON).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(Rostelecom.SEND_BUTTON_OFFER_POPUP).click()
+            time.sleep(4)
+
     @allure.title("Нажать на кнопку Подключиться с баннера")
     def click_connect_banner_button(self):
         self.page.locator(Rostelecom.CONNECTION_BUTTON).click()

@@ -128,6 +128,8 @@ class TestTeleTwo:
         mts_page = MtsHomeOnlinePage(page=page)
         time.sleep(5)
         mts_page.click_region_choice_button()
+        time.sleep(2)
+        mts_page.click_region_choice_button()
         region_page = ChoiceRegionPage(page=page)
         with allure.step("Выбрать Абакан"):
             time.sleep(4)
@@ -145,6 +147,8 @@ class TestTeleTwo:
         # Открываем страницу выбора города через хедер
         mts_page = MtsHomeOnlinePage(page=page)
         time.sleep(5)
+        mts_page.click_region_choice_button()
+        time.sleep(2)
         mts_page.click_region_choice_button()
 
         region_page = ChoiceRegionPage(page=page)
