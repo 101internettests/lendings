@@ -6,6 +6,8 @@ class MTSHomeOnlineMain:
     SUPER_OFFER_TEXT = "xpath=//div[contains(text(),'С экономией в год от 9000 рублей!')]"
     INPUT_OFFER_POPUP_SOME_PAGE = "xpath=(//input[@name='Phone'])[4]"
     INPUT_OFFER_POPUP = "xpath=(//input[@name='Phone'])[5]"
+    INPUT_OFFER_POPUP_SIX = "xpath=(//input[@name='Phone'])[6]"
+    INPUT_OFFER_POPUP_SEVEN = "xpath=(//input[@name='Phone'])[7]"
     SEND_BUTTON_OFFER_POPUP = "xpath=(//form[@aria-label='Контактная форма']//input[@value='Отправить'])[2]"
     THANKYOU_TEXT = "xpath=//div[@class='thanks']"
     RED_BUTTON = "xpath=//button[@class='button-lead-catcher']"
@@ -43,14 +45,18 @@ class MTSHomeOnlineMain:
     }
     STREET_BUTTON = "xpath=(//input[@placeholder='Улица'])[4]"
     STREET_BUTTON_THREE = "xpath=(//input[@placeholder='Улица'])[3]"
+    STREET_BUTTON_SECOND = "xpath=(//input[@placeholder='Улица'])[2]"
     STREET_BUTTON_FIVE = "xpath=(//input[@placeholder='Улица'])[5]"
     HOUSE_BUTTON = "xpath=(//input[@placeholder='Дом'])[4]"
     HOUSE_BUTTON_THREE = "xpath=(//input[@placeholder='Дом'])[3]"
+    HOUSE_BUTTON_SECOND = "xpath=(//input[@placeholder='Дом'])[2]"
     HOUSE_BUTTON_FIVE = "xpath=(//input[@placeholder='Дом'])[5]"
     FIRST_STREET = "xpath=(//div[@class='autocomplete-street'])[1]"
     FIRST_HOUSE = "xpath=(//div[@class='autocomplete-item'])[1]"
     SEND_BUTTON = "xpath=(//input[@value='Отправить'])[1]"
+    SEND_BUTTON_TWO = "xpath=(//input[@value='Отправить'])[2]"
     ANOTHER_CITY_BUTTON = "xpath=//button[text()='Выбрать город']"
+    CHECK_ADDRESS_BUTTON_FOUR = "xpath=(//input[@value='Проверить адрес'])[4]"
 
 
 # попап по кнопке подключить Заявка на подключение
@@ -87,10 +93,13 @@ class FormApplicationCheckConnection:
 
 class RegionChoice:
     NEW_REGION_CHOICE_BUTTON = "xpath=(//span[@id='city'])[1]"
+    NEW_REGION_CHOICE_BUTTON_HEADER = "xpath=(//span[@id='city'])[2]"
+    NEW_REGION_CHOICE_BUTTON_FUTER = "xpath=(//span[@id='city'])[3]"
     REGION_CHOICE_BUTTON = "xpath=(//a[@id='city'])[1]"
     REGION_CHOICE_BUTTON_FUTER = "xpath=(//a[@id='city'])[2]"
     REGION_CHOICE_BUTTON_THREE = "xpath=(//a[@id='city'])[3]"
     FUTER_CHOICE = "xpath=(//span[@id='city'])[2]"
+    FUTER_MTS_NEW = "xpath=(//a[@class='city'])[2]"
     CITY_INPUT = "xpath=//input[@placeholder='Введите название города']"
     NEW_CITY_INPUT = "xpath=//input[@id='city-input']"
     FIRST_CHOICE = "xpath=(//a[@class='region_item'])[1]"
@@ -125,6 +134,7 @@ class MskMtsMainWeb:
         "mobile": "xpath=(//a[contains(text(),'Мобильная связь')])[2]"
     }
     REGION_CHOICE_BUTTON_SECOND = "xpath=(//a[@id='city'])[2]"
+    REGION_CHOICE_GPON = "xpath=(//a[@id='city'])[3]"
     REGION_CHOICE_BUTTON_FUTER = "xpath=(//a[@href='/city'])[5]"
     SUPER_OFFER_CLOSE = "xpath=(//button[@class='popup__close'])[3]"
     SUPER_OFFER_CLOSE_NEW = "xpath=(//button[@class='popup__close'])[4]"

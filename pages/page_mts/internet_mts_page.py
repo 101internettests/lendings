@@ -119,3 +119,21 @@ class MtsInternetHomeOnlinePage(BasePage):
         region_button = self.page.locator(RegionChoice.REGION_CHOICE_BUTTON_THREE)
         region_button.click()
         time.sleep(2)
+
+    @allure.title("Нажать на кнопку выбора региона в хедере")
+    def click_region_choice_button_header_new(self):
+        region_button = self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON_HEADER)
+        region_button.click()
+        time.sleep(2)
+
+    @allure.title("Нажать на кнопку выбора региона в футере")
+    def click_region_choice_button_futer_new(self):
+        region_button = self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON_FUTER)
+        region_button.click()
+        time.sleep(2)
+
+    @allure.title("Нажать на кнопку выбора региона в футере МТС")
+    def click_region_choice_button_futer_msk_new(self):
+        region_button = self.page.locator(RegionChoice.FUTER_MTS_NEW)
+        region_button.click()
+        time.sleep(2)

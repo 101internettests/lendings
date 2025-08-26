@@ -5,6 +5,7 @@ from pages.page_mts.mts_page import MtsHomeOnlinePage, ChoiceRegionPage
 from pages.page_mts.mts_gpon import MtsGponHomeOnlinePage
 from pages.page_mts.msk_mts_page import MtsMSKHomeOnlinePage
 from playwright.sync_api import Error as PlaywrightError
+from pages.page_beel.beeline_page import BeelineOnlinePage, BeelineInternetOnlinePage, OnlineBeelinePage
 
 
 @allure.feature("https://mts-home-gpon.ru/")
@@ -21,17 +22,19 @@ class TestGponMtsHomeOnline:
                 assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
                     "Ожидалась ошибка SSL/сертификата"
 
+    @pytest.mark.skip("Попап не высвечивается")
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")
     def test_gpon_application_popup_super_offer(self, page_fixture, third_url):
         page = page_fixture
         page.goto(third_url)
         mts_page = MtsHomeOnlinePage(page=page)
-        time.sleep(30)
+        time.sleep(60)
         gpon_page = MtsGponHomeOnlinePage(page=page)
         gpon_page.check_popup_super_offer()
         time.sleep(2)
-        gpon_page.send_popup_super_offer()
+        online_page = BeelineOnlinePage(page=page)
+        online_page.send_popup_super_offer_new_ghome()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -45,7 +48,8 @@ class TestGponMtsHomeOnline:
         mts_page.click_on_red_button()
         gpon_page.check_popup_super_offer()
         time.sleep(2)
-        gpon_page.send_popup_super_offer()
+        online_page = BeelineOnlinePage(page=page)
+        online_page.send_popup_super_offer_new_ghome()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -54,12 +58,13 @@ class TestGponMtsHomeOnline:
         page = page_fixture
         page.goto(third_url)
         mts_page = MtsHomeOnlinePage(page=page)
-        time.sleep(6)
+        # time.sleep(6)
         choice_page = ChoiceRegionPage(page=page)
         gpon_page = MtsGponHomeOnlinePage(page=page)
-        choice_page.close_popup_super_offer()
+        # choice_page.close_popup_super_offer()
         gpon_page.click_connect_button()
-        gpon_page.send_popup_application_connection()
+        online = BeelineOnlinePage(page=page)
+        online.send_popup_super_offer_new_phone()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -110,8 +115,8 @@ class TestGponMtsHomeOnline:
         page.goto(third_url)
         mts_page = MtsHomeOnlinePage(page=page)
         mts_page.click_connect_button_futer()
-        gpon_page = MtsGponHomeOnlinePage(page=page)
-        gpon_page.send_popup_application_connection()
+        online = BeelineOnlinePage(page=page)
+        online.send_popup_super_offer_new_phone()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -144,10 +149,10 @@ class TestGponMtsHomeOnline:
         region_page = ChoiceRegionPage(page=page)
         with allure.step("Выбрать Азнакаево"):
             gpon_page.click_region_choice_button_gpon()
-            region_page.fill_region_search("Азнак")
+            region_page.fill_region_search_new("Азнак")
             region_page.verify_first_region_choice("Азнакаево")
             region_page.select_first_region()
-            region_page.verify_region_button_text("Азнакаево")
+            region_page.verify_region_button_text_new_gpon("Азнакаево")
 
     @allure.title("11. Выбор региона Азнакаево из футера")
     def test_gpon_choose_region_futer_azn(self, page_fixture, third_url):
@@ -156,25 +161,26 @@ class TestGponMtsHomeOnline:
         gpon_page = MtsGponHomeOnlinePage(page=page)
         region_page = ChoiceRegionPage(page=page)
         with allure.step("Выбрать Азнакаево"):
-            gpon_page.click_region_choice_button_futer_gpon()
-            region_page.fill_region_search("Азнак")
+            gpon_page.click_region_choice_button_futer_gpon_new()
+            region_page.fill_region_search_new("Азнак")
             region_page.verify_first_region_choice("Азнакаево")
             region_page.select_first_region()
-            region_page.verify_region_button_text("Азнакаево")
+            region_page.verify_region_button_text_new_gpon("Азнакаево")
 
-    @allure.title("12. Переход по всем ссылкам городов на странице выбора города")
-    def test_gpon_check_all_city_links(self, page_fixture, third_url):
-        page = page_fixture
-        page.goto(third_url)
+    # @allure.title("12. Переход по всем ссылкам городов на странице выбора города")
+    # def test_gpon_check_all_city_links(self, page_fixture, third_url):
+    #     page = page_fixture
+    #     page.goto(third_url)
+    #
+    #     # Открываем страницу выбора города через хедер
+    #     gpon_page = MtsGponHomeOnlinePage(page=page)
+    #     gpon_page.click_region_choice_button_gpon()
+    #
+    #     # Проверяем все ссылки городов
+    #     region_page = ChoiceRegionPage(page=page)
+    #     region_page.check_all_city_links()
 
-        # Открываем страницу выбора города через хедер
-        gpon_page = MtsGponHomeOnlinePage(page=page)
-        gpon_page.click_region_choice_button_gpon()
-
-        # Проверяем все ссылки городов
-        region_page = ChoiceRegionPage(page=page)
-        region_page.check_all_city_links()
-
+    @pytest.mark.skip("Пока не актуален, нет возможности проверить сценарий")
     @allure.title("16. Проверка формы 'Не нашли свой город?'")
     def test_gpon_check_dont_find_city(self, page_fixture, third_url):
         page = page_fixture

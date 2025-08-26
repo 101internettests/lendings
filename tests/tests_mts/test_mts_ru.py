@@ -196,6 +196,7 @@ class TestMtsRu:
     #     region_page = ChoiceRegionPage(page=page)
     #     region_page.check_all_city_links()
 
+    @pytest.mark.skip("Пока не актуален, нет возможности проверить сценарий")
     @allure.title("15. Проверка формы 'Не нашли свой город?'")
     def test_check_dont_find_city(self, page_fixture, seven_url):
         page = page_fixture

@@ -36,6 +36,34 @@ class BeelineOnlinePage(BasePage):
             self.page.locator(MTSHomeOnlineMain.SEND_BUTTON).click()
             time.sleep(4)
 
+    @allure.title("Отправить заявку в попап и проверить успешность где телефон")
+    def send_popup_super_offer_new_phone(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON).type("Тестовая улица", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON).fill("1")
+            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SIX).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.SEND_BUTTON).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в попап и проверить успешность где кнопка проверить адрес")
+    def send_popup_super_offer_new_address(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON).type("Тестовая улица", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON).fill("1")
+            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SOME_PAGE).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.CHECK_ADDRESS_BUTTON_FOUR).click()
+            time.sleep(4)
+
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer_new_moscow(self):
         with allure.step("Заполнить попап и отправить заявку"):
@@ -48,6 +76,20 @@ class BeelineOnlinePage(BasePage):
             self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP).fill("99999999999")
             time.sleep(1)
             self.page.locator(MTSHomeOnlineMain.SEND_BUTTON).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в попап и проверить успешность")
+    def send_popup_super_offer_new_ghome(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_FIVE).type("Тестовая улица", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_FIVE).fill("1")
+            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SEVEN).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_TWO).click()
             time.sleep(4)
 
     # @allure.title("Отправить заявку в попап и проверить успешность")
@@ -473,6 +515,20 @@ class BeelineInternetOnlinePage(BasePage):
             self.page.locator(BeelineMain.PHONE_INPUT_OTHER).fill("99999999999")
             time.sleep(1)
             self.page.locator(BeelineMain.CHECK_ADDRESS_THREE).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку по кнопке Проверить адрес НОВЫЙ")
+    def send_popup_application_connection_check_address(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_SECOND).type("Тестовая улица", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_SECOND).fill("1")
+            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            time.sleep(1)
+            self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(BeelineMain.CHECK_ADDRESS_TWO).click()
             time.sleep(4)
 
     @allure.title("Нажать кнопку подключить на тарифной карточке")
