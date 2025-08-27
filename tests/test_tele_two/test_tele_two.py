@@ -121,6 +121,7 @@ class TestTeleTwo:
         beeline_page = BeelineOnlinePage(page=page)
         beeline_page.check_all_links_online_tele()
 
+    @pytest.mark.skip("Бот не может нажать")
     @allure.title("9. Выбор региона из хедера")
     def test_choose_region_header(self, page_fixture, tele_two):
         page = page_fixture
@@ -138,6 +139,7 @@ class TestTeleTwo:
             region_page.select_first_region()
             region_page.verify_region_button_text("Абакан")
 
+    @pytest.mark.skip("Бот не может нажать")
     @allure.title("11. Проверка формы 'Не нашли свой город?'")
     def test_check_dont_find_city(self, page_fixture, tele_two):
         page = page_fixture

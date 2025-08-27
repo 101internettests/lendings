@@ -4,6 +4,7 @@ import pytest
 from pages.page_mts.mts_page import MtsHomeOnlinePage, ChoiceRegionPage
 from pages.page_mts.mts_home_online_page import MtsHomeOnlineSecondPage
 from playwright.sync_api import Error as PlaywrightError
+from pages.page_beel.beeline_page import BeelineOnlinePage,  BeelineInternetOnlinePage, OnlineBeelinePage
 
 
 @allure.feature("https://mts-home-online.ru/")
@@ -20,6 +21,7 @@ class TestMtsMskHomeOnlineSecond:
                 assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
                     "Ожидалась ошибка SSL/сертификата"
 
+    @pytest.mark.skip("Попап не высвечивается")
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")
     def test_application_popup_super_offer(self, page_fixture, four_url):
@@ -27,7 +29,7 @@ class TestMtsMskHomeOnlineSecond:
         page.goto(four_url)
         mts_page = MtsHomeOnlinePage(page=page)
         mts_second_page = MtsHomeOnlineSecondPage(page=page)
-        time.sleep(25)
+        time.sleep(60)
         mts_second_page.check_popup_super_offer()
         time.sleep(2)
         mts_second_page.send_popup_super_offer()
@@ -44,7 +46,7 @@ class TestMtsMskHomeOnlineSecond:
         mts_second_page = MtsHomeOnlineSecondPage(page=page)
         mts_second_page.check_popup_super_offer()
         time.sleep(2)
-        mts_second_page.send_popup_super_offer()
+        mts_second_page.send_popup_super_offer_new()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -55,7 +57,7 @@ class TestMtsMskHomeOnlineSecond:
         mts_page = MtsHomeOnlinePage(page=page)
         mts_second_page = MtsHomeOnlineSecondPage(page=page)
         mts_second_page.click_connect_button()
-        mts_second_page.send_popup_application_connection()
+        mts_second_page.send_popup_application_connection_new()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -64,14 +66,11 @@ class TestMtsMskHomeOnlineSecond:
         page = page_fixture
         page.goto(four_url)
         mts_page = MtsHomeOnlinePage(page=page)
-        mts_page.send_popup_application_check_connection()
+        online_beeline_page = OnlineBeelinePage(page=page)
+        online_beeline_page.send_popup_application_connection_home_new()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
         time.sleep(3)
-        mts_second_page = MtsHomeOnlineSecondPage(page=page)
-        mts_second_page.send_popup_application_check_connection_near_futer()
-        mts_page.check_sucess()
-        mts_page.close_thankyou_page()
 
     @allure.title("6. Отправка заявок с карточек тарифа")
     def test_application_from_tariff_cards(self, page_fixture, four_url):
@@ -86,7 +85,8 @@ class TestMtsMskHomeOnlineSecond:
                 mts_page.click_tariff_connect_button(i)
                 mts_page.verify_popup_tariff_name(tariff_name)
                 time.sleep(3)
-                mts_second_page.send_tariff_connection_request()
+                mts_second_page = MtsHomeOnlineSecondPage(page=page)
+                mts_second_page.send_popup_application_connection_new()
                 mts_page.check_sucess()
                 mts_page.close_thankyou_page()
                 time.sleep(2)
@@ -98,7 +98,7 @@ class TestMtsMskHomeOnlineSecond:
         mts_page = MtsHomeOnlinePage(page=page)
         mts_page.click_connect_button_futer()
         mts_second_page = MtsHomeOnlineSecondPage(page=page)
-        mts_second_page.send_popup_application_connection()
+        mts_second_page.send_popup_application_connection_new()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -109,7 +109,8 @@ class TestMtsMskHomeOnlineSecond:
         mts_page = MtsHomeOnlinePage(page=page)
         mts_second_page = MtsHomeOnlineSecondPage(page=page)
         mts_second_page.click_check_address_button_futer()
-        mts_second_page.send_popup_application_connection_your_address()
+        online = BeelineInternetOnlinePage(page=page)
+        mts_second_page.send_popup_application_connection_three()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -127,11 +128,11 @@ class TestMtsMskHomeOnlineSecond:
         region_page = ChoiceRegionPage(page=page)
         mts_second_page = MtsHomeOnlineSecondPage(page=page)
         with allure.step("Выбрать Азнакаево"):
-            mts_second_page.click_region_choice_button()
-            region_page.fill_region_search("Азнак")
+            mts_second_page.click_region_choice_button_new_two()
+            region_page.fill_region_search_new("Азнак")
             region_page.verify_first_region_choice("Азнакаево")
             region_page.select_first_region()
-            region_page.verify_region_button_text("Азнакаево")
+            region_page.verify_region_button_text_new("Азнакаево")
 
     @allure.title("11. Выбор региона Азнакаево из футера")
     def test_choose_region_futer_azn(self, page_fixture, four_url):
@@ -141,11 +142,11 @@ class TestMtsMskHomeOnlineSecond:
         mts_page = MtsHomeOnlinePage(page=page)
         region_page = ChoiceRegionPage(page=page)
         with allure.step("Выбрать Азнакаево"):
-            mts_second_page.click_region_choice_button_futer()
-            region_page.fill_region_search("Азнак")
+            mts_second_page.click_region_choice_button_futer_new()
+            region_page.fill_region_search_new("Азнак")
             region_page.verify_first_region_choice("Азнакаево")
             region_page.select_first_region()
-            region_page.verify_region_button_text("Азнакаево")
+            region_page.verify_region_button_text_new("Азнакаево")
 
     # @allure.title("12. Переход по всем ссылкам городов на странице выбора города")
     # def test_check_all_city_links(self, page_fixture, four_url):

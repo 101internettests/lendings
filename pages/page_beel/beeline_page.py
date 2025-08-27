@@ -50,6 +50,20 @@ class BeelineOnlinePage(BasePage):
             self.page.locator(MTSHomeOnlineMain.SEND_BUTTON).click()
             time.sleep(4)
 
+    @allure.title("Отправить заявку в попап и проверить успешность где кнопка проверить адрес ПЕРВАЯ")
+    def send_popup_super_offer_new_address_first(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_FIRST).type("Тестовая улица", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_FIRST).fill("1")
+            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SECOND).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.CHECK_ADDRESS_BUTTON_SECOND).click()
+            time.sleep(4)
+
     @allure.title("Отправить заявку в попап и проверить успешность где кнопка проверить адрес")
     def send_popup_super_offer_new_address(self):
         with allure.step("Заполнить попап и отправить заявку"):
@@ -387,6 +401,20 @@ class OnlineBeelinePage(BasePage):
             self.page.locator(BeelineMain.CHECK_ADDRESS_TWO).click()
             time.sleep(4)
 
+    @allure.title("Отправить  заявку в форму проверьте адрес подключения")
+    def send_popup_from_connection_home_new_MORE(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(BeelineMain.INPUT_STREET_SECOND).type("Тестовая улица", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            time.sleep(1)
+            self.page.locator(BeelineMain.INPUT_HOUSE_SECOND).fill("1")
+            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            time.sleep(1)
+            self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(BeelineMain.CHECK_ADDRESS_TWO).click()
+            time.sleep(4)
+
     @allure.title("Нажать на кнопку Подключиться футер")
     def click_connect_button_futer(self):
         self.page.locator(OnlineBeeline.CONNECT_BUTTON_FUTER).click()
@@ -515,6 +543,20 @@ class BeelineInternetOnlinePage(BasePage):
             self.page.locator(BeelineMain.PHONE_INPUT_OTHER).fill("99999999999")
             time.sleep(1)
             self.page.locator(BeelineMain.CHECK_ADDRESS_THREE).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в попап с названием Заявка на подключение")
+    def send_popup_application_connection_pro_new_phone(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_THREE).type("Тестовая улица", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_THREE).fill("1")
+            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            time.sleep(1)
+            self.page.locator(BeelineMain.PHONE_INPUT_FIVE).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(BeelineMain.CHECK_ADDRESS_FOUR).click()
             time.sleep(4)
 
     @allure.title("Отправить заявку по кнопке Проверить адрес НОВЫЙ")

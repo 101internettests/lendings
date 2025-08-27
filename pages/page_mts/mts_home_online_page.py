@@ -109,9 +109,27 @@ class MtsHomeOnlineSecondPage(BasePage):
         region_button.click()
         time.sleep(2)
 
+    @allure.title("Нажать на кнопку выбора региона в хедере")
+    def click_region_choice_button_new(self):
+        region_button = self.page.locator(RegionChoice.REGION_CHOICE_BUTTON_FUTER)
+        region_button.click()
+        time.sleep(2)
+
+    @allure.title("Нажать на кнопку выбора региона в хедере")
+    def click_region_choice_button_new_two(self):
+        region_button = self.page.locator(RegionChoice.HEADER_BUTTON_NEW)
+        region_button.click()
+        time.sleep(2)
+
     @allure.title("Нажать на кнопку выбора региона в футере")
     def click_region_choice_button_futer(self):
         region_button = self.page.locator(RegionChoiceSecond.REGION_CHOICE_BUTTON_FUTER)
+        region_button.click()
+        time.sleep(2)
+
+    @allure.title("Нажать на кнопку выбора региона в футере")
+    def click_region_choice_button_futer_new(self):
+        region_button = self.page.locator(RegionChoiceSecond.NEW_HEADER_BUTTON)
         region_button.click()
         time.sleep(2)
 
@@ -121,4 +139,46 @@ class MtsHomeOnlineSecondPage(BasePage):
             self.page.locator(RegionChoice.FORM_CITY).fill("Тестгород")
             self.page.locator(RegionChoiceSecond.PHONE_INPUT).fill("99999999999")
             self.page.locator(RegionChoiceSecond.SEND_BUTTON).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в попап и проверить успешность")
+    def send_popup_super_offer_new(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_FIVE).type("Тестовая улица", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_FIVE).fill("1")
+            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SIX).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.SEND_BUTTON).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в попап с названием Заявка на подключение")
+    def send_popup_application_connection_new(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON).type("Тестовая улица", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON).fill("1")
+            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.PHONE_INPUT_FIVE).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.CHECK_ADDRESS_BUTTON_FOUR).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в попап с названием Заявка на подключение")
+    def send_popup_application_connection_three(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_THREE).type("Тестовая улица", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_THREE).fill("1")
+            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SOME_PAGE).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(MTSHomeOnlineMain.CHECK_ADDRESS_BUTTON_THREE).click()
             time.sleep(4)

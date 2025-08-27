@@ -36,3 +36,5 @@ class RegionChoiceSecond:
     REGION_CHOICE_BUTTON_FUTER = "xpath=(//a[@id='city'])[3]"
     PHONE_INPUT = "xpath=(//input[@name='Phone'])[3]"
     SEND_BUTTON = "xpath=(//input[@value='Отправить'])[2]"
+    NEW_HEADER_BUTTON = "xpath=(//span[@id='city'])[2]"
+    NEW_FUTER_BUTTON = "xpath=(//span[@id='city'])[3]"

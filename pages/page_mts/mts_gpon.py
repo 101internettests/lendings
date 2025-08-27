@@ -105,7 +105,7 @@ class MtsGponHomeOnlinePage(BasePage):
         # Проверяем ссылки в хедере
         for name, locator in MskMtsMainWeb.HEADER_LINKS_GPON.items():
             self.check_link(locator, f"Header: {name}")
-        self.close_thankyou_page()
+        # self.close_thankyou_page()
         # Проверяем ссылки в футере
         for name, locator in MTSHomeOnlineMain.FOOTER_LINKS.items():
             self.check_link(locator, f"Footer: {name}")

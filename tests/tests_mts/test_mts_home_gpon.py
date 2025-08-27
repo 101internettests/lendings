@@ -78,9 +78,9 @@ class TestGponMtsHomeOnline:
         mts_page.close_thankyou_page()
         time.sleep(10)
         region_page = ChoiceRegionPage(page=page)
-        region_page.close_popup_super_offer()
-        gpon_page = MtsGponHomeOnlinePage(page=page)
-        gpon_page.send_popup_application_check_connection_near_futer()
+        # region_page.close_popup_super_offer()
+        gpon_page = BeelineOnlinePage(page=page)
+        gpon_page.send_popup_super_offer_new_address_first()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
@@ -90,10 +90,10 @@ class TestGponMtsHomeOnline:
         page.goto(third_url)
         mts_page = MtsMSKHomeOnlinePage(page=page)
         tariff_cards = mts_page.get_tariff_cards()
-        time.sleep(10)
+        # time.sleep(10)
         region_page = ChoiceRegionPage(page=page)
         gpon_page = MtsGponHomeOnlinePage(page=page)
-        region_page.close_popup_super_offer()
+        # region_page.close_popup_super_offer()
         for i in range(len(tariff_cards)):
             with allure.step(f"Подключение тарифа {i + 1}"):
                 tariff_name = mts_page.get_tariff_name(i)
@@ -104,7 +104,8 @@ class TestGponMtsHomeOnline:
                 time.sleep(3)
                 mts_page.verify_popup_tariff_name(tariff_name)
                 time.sleep(3)
-                gpon_page.send_tariff_connection_request()
+                online_page = BeelineOnlinePage(page=page)
+                online_page.send_popup_super_offer_new_phone()
                 mts_page.check_sucess()
                 mts_page.close_thankyou_page()
                 time.sleep(2)
@@ -124,13 +125,14 @@ class TestGponMtsHomeOnline:
     def test_gpon_application_popup_button_check_address_futer(self, page_fixture, third_url):
         page = page_fixture
         page.goto(third_url)
-        time.sleep(10)
+        # time.sleep(10)
         region_page = ChoiceRegionPage(page=page)
-        region_page.close_popup_super_offer()
+        # region_page.close_popup_super_offer()
         mts_page = MtsHomeOnlinePage(page=page)
         gpon_page = MtsGponHomeOnlinePage(page=page)
         gpon_page.click_check_address_button_futer()
-        gpon_page.send_popup_application_check_connection_near_futer_another()
+        online = BeelineInternetOnlinePage(page=page)
+        online.send_popup_application_connection_pro_new_phone()
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
