@@ -146,11 +146,11 @@ class TestMtsMskHomeOnlineThird:
         region_page = ChoiceRegionPage(page=page)
         mts_second_page = MtsHomeOnlineSecondPage(page=page)
         with allure.step("Выбрать Азнакаево"):
-            mts_second_page.click_region_choice_button()
-            region_page.fill_region_search("Азнак")
+            mts_second_page.click_region_choice_button_futer_new()
+            region_page.fill_region_search_new("Азнак")
             region_page.verify_first_region_choice("Азнакаево")
             region_page.select_first_region()
-            region_page.verify_region_button_text("Азнакаево")
+            region_page.verify_region_button_text_new("Азнакаево")
 
     @allure.title("13. Выбор региона Азнакаево из футера")
     def test_choose_region_futer_azn(self, page_fixture, six_url):
@@ -159,11 +159,11 @@ class TestMtsMskHomeOnlineThird:
         mts_second_page = MtsHomeOnlineSecondPage(page=page)
         region_page = ChoiceRegionPage(page=page)
         with allure.step("Выбрать Азнакаево"):
-            mts_second_page.click_region_choice_button_futer()
-            region_page.fill_region_search("Азнак")
+            mts_second_page.click_region_choice_button_futer_new()
+            region_page.fill_region_search_new("Азнак")
             region_page.verify_first_region_choice("Азнакаево")
             region_page.select_first_region()
-            region_page.verify_region_button_text("Азнакаево")
+            region_page.verify_region_button_text_new("Азнакаево")
 
     @pytest.mark.skip("Пока не актуален, нет возможности проверить сценарий")
     @allure.title("15. Проверка формы 'Не нашли свой город?'")

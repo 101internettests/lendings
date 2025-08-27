@@ -4,7 +4,7 @@ import pytest
 from playwright.sync_api import Error as PlaywrightError
 from pages.page_mts.mts_page import MtsHomeOnlinePage, ChoiceRegionPage
 from pages.page_mega.mega_premium import MegaPremiumOnline
-
+from pages.page_mts.internet_mts_page import MtsInternetHomeOnlinePage
 
 @allure.feature("https://mega-premium.ru/")
 class TestMegaPremium:
@@ -102,6 +102,9 @@ class TestMegaPremium:
         page.goto(eight_url)
         mts_page = MtsHomeOnlinePage(page=page)
         mega_page = MegaPremiumOnline(page=page)
+        time.sleep(15)
+        region_page = ChoiceRegionPage(page=page)
+        region_page.close_popup_super_offer()
         tariff_cards = mega_page.get_tariff_cards()
         for i in range(len(tariff_cards)):
             with allure.step(f"Подключение тарифа {i + 1}"):

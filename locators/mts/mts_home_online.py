@@ -4,6 +4,7 @@ class MTSHomeOnlineMain:
     SUPER_OFFER_CLOSE_HOME = "xpath=(//button[@class='popup__close'])[2]"
     SUPER_OFFER_CLOSE_SECOND = "xpath=(//button[@class='popup__close'])[2]"
     SUPER_OFFER_TEXT = "xpath=//div[contains(text(),'С экономией в год от 9000 рублей!')]"
+    INPUT_OFFER_POPUP_SECOND = "xpath=(//input[@name='Phone'])[2]"
     INPUT_OFFER_POPUP_SOME_PAGE = "xpath=(//input[@name='Phone'])[4]"
     INPUT_OFFER_POPUP = "xpath=(//input[@name='Phone'])[5]"
     INPUT_OFFER_POPUP_SIX = "xpath=(//input[@name='Phone'])[6]"
@@ -45,9 +46,11 @@ class MTSHomeOnlineMain:
     }
     STREET_BUTTON = "xpath=(//input[@placeholder='Улица'])[4]"
     STREET_BUTTON_THREE = "xpath=(//input[@placeholder='Улица'])[3]"
+    STREET_BUTTON_FIRST = "xpath=(//input[@placeholder='Улица'])[1]"
     STREET_BUTTON_SECOND = "xpath=(//input[@placeholder='Улица'])[2]"
     STREET_BUTTON_FIVE = "xpath=(//input[@placeholder='Улица'])[5]"
     HOUSE_BUTTON = "xpath=(//input[@placeholder='Дом'])[4]"
+    HOUSE_BUTTON_FIRST = "xpath=(//input[@placeholder='Дом'])[1]"
     HOUSE_BUTTON_THREE = "xpath=(//input[@placeholder='Дом'])[3]"
     HOUSE_BUTTON_SECOND = "xpath=(//input[@placeholder='Дом'])[2]"
     HOUSE_BUTTON_FIVE = "xpath=(//input[@placeholder='Дом'])[5]"
@@ -56,7 +59,10 @@ class MTSHomeOnlineMain:
     SEND_BUTTON = "xpath=(//input[@value='Отправить'])[1]"
     SEND_BUTTON_TWO = "xpath=(//input[@value='Отправить'])[2]"
     ANOTHER_CITY_BUTTON = "xpath=//button[text()='Выбрать город']"
+    CHECK_ADDRESS_BUTTON_SECOND = "xpath=(//input[@value='Проверить адрес'])[2]"
+    CHECK_ADDRESS_BUTTON_THREE = "xpath=(//input[@value='Проверить адрес'])[3]"
     CHECK_ADDRESS_BUTTON_FOUR = "xpath=(//input[@value='Проверить адрес'])[4]"
+    PHONE_INPUT_FIVE = "xpath=(//input[@name='Phone'])[5]"
 
 
 # попап по кнопке подключить Заявка на подключение
@@ -93,6 +99,7 @@ class FormApplicationCheckConnection:
 
 class RegionChoice:
     NEW_REGION_CHOICE_BUTTON = "xpath=(//span[@id='city'])[1]"
+    HEADER_BUTTON_NEW = "xpath=(//span[@id='city'])[1]"
     NEW_REGION_CHOICE_BUTTON_HEADER = "xpath=(//span[@id='city'])[2]"
     NEW_REGION_CHOICE_BUTTON_FUTER = "xpath=(//span[@id='city'])[3]"
     REGION_CHOICE_BUTTON = "xpath=(//a[@id='city'])[1]"

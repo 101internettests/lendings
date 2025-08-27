@@ -19,6 +19,7 @@ class BeelineMain:
     CHECK_ADDRESS = "xpath=(//input[@value='Проверить адрес'])[1]"
     CHECK_ADDRESS_TWO = "xpath=(//input[@value='Проверить адрес'])[2]"
     CHECK_ADDRESS_THREE = "xpath=(//input[@value='Проверить адрес'])[3]"
+    CHECK_ADDRESS_FOUR = "xpath=(//input[@value='Проверить адрес'])[4]"
     TARIFF_CARDS = "xpath=(//div[@itemtype='http://schema.org/Product'])"
     TARIFF_CARDS_SECOND = "xpath=(//div[@id='tariffs']//div[@itemtype='http://schema.org/Product'])"
     TARIFF_BUTTON = "xpath=(//button[text()='Подключить'])"
