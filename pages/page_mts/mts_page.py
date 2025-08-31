@@ -51,6 +51,18 @@ class MtsHomeOnlinePage(BasePage):
     def click_connect_button(self):
         self.page.locator(MTSHomeOnlineMain.CONNECT_BUTTON).click()
 
+    @allure.title("Нажать на кнопку Подключиться")
+    def click_connecting_button(self):
+        self.page.locator(MTSHomeOnlineMain.CONNECT_BUTTON_SECOND_CONNECT).click()
+
+    @allure.title("Нажать на кнопку Подключиться футер")
+    def click_connecting_button_second(self):
+        self.page.locator(MTSHomeOnlineMain.CONNECT_BUTTON_THIRD).click()
+
+    @allure.title("Нажать на кнопку Подключить из блока выгодные условия")
+    def click_connect_button_good_traid(self):
+        self.page.locator(MTSHomeOnlineMain.CONNECT_BUTTON_CONDITIONS).click()
+
     @allure.title("Нажать на кнопку Подключить из футера")
     def click_connect_button_futer(self):
         self.page.locator(MTSHomeOnlineMain.CONNECT_BUTTON_FUTER).click()
@@ -305,15 +317,33 @@ class ChoiceRegionPage(BasePage):
         city_input.fill(search_text)
         time.sleep(2)
 
+    @allure.title("Ввести текст в поле поиска региона")
+    def fill_region_search_RTK(self, search_text):
+        city_input = self.page.locator(RegionChoice.RTK_CITY_INPUT)
+        city_input.fill(search_text)
+        time.sleep(2)
+
     @allure.title("Проверить, что первый вариант содержит ожидаемый текст")
     def verify_first_region_choice(self, expected_text):
         first_choice = self.page.locator(RegionChoice.FIRST_CHOICE)
         expect(first_choice).to_contain_text(expected_text)
         return first_choice
 
+    @allure.title("Проверить, что первый вариант содержит ожидаемый текст")
+    def verify_first_region_choice_rtk(self, expected_text):
+        first_choice = self.page.locator(RegionChoice.FIRST_CHOICE_RTK)
+        expect(first_choice).to_contain_text(expected_text)
+        return first_choice
+
     @allure.title("Выбрать первый регион из списка")
     def select_first_region(self):
         first_choice = self.page.locator(RegionChoice.FIRST_CHOICE)
+        first_choice.click()
+        time.sleep(2)
+
+    @allure.title("Выбрать первый регион из списка")
+    def select_first_region_rtk(self):
+        first_choice = self.page.locator(RegionChoice.FIRST_CHOICE_RTK)
         first_choice.click()
         time.sleep(2)
 

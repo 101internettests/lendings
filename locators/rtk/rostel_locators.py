@@ -1,10 +1,12 @@
 class Rostelecom:
+    CLOSE_POPUP = "xpath=(//button[@class='popup__close'])"
     CONNECT_PURPLE_BUTTON = "xpath=//button[@class='button-lead-catcher']"
     PHONE_BUTTON_FIRST = "xpath=(//input[@name='Phone'])[1]"
     PHONE_BUTTON_SECOND = "xpath=(//input[@name='Phone'])[2]"
     PHONE_BUTTON_THREE = "xpath=(//input[@name='Phone'])[3]"
     PHONE_BUTTON_FOUR = "xpath=(//input[@name='Phone'])[4]"
     PHONE_BUTTON = "xpath=(//input[@name='Phone'])[5]"
+    PHONE_BUTTON_SIX = "xpath=(//input[@name='Phone'])[6]"
     SEND_BUTTON_CONNECT = "xpath=(//input[@value='Отправить'])[1]"
     SEND_BUTTON_OFFER_POPUP = "xpath=(//input[@value='Отправить'])[3]"
     STREET_INPUT = "xpath=(//input[@placeholder='Улица'])[3]"
@@ -26,6 +28,7 @@ class Rostelecom:
     TARIFF_CARDS = "xpath=(//div[@id='sale'])"
     TARIFF_CONNECT_BUTTONS = "xpath=//div[@class='card__container']//button"
     TARIFF_NAMES = "xpath=(//h4)"
+    TARIFF_NAMES_DOM = "xpath=(//div[@id='sale']//h3)"
     POPUP_TARIFF_NAME = "xpath=(//div[@class='popup__title'])[2]"
     NAME_INPUT = "xpath=//input[@name='Name']"
     SEND_BUTTON_SECOND = "xpath=(//input[@value='Отправить'])[2]"
@@ -35,6 +38,23 @@ class Rostelecom:
         "all_in_one": "xpath=(//a[contains(text(),'Все в одном')])[1]",
         "all_tariffs": "xpath=(//a[contains(text(),'Все тарифы')])[1]",
         "for_business": "xpath=(//a[contains(text(),'Бизнесу')])[1]",
+    }
+    HEADER_LINKS_SECOND = {
+        "internet": "xpath=(//a[contains(text(),'Интернет')])[1]",
+        "internet_tv": "xpath=(//a[contains(text(),'Интернет + ТВ')])[1]",
+        "all_in_one": "xpath=(//a[contains(text(),'Все в одном')])[1]",
+        "for_business": "xpath=(//a[contains(text(),'Бизнесу')])[1]",
+    }
+    HEADER_LINKS_THIRD = {
+        "home_internet": "xpath=(//a[contains(text(),'Домашний интернет')])[1]",
+        "internet_tv": "xpath=(//a[contains(text(),'Интернет и  ТВ')])[1]",
+        "all_in_one": "xpath=(//a[contains(text(),'Все в одном')])[1]"
+    }
+    HEADER_LINKS_FOUR = {
+        "home_imternet": "xpath=(//a[contains(text(),'Домашний интернет')])[1]",
+        "internet_tv": "xpath=(//a[contains(text(),'Интернет и  ТВ')])[1]",
+        "all_in_one": "xpath=(//a[contains(text(),'Все в одном')])[1]",
+        "for_business": "xpath=(//a[contains(text(),'Для бизнеса')])[1]",
     }
     FOOTER_LINKS = {
         "home_imternet": "xpath=(//a[contains(text(),'Домашний интернет')])[3]",
@@ -54,4 +74,30 @@ class Rostelecom:
         "help": "xpath=(//a[contains(text(),'Помощь')])[1]",
         "applience": "xpath=(//a[contains(text(),'Оборудование')])[1]",
     }
+    FOOTER_LINKS_THIRD = {
+        "home_imternet": "xpath=(//a[contains(text(),'Домашний интернет')])[1]",
+        "internet_tv": "xpath=(//a[contains(text(),'Интернет Телевидение')])[1]",
+        "family_tariffs": "xpath=(//a[contains(text(),'Тарифы для семьи')])[1]",
+        "all_tariffs": "xpath=(//a[contains(text(),'Все тарифы')])[1]",
+        "bonuses": "xpath=(//a[contains(text(),'Бонусы')])[1]",
+        "for_business": "xpath=(//a[contains(text(),'Бизнесу')])[3]",
+    }
+    FOOTER_LINKS_FOUR = {
+        "news": "xpath=(//a[contains(text(),'Новости')])[1]",
+        "check_address": "xpath=(//a[contains(text(),'Проверить подключение')])[1]",
+        "map": "xpath=(//a[contains(text(),'Карта сайта')])[1]",
+        "policy": "xpath=(//a[contains(text(),'Политика обработки cookie')])[1]",
+        "abonent": "xpath=(//a[contains(text(),'Как стать абонентом Ростелеком')])[1]",
+        "feedback": "xpath=(//a[contains(text(),'Форма обратной связи')])[1]",
+        "help": "xpath=(//a[contains(text(),'Помощь')])[1]",
+        "applience": "xpath=(//a[contains(text(),'Оборудование')])[1]",
+        "reviws": "xpath=(//a[contains(text(),'Отзывы')])[1]"
+    }
+    FOOTER_LINKS_RTK = {
+        "home_imternet": "xpath=(//a[text()='cookies'])[3]",
+        "cond": "xpath=(//a[text()=' условия обработки персональных данных'])[1]"
+    }
     REGION_CHOICE_BUTTON_FUTER = "xpath=()"
+    NAME_INPUT_FIRST = "xpath=(//input[@placeholder='Имя'])[1]"
+    BUTTON_CHECK_CONNECTION_RTK = "xpath=(//input[@value='Проверить адрес подключения'])[1]"
+    BUTTON_CHECK_CONNECTION_RTK_SECOND = "xpath=(//input[@value='Проверить адрес подключения'])[2]"
