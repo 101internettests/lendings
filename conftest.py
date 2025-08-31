@@ -273,9 +273,57 @@ def msk_rtk_online():
 
 
 @pytest.fixture(scope="session")
+def rtk_online_ru():
+    """Базовый URL для тестов"""
+    return "https://rtk-ru.online/"
+
+
+@pytest.fixture(scope="session")
+def rtk_internet_online_ru():
+    """Базовый URL для тестов"""
+    return "https://rt-internet.online/"
+
+
+@pytest.fixture(scope="session")
+def rtk_home_internet_ru():
+    """Базовый URL для тестов"""
+    return "https://rtk-home-internet.ru/"
+
+
+@pytest.fixture(scope="session")
+def rtk_internet_online_second():
+    """Базовый URL для тестов"""
+    return "https://rtk-internet.online/"
+
+
+@pytest.fixture(scope="session")
+def rtk_home_ru_second():
+    """Базовый URL для тестов"""
+    return "https://rtk-home.ru/"
+
+
+@pytest.fixture(scope="session")
 def msk_rtk_online_home_inter():
     """Базовый URL для тестов"""
     return "https://moskva.rtk-ru.online/domashnij-internet"
+
+
+@pytest.fixture(scope="session")
+def msk_rtk_online_home_inter_tv():
+    """Базовый URL для тестов"""
+    return "https://moskva.rtk-ru.online/internet-tv"
+
+
+@pytest.fixture(scope="session")
+def msk_rtk_online_home_inter_tv_mobile():
+    """Базовый URL для тестов"""
+    return "https://moskva.rtk-ru.online/internet-tv-mobile"
+
+
+@pytest.fixture(scope="session")
+def msk_rtk_online_home_tariffs():
+    """Базовый URL для тестов"""
+    return "https://moskva.rtk-ru.online/all-tariffs"
 
 
 @pytest.fixture(scope="function")
