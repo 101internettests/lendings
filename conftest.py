@@ -1,11 +1,15 @@
 import os
 import pytest
 import allure
+import time
 from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright, Error as PlaywrightError
 from config import bot, chat_id
 # Загружаем переменные окружения из .env файла
 load_dotenv()
+
+# Хранилище метаданных по тестам для итогового отчета (title, description, feature/url)
+TEST_META = {}
 
 
 def check_page_status_code(page, url):
@@ -63,6 +67,93 @@ def pytest_runtest_makereport(item, call):
     """
     Хук для перехвата ошибок и добавления информации о статус коде в Allure отчет
     """
+    # Фиксируем метаданные для тестов: на падениях (любой стадии) и на успешном выполнении call-этапа
+    if (call.excinfo is not None and call.when in ("call", "setup", "teardown")) or (call.excinfo is None and call.when == "call"):
+        try:
+            # Извлекаем allure.title, если указан декоратором
+            title = None
+            # Варианты хранения заголовка в объекте теста
+            for attr_name in (
+                "__allure_display_name__",
+                "__allure_title__",
+                "allure_title",
+                "allure_display_name",
+            ):
+                title = getattr(getattr(item, "obj", None) or getattr(item, "function", None), attr_name, None)
+                if isinstance(title, str) and title.strip():
+                    break
+
+            # Попытка достать из маркеров (иногда хранится как маркер)
+            if not title:
+                try:
+                    marker = next(item.iter_markers(name="allure_title"), None)
+                    if marker and marker.args:
+                        title = str(marker.args[0])
+                except Exception:
+                    pass
+
+            # Извлекаем allure.description, если есть
+            description = None
+            for attr_name in (
+                "__allure_description__",
+                "allure_description",
+                "description",
+            ):
+                description = getattr(getattr(item, "obj", None) or getattr(item, "function", None), attr_name, None)
+                if isinstance(description, str) and description.strip():
+                    break
+            if not description:
+                try:
+                    marker = next(item.iter_markers(name="allure_description"), None)
+                    if marker and marker.args:
+                        description = str(marker.args[0])
+                except Exception:
+                    pass
+
+            # Извлекаем URL: сначала пробуем найти в маркерах allure.feature (или других) строку, похожую на URL
+            feature_url = None
+            try:
+                for m in item.iter_markers():
+                    # Собираем все значения аргументов и kwargs
+                    values = []
+                    try:
+                        values.extend(list(m.args))
+                    except Exception:
+                        pass
+                    try:
+                        values.extend(list(m.kwargs.values()))
+                    except Exception:
+                        pass
+                    for v in values:
+                        if isinstance(v, str) and v.startswith("http"):
+                            feature_url = v
+                            break
+                    if feature_url:
+                        break
+            except Exception:
+                pass
+
+            # Фолбэк: берем первый параметр-URL из funcargs
+            if not feature_url:
+                try:
+                    for k, v in (item.funcargs or {}).items():
+                        if isinstance(v, str) and v.startswith("http"):
+                            feature_url = v
+                            break
+                except Exception:
+                    pass
+
+            # Сохраняем мета в глобальном словаре для последующего отчета
+            TEST_META[item.nodeid] = {
+                "title": title,
+                "description": description,
+                "feature_url": feature_url,
+                "when": call.when,
+            }
+        except Exception:
+            # Не мешаем основному ходу, если метаданные не удалось собрать
+            pass
+
     if call.when == "call" and call.excinfo is not None:
         # Получаем фикстуру page если она есть
         page_fixture = None
@@ -385,4 +476,160 @@ def page_fixture_ignore_https(browser_fixture_ignore_https):
 
 @pytest.hookimpl(trylast=True)
 def pytest_sessionfinish(session, exitstatus):
-    bot.send_message(chat_id, "🤖 Отчет по лендингам готов!")
+    try:
+        tr = session.config.pluginmanager.getplugin('terminalreporter')
+        if tr is None:
+            bot.send_message(chat_id, "🤖 Прогон тестов завершен, но нет данных терминального репортера.")
+            return
+
+        stats = getattr(tr, 'stats', {}) or {}
+
+        def count(key):
+            return len(stats.get(key, []))
+
+        passed = count('passed')
+        failed = count('failed')
+        errors = count('error')
+        skipped = count('skipped')
+        xfailed = count('xfailed')
+        xpassed = count('xpassed')
+        rerun = count('rerun')
+
+        collected = getattr(tr, '_numcollected', 0) or (
+            passed + failed + errors + skipped + xfailed + xpassed
+        )
+
+        duration = None
+        if hasattr(tr, '_sessionstarttime'):
+            duration = time.time() - tr._sessionstarttime
+
+        # Сбор дополнительных метрик и имен упавших тестов
+        def get_reports(outcomes):
+            reports = []
+            for outcome_key in outcomes:
+                for report in stats.get(outcome_key, []):
+                    if getattr(report, 'when', 'call') == 'call':
+                        reports.append(report)
+            return reports
+
+        passed_reports = get_reports(['passed'])
+        failed_reports = get_reports(['failed', 'error'])
+
+        # Группировка по сайтам (feature_url)
+        from collections import defaultdict
+        site_stats = defaultdict(lambda: {
+            'total': 0,
+            'passed': 0,
+            'failed': 0,
+            'errors': 0,
+            'skipped': 0,
+            'titles_failed': [],
+        })
+
+        def site_key_for(nodeid: str) -> str:
+            meta = TEST_META.get(nodeid, {})
+            v = meta.get('feature_url')
+            return v if isinstance(v, str) and v.strip() else 'unknown'
+
+        # Учтём все отчеты для total по сайтам
+        for key in list(stats.keys()):
+            for report in stats.get(key, []):
+                if getattr(report, 'when', 'call') != 'call':
+                    continue
+                site = site_key_for(report.nodeid)
+                site_stats[site]['total'] += 1
+
+        for report in passed_reports:
+            site = site_key_for(report.nodeid)
+            site_stats[site]['passed'] += 1
+
+        for report in failed_reports:
+            site = site_key_for(report.nodeid)
+            site_stats[site]['failed'] += 1
+            title = TEST_META.get(report.nodeid, {}).get('title')
+            site_stats[site]['titles_failed'].append(title if title else report.nodeid)
+
+        for report in stats.get('error', []):
+            if getattr(report, 'when', 'call') != 'call':
+                continue
+            site = site_key_for(report.nodeid)
+            site_stats[site]['errors'] += 1
+
+        for report in stats.get('skipped', []):
+            if getattr(report, 'when', 'call') != 'call':
+                continue
+            site = site_key_for(report.nodeid)
+            site_stats[site]['skipped'] += 1
+
+        def is_certificate_test(nodeid: str) -> bool:
+            lower = nodeid.lower()
+            return ('without_certificate' in lower) or ('certificate' in lower)
+
+        cert_passed = sum(1 for r in passed_reports if is_certificate_test(r.nodeid))
+        cert_failed = sum(1 for r in failed_reports if is_certificate_test(r.nodeid))
+        cert_total = cert_passed + cert_failed
+
+
+        failed_nodeids = sorted({r.nodeid for r in failed_reports})
+
+        # Формируем строки для упавших тестов: берем allure.title и URL (feature)
+        def failed_line(nodeid: str) -> str:
+            meta = TEST_META.get(nodeid, {})
+            title = meta.get("title")
+            feature_url = meta.get("feature_url")
+            title_part = title if (isinstance(title, str) and title.strip()) else nodeid
+            url_part = f" — {feature_url}" if feature_url else ""
+            return f"• {title_part}{url_part}"
+
+        failed_lines = "\n".join(failed_line(n) for n in failed_nodeids) if failed_nodeids else ""
+
+        ok = (failed == 0 and errors == 0)
+        status_emoji = "✅" if ok else "❌"
+        duration_line = f"\n⏱ Время: {duration:.1f} c" if duration is not None else ""
+
+        success_rate = (passed / collected * 100.0) if collected else 0.0
+        message = (
+            f"📊 ОТЧЕТ ОБ АНАЛИЗЕ SEO\n"
+            f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}\n\n"
+            f"📈 ОБЩАЯ СТАТИСТИКА:\n"
+            f"🌐 Сайтов: {len(site_stats)}\n"
+            f"📄 Страниц: {collected}\n"
+            f"✅ Успешно: {passed}\n"
+            f"❌ Ошибок: {failed + errors}\n"
+            f"📊 Процент успеха: {success_rate:.1f}%" + duration_line
+        )
+
+        # Блок с категориями (только сертификаты)
+        categories_block = (
+            f"\n\n🔍 SEO ЭЛЕМЕНТЫ:\n"
+            f"📝 Title: {passed}/{collected} ({(passed/collected*100.0) if collected else 0.0:.1f}%)\n"
+            f"📄 Description: {passed}/{collected} ({(passed/collected*100.0) if collected else 0.0:.1f}%)\n"
+            f"\n🔐 Сертификаты: {cert_total} | ✅ {cert_passed} | ❌ {cert_failed}"
+        )
+
+        # Детали по сайтам
+        def site_section(site: str, data: dict) -> str:
+            total_s = data['total']
+            passed_s = data['passed']
+            failed_s = data['failed']
+            errors_s = data['errors']
+            success_rate_s = (passed_s / total_s * 100.0) if total_s else 0.0
+            titles = data['titles_failed']
+            titles_block = "\n".join(f"• {t}" for t in titles) if titles else "-"
+            return (
+                f"\n🌐 {site}\n"
+                f"  📄 Страниц: {total_s}\n"
+                f"  ✅ Успешно: {passed_s}\n"
+                f"  ❌ Ошибок: {failed_s + errors_s}\n"
+                f"  📊 Процент успеха: {success_rate_s:.1f}%\n"
+                f"  🔻 Упавшие тесты:\n{titles_block}"
+            )
+
+        sites_block = "\n\n🌐 ДЕТАЛИ ПО САЙТАМ:" + "".join(site_section(site, data) for site, data in site_stats.items())
+
+        # Блок с упавшими тестами (общий список, если нужен)
+        failed_block = f"\n\n🔻 Упавшие тесты (общий):\n{failed_lines}" if failed_lines else ""
+
+        bot.send_message(chat_id, message + categories_block + sites_block + failed_block)
+    except Exception as e:
+        bot.send_message(chat_id, f"🤖 Отчет по лендингам готов, но не удалось собрать статистику: {e}")
