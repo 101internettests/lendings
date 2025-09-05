@@ -12,6 +12,96 @@ load_dotenv()
 TEST_META = {}
 
 
+def send_long_message(bot_client, target_chat_id, full_text: str, max_len: int = 4000) -> None:
+    """Отправляет длинное сообщение в несколько частей, чтобы избежать ограничения Telegram (4096)."""
+    if not full_text:
+        return
+    # Сначала пробуем разбивать по двойным переносам
+    paragraphs = full_text.split("\n\n")
+    chunk = []
+    current_len = 0
+
+    def flush():
+        nonlocal chunk, current_len
+        if chunk:
+            try:
+                bot_client.send_message(target_chat_id, "\n\n".join(chunk))
+            except Exception:
+                # Фолбэк: если вдруг всё равно длинно, режем жестко по символам
+                text = "\n\n".join(chunk)
+                for i in range(0, len(text), max_len):
+                    bot_client.send_message(target_chat_id, text[i:i + max_len])
+            chunk = []
+            current_len = 0
+
+    for p in paragraphs:
+        part = p
+        # Если параграф сам по себе длиннее лимита, режем по строкам/символам
+        if len(part) > max_len:
+            # Сначала попробуем по строкам
+            lines = part.split("\n")
+            temp = []
+            temp_len = 0
+            for line in lines:
+                add_len = len(line) + (1 if temp else 0)
+                if temp_len + add_len > max_len:
+                    # Отправляем уже набранный кусок как отдельный параграф
+                    paragraphs.insert(paragraphs.index(p) + 1, "\n".join(lines[lines.index(line):]))
+                    part = "\n".join(temp)
+                    break
+                temp.append(line)
+                temp_len += add_len
+
+        add_len = len(part) + (2 if chunk else 0)
+        if current_len + add_len > max_len:
+            flush()
+        chunk.append(part)
+        current_len += add_len
+
+    flush()
+
+
+def extract_run_labels(session, stats) -> list:
+    """Возвращает список названий папок запуска (например, test_beeline),
+    определённых по аргументам запуска pytest и/или по путям тестов из отчётов."""
+    labels = set()
+    try:
+        root = str(session.config.rootpath)
+        args = getattr(session.config, 'args', None) or []
+        for arg in args:
+            ap = os.path.abspath(arg)
+            if not os.path.exists(ap):
+                ap2 = os.path.abspath(os.path.join(root, arg))
+                ap = ap2 if os.path.exists(ap2) else ap
+            if not os.path.exists(ap):
+                continue
+            rel = os.path.relpath(ap, root)
+            parts = rel.replace('\\', '/').split('/')
+            if parts and parts[0] == 'tests' and len(parts) > 1:
+                labels.add(parts[1])
+            elif parts:
+                labels.add(parts[0])
+    except Exception:
+        pass
+
+    if not labels:
+        try:
+            for key, reports in (stats or {}).items():
+                for report in reports:
+                    if getattr(report, 'when', 'call') != 'call':
+                        continue
+                    path = report.nodeid.split('::', 1)[0]
+                    parts = path.split('/')
+                    if 'tests' in parts:
+                        idx = parts.index('tests')
+                        if idx is not None and len(parts) > idx + 1:
+                            labels.add(parts[idx + 1])
+        except Exception:
+            pass
+
+    return sorted(labels)
+
+
 def check_page_status_code(page, url):
     """
     Проверяет статус код страницы и добавляет информацию в Allure отчет
@@ -588,8 +678,10 @@ def pytest_sessionfinish(session, exitstatus):
         duration_line = f"\n⏱ Время: {duration:.1f} c" if duration is not None else ""
 
         success_rate = (passed / collected * 100.0) if collected else 0.0
+        run_labels = extract_run_labels(session, stats)
+        title_suffix = (" — " + ", ".join(run_labels)) if run_labels else ""
         message = (
-            f"📊 ОТЧЕТ ОБ АНАЛИЗЕ SEO\n"
+            f"📊 Отчет по лендингам{title_suffix}\n"
             f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}\n\n"
             f"📈 ОБЩАЯ СТАТИСТИКА:\n"
             f"🌐 Сайтов: {len(site_stats)}\n"
@@ -601,9 +693,7 @@ def pytest_sessionfinish(session, exitstatus):
 
         # Блок с категориями (только сертификаты)
         categories_block = (
-            f"\n\n🔍 SEO ЭЛЕМЕНТЫ:\n"
-            f"📝 Title: {passed}/{collected} ({(passed/collected*100.0) if collected else 0.0:.1f}%)\n"
-            f"📄 Description: {passed}/{collected} ({(passed/collected*100.0) if collected else 0.0:.1f}%)\n"
+            f"\n\n🔍 Важная проверка:\n"
             f"\n🔐 Сертификаты: {cert_total} | ✅ {cert_passed} | ❌ {cert_failed}"
         )
 
@@ -630,6 +720,6 @@ def pytest_sessionfinish(session, exitstatus):
         # Блок с упавшими тестами (общий список, если нужен)
         failed_block = f"\n\n🔻 Упавшие тесты (общий):\n{failed_lines}" if failed_lines else ""
 
-        bot.send_message(chat_id, message + categories_block + sites_block + failed_block)
+        send_long_message(bot, chat_id, message + categories_block + sites_block + failed_block)
     except Exception as e:
-        bot.send_message(chat_id, f"🤖 Отчет по лендингам готов, но не удалось собрать статистику: {e}")
+        send_long_message(bot, chat_id, f"🤖 Отчет по лендингам готов, но не удалось собрать статистику: {e}")
