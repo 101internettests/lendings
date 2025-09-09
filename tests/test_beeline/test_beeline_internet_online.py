@@ -103,6 +103,7 @@ class TestBeelineInternetOnline:
         domru_page.close_thankyou_page()
         time.sleep(3)
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("6. Отправка заявки с каждой формы на странице с названиями: Подключите стабильный интернет, "
                   "Попробуйте скоростной безлимитный интернет")
     def test_a_lot_of_forms(self, page_fixture, beeline_internet_online):

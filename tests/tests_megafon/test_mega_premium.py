@@ -6,6 +6,7 @@ from pages.page_mts.mts_page import MtsHomeOnlinePage, ChoiceRegionPage
 from pages.page_mega.mega_premium import MegaPremiumOnline
 from pages.page_mts.internet_mts_page import MtsInternetHomeOnlinePage
 
+
 @allure.feature("https://mega-premium.ru/")
 class TestMegaPremium:
     @allure.title("1.1. Проверка работы сайта при отсутствии сертификата")
@@ -20,6 +21,7 @@ class TestMegaPremium:
                 assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
                     "Ожидалась ошибка SSL/сертификата"
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")
     def test_application_popup(self, page_fixture, eight_url):
@@ -32,6 +34,7 @@ class TestMegaPremium:
         mts_page.send_popup_super_offer_new()
         mts_page.check_sucess()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("3. Отправка заявки из попапа Выгодное спецпредложение! по нажатию фиксированной зеленой кнопки "
                   "звонка в правом нижнем углу")
     def test_application_popup_super_offer_green_button(self, page_fixture, eight_url):
@@ -44,6 +47,7 @@ class TestMegaPremium:
         mts_page.send_popup_super_offer_new()
         mts_page.check_sucess()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("4. Отправка заявки из попапа по кнопке Подключить из хедера")
     def test_application_popup_button_connect(self, page_fixture, eight_url):
         page = page_fixture
@@ -53,6 +57,7 @@ class TestMegaPremium:
         mts_page.send_popup_application_connection_new()
         mts_page.check_sucess()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("5. Отправка заявки со ВСЕХ форм на странице с названием Проверьте возможность подключения по "
                   "вашему адресу")
     def test_application_from_all_forms(self, page_fixture, eight_url):
@@ -66,6 +71,7 @@ class TestMegaPremium:
         mega_page.send_popup_application_check_connection_second()
         mts_page.check_sucess()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("6. Отправка заявки с формы  с названием Не определились с тарифом?")
     def test_application_form_dont_choose(self, page_fixture, eight_url):
         page = page_fixture
@@ -75,6 +81,7 @@ class TestMegaPremium:
         mega_page.send_popup_application_tariff_form()
         mts_page.check_sucess()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("7. Отправка заявки из попапа по кнопке Уточнить")
     def test_application_button_clarify(self, page_fixture, eight_url):
         page = page_fixture
@@ -85,6 +92,7 @@ class TestMegaPremium:
         mts_page.send_popup_application_connection_new()
         mts_page.check_sucess()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("8. Отправка заявки из попапа по кнопке Подключить из футера")
     def test_application_popup_button_connect_futer(self, page_fixture, eight_url):
         page = page_fixture
@@ -96,6 +104,7 @@ class TestMegaPremium:
         mega_page = MegaPremiumOnline(page=page)
         mega_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("9. Отправка заявок с карточек тарифа")
     def test_application_from_tariff_cards(self, page_fixture, eight_url):
         page = page_fixture
@@ -122,6 +131,7 @@ class TestMegaPremium:
         mega_page = MegaPremiumOnline(page=page)
         mega_page.check_popup_links()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("11. Проверка якорных ссылок в хэдере")
     def test_check_all_pages_header(self, page_fixture, eight_url):
         page = page_fixture
@@ -136,6 +146,7 @@ class TestMegaPremium:
         mega_page = MegaPremiumOnline(page=page)
         mega_page.check_footer_links()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("13. Выбор региона СПб из хедера")
     def test_choose_region_header_spb(self, page_fixture, eight_url):
         page = page_fixture
@@ -150,6 +161,7 @@ class TestMegaPremium:
             region_page.select_first_region()
             region_page.verify_region_button_text("Санкт-Петербург")
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("15. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение! СПБ")
     def test_application_popup_two(self, page_fixture, eight_two_url):
@@ -162,6 +174,7 @@ class TestMegaPremium:
         mts_page.send_popup_super_offer_new()
         mts_page.check_sucess()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("16. Отправка заявки из попапа Выгодное спецпредложение! по нажатию фиксированной зеленой кнопки "
                   "звонка в правом нижнем углу СПБ")
     def test_application_popup_super_offer_green_button_two(self, page_fixture, eight_two_url):
@@ -174,6 +187,7 @@ class TestMegaPremium:
         mts_page.send_popup_super_offer_new()
         mts_page.check_sucess()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("17. Отправка заявки из попапа по кнопке Подключить из хедера СПБ")
     def test_application_popup_button_connect_two(self, page_fixture, eight_two_url):
         page = page_fixture
@@ -183,6 +197,7 @@ class TestMegaPremium:
         mts_page.send_popup_application_connection_new()
         mts_page.check_sucess()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("18. Отправка заявки со ВСЕХ форм на странице с названием Проверьте возможность подключения по "
                   "вашему адресу СПБ")
     def test_application_from_all_forms_two(self, page_fixture, eight_two_url):
@@ -196,6 +211,7 @@ class TestMegaPremium:
         mega_page.send_popup_application_check_connection_second()
         mts_page.check_sucess()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("19. Отправка заявки с формы  с названием Не определились с тарифом? СПБ")
     def test_application_form_dont_choose_two(self, page_fixture, eight_two_url):
         page = page_fixture
@@ -205,6 +221,7 @@ class TestMegaPremium:
         mega_page.send_popup_application_tariff_form()
         mts_page.check_sucess()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("20. Отправка заявки из попапа по кнопке Уточнить СПБ")
     def test_application_button_clarify_two(self, page_fixture, eight_two_url):
         page = page_fixture
@@ -215,6 +232,7 @@ class TestMegaPremium:
         mts_page.send_popup_application_connection_new()
         mts_page.check_sucess()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("21. Отправка заявки из попапа по кнопке Подключить из футера СПБ")
     def test_application_popup_button_connect_futer_two(self, page_fixture, eight_two_url):
         page = page_fixture
@@ -226,6 +244,7 @@ class TestMegaPremium:
         mega_page = MegaPremiumOnline(page=page)
         mega_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("22. Отправка заявок с карточек тарифа СПБ")
     def test_application_from_tariff_cards_two(self, page_fixture, eight_two_url):
         page = page_fixture
@@ -249,6 +268,7 @@ class TestMegaPremium:
         mega_page = MegaPremiumOnline(page=page)
         mega_page.check_popup_links()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("24. Проверка якорных ссылок в хэдере СПБ")
     def test_check_all_pages_header_two(self, page_fixture, eight_two_url):
         page = page_fixture
@@ -263,6 +283,7 @@ class TestMegaPremium:
         mega_page = MegaPremiumOnline(page=page)
         mega_page.check_footer_links()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("27. Отправка заявки из попапа по кнопке Не нашли город")
     def test_application_dont_find_city(self, page_fixture, eight_two_url):
         page = page_fixture

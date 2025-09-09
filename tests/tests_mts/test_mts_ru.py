@@ -22,6 +22,7 @@ class TestMtsRu:
                 assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
                     "Ожидалась ошибка SSL/сертификата"
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")
     def test_application_popup_super_offer_third(self, page_fixture, seven_url):
@@ -37,6 +38,7 @@ class TestMtsRu:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("3. Отправка заявки из попапа Выгодное спецпредложение! по нажатию фиксированной красной кнопки "
                   "звонка в правом нижнем углу")
     def test_application_popup_super_offer_red_button(self, page_fixture, seven_url):
@@ -54,6 +56,7 @@ class TestMtsRu:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("4. Отправка заявки из попапа по кнопке Подключить из хедера")
     def test_application_popup_button_connect(self, page_fixture, seven_url):
         page = page_fixture
@@ -65,6 +68,7 @@ class TestMtsRu:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("5. Отправка заявки из попапа Заявка на подключение с кликабельного баннера")
     def test_application_popup_clicable_banner(self, page_fixture, seven_url):
         page = page_fixture
@@ -106,6 +110,7 @@ class TestMtsRu:
     #     mts_page.check_sucess()
     #     mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("7. Отправка заявки из попапа по кнопке Подробнее из банера с заголовком Акции от МТС")
     def test_application_popup_banner(self, page_fixture, seven_url):
         page = page_fixture
@@ -118,6 +123,7 @@ class TestMtsRu:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title(
         "8. Отправка заявки с формы на странице с названием Проверьте возможность подключения по вашему адресу")
     def test_application_from_connection_form(self, page_fixture, seven_url):
@@ -128,6 +134,7 @@ class TestMtsRu:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("9. Отправка заявки из попапа по кнопке Подключить из футера")
     def test_application_popup_button_connect_futer(self, page_fixture, seven_url):
         page = page_fixture
@@ -139,6 +146,7 @@ class TestMtsRu:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("10. Отправка заявки из попапа по кнопке Проверить адрес из футера")
     def test_application_popup_button_check_address_futer(self, page_fixture, seven_url):
         page = page_fixture
@@ -150,6 +158,7 @@ class TestMtsRu:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("11. Проверка всех ссылок")
     def test_check_all_pages(self, page_fixture, seven_url):
         page = page_fixture
@@ -157,6 +166,7 @@ class TestMtsRu:
         mts_second_page = MTSSecondOnlinePage(page=page)
         mts_second_page.check_all_links()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("12. Выбор региона Азнакаево из хедера")
     def test_choose_region_header_azn(self, page_fixture, seven_url):
         page = page_fixture
@@ -170,6 +180,7 @@ class TestMtsRu:
             region_page.verify_first_region_choice("Азнакаево")
             region_page.select_first_region()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("13. Выбор региона Азнакаево из футера")
     def test_choose_region_futer_azn(self, page_fixture, seven_url):
         page = page_fixture

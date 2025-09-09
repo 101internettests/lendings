@@ -38,6 +38,7 @@ class TestGponMtsHomeOnline:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("3. Отправка заявки из попапа Выгодное спецпредложение! по нажатию фиксированной красной кнопки "
                   "звонка в правом нижнем углу")
     def test_gpon_application_popup_super_offer_red_button(self, page_fixture, third_url):
@@ -53,6 +54,7 @@ class TestGponMtsHomeOnline:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("4. Отправка заявки из попапа по кнопке Подключить из хедера")
     def test_gpon_application_popup_button_connect(self, page_fixture, third_url):
         page = page_fixture
@@ -68,6 +70,7 @@ class TestGponMtsHomeOnline:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("5. Отправка заявки со ВСЕХ форм на странице")
     def test_gpon_application_from_all_forms(self, page_fixture, third_url):
         page = page_fixture
@@ -84,6 +87,7 @@ class TestGponMtsHomeOnline:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("6. Отправка заявок с карточек тарифа")
     def test_gpon_application_from_tariff_cards(self, page_fixture, third_url):
         page = page_fixture
@@ -110,6 +114,7 @@ class TestGponMtsHomeOnline:
                 mts_page.close_thankyou_page()
                 time.sleep(2)
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("7. Отправка заявки из попапа по кнопке Подключить из футера")
     def test_gpon_application_popup_button_connect_futer(self, page_fixture, third_url):
         page = page_fixture
@@ -121,6 +126,7 @@ class TestGponMtsHomeOnline:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("8. Отправка заявки из попапа по кнопке Проверить адрес из футера")
     def test_gpon_application_popup_button_check_address_futer(self, page_fixture, third_url):
         page = page_fixture

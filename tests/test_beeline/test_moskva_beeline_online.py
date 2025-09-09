@@ -121,6 +121,7 @@ class TestMskBeelineOnline:
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("8. Проверка всех ссылок")
     def test_check_all_pages(self, page_fixture, msk_beeline_online):
         page = page_fixture

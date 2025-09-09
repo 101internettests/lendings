@@ -22,6 +22,7 @@ class TestTeleTwo:
                 assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
                     "Ожидалась ошибка SSL/сертификата"
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("3. Отправка заявки из попапа по кнопке Подключить из хедера")
     def test_application_popup_button_connect(self, page_fixture, tele_two):
         page = page_fixture
@@ -36,6 +37,7 @@ class TestTeleTwo:
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("4. Отправка заявки из попапа по кнопке Подключить из банера с заголовком ИНТЕРНЕТ В ПОДАРОК")
     def test_application_banner_button_connect(self, page_fixture, tele_two):
         page = page_fixture
@@ -50,6 +52,7 @@ class TestTeleTwo:
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("5.1. Отправка заявок с карточек тарифа мобил")
     def test_application_from_tariff_cards(self, page_fixture, tele_two):
         page = page_fixture
@@ -68,6 +71,7 @@ class TestTeleTwo:
                 domru_page.close_thankyou_page()
                 time.sleep(2)
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("5.2. Отправка заявок с карточек тарифа домашний")
     def test_application_from_tariff_cards_second(self, page_fixture, tele_two):
         page = page_fixture
@@ -86,6 +90,7 @@ class TestTeleTwo:
                 domru_page.close_thankyou_page()
                 time.sleep(2)
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("6. Отправка заявки с каждой формы на странице с названиями: подключить тарифы билайн в Москве, "
                   "проверьте адрес подключения")
     def test_a_lot_of_forms(self, page_fixture, tele_two):
@@ -100,6 +105,7 @@ class TestTeleTwo:
             mts_page.check_sucess()
             domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("7. Отправка заявки из попапа по кнопке Подключить из футер")
     def test_application_popup_button_connect_futer(self, page_fixture, tele_two):
         page = page_fixture

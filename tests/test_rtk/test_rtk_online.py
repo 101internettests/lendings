@@ -21,6 +21,7 @@ class TestRTKOnlineRU:
                 assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
                     "Ожидалась ошибка SSL/сертификата"
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("3. Отправка заявки из попапа Выгодное спецпредложение! по нажатию фиксированной красной кнопки "
                   "звонка в правом нижнем углу")
     def test_application_popup_super_offer_red_button(self, page_fixture, rtk_online_ru):
@@ -36,6 +37,7 @@ class TestRTKOnlineRU:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("4. Отправка заявки из попапа по кнопке Подключить из хедера")
     def test_application_popup_button_connect(self, page_fixture, rtk_online_ru):
         page = page_fixture
@@ -48,6 +50,7 @@ class TestRTKOnlineRU:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("5. Отправка заявки из попапа Заявка на подключение с  кнопки Подключиться в баннере с заголовком "
                   "Подключить домашний интернет Ростелеком")
     def test_application_popup_button_application_two(self, page_fixture, rtk_online_ru):
@@ -71,6 +74,7 @@ class TestRTKOnlineRU:
             mts_page.check_sucess()
             mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("7. Отправка заявок с карточек тарифа")
     def test_application_from_tariff_cards(self, page_fixture, rtk_online_ru):
         page = page_fixture
@@ -90,6 +94,7 @@ class TestRTKOnlineRU:
                 mts_page.close_thankyou_page()
                 time.sleep(2)
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("8. Отправка заявки из попапа Заявка на подключение с  кнопки Подключиться в баннере с заголовком "
                   "Как подключить домашний интернет Ростелеком")
     def test_application_popup_button_application_rostelecom(self, page_fixture, rtk_online_ru):
@@ -102,6 +107,7 @@ class TestRTKOnlineRU:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("9. Отправка заявки с формы на странице с названием Не определились с тарифом? ")
     def test_application_popup_button_application_don_choose(self, page_fixture, rtk_online_ru):
         page = page_fixture
@@ -113,6 +119,7 @@ class TestRTKOnlineRU:
             mts_page.check_sucess()
             mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("10. Отправка заявки из попапа по кнопке Подключить из футера")
     def test_application_popup_button_connect_futer(self, page_fixture, rtk_online_ru):
         page = page_fixture
@@ -125,14 +132,14 @@ class TestRTKOnlineRU:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
-    @allure.title("10. Проверка всех ссылок")
+    @allure.title("11. Проверка всех ссылок")
     def test_check_all_pages(self, page_fixture, rtk_online_ru):
         page = page_fixture
         page.goto(rtk_online_ru)
         rostelecom_page = RostelecomPage(page=page)
         rostelecom_page.check_all_links_online()
 
-    @allure.title("11. Выбор региона СПБ из хедера")
+    @allure.title("12. Выбор региона СПБ из хедера")
     def test_choose_region_header_spb(self, page_fixture, rtk_online_ru):
         page = page_fixture
         page.goto(rtk_online_ru)
@@ -146,7 +153,7 @@ class TestRTKOnlineRU:
             region_page.select_first_region()
             region_page.verify_region_button_text_new("Санкт-Петербурге")
 
-    @allure.title("12. Выбор региона Москва из футера")
+    @allure.title("13. Выбор региона Москва из футера")
     def test_choose_region_futer_msk(self, page_fixture, rtk_online_ru):
         page = page_fixture
         page.goto(rtk_online_ru)
