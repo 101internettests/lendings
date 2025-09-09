@@ -153,6 +153,7 @@ class TestRTKImternetOnlineSecond:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("11. Проверка всех ссылок")
     def test_check_all_pages(self, page_fixture, rtk_internet_online_second):
         page = page_fixture

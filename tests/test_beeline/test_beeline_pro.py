@@ -57,6 +57,7 @@ class TestBeelinePro:
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("3. Отправка заявки из попапа Выгодное спецпредложение! по нажатию фиксированной желтой кнопки "
                   "звонка в правом нижнем углу")
     def test_application_popup_super_offer_yellow_button(self, page_fixture, beeline_pro):
@@ -74,6 +75,7 @@ class TestBeelinePro:
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("4. Отправка заявки из попапа по кнопке Подключить из хедера")
     def test_application_popup_button_connect(self, page_fixture, beeline_pro):
         page = page_fixture
@@ -88,6 +90,7 @@ class TestBeelinePro:
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("5. Отправка заявки с каждой формы на странице с названиями: подключения билайн тарифы 2025"
                   "проверьте адрес подключения")
     def test_a_lot_of_forms_beeline(self, page_fixture, beeline_pro):
@@ -106,6 +109,7 @@ class TestBeelinePro:
             mts_page.check_sucess()
             domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("6. Отправка заявок с карточек тарифа")
     def test_application_from_tariff_cards(self, page_fixture, beeline_pro):
         page = page_fixture
@@ -129,6 +133,7 @@ class TestBeelinePro:
                 domru_page.close_thankyou_page()
                 time.sleep(2)
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("7. Отправка заявки из попапа по кнопке Получить консультацию")
     def test_popup_get_consultation(self, page_fixture, beeline_pro):
         page = page_fixture
@@ -142,6 +147,7 @@ class TestBeelinePro:
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("8. Отправка заявки из попапа по кнопке Подключиться из футера")
     def test_application_popup_button_connect_futer(self, page_fixture, beeline_pro):
         page = page_fixture

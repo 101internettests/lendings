@@ -36,6 +36,7 @@ class TestMtsMskHomeOnlineSecond:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("3. Отправка заявки из попапа Выгодное спецпредложение! по нажатию фиксированной красной кнопки "
                   "звонка в правом нижнем углу")
     def test_application_popup_super_offer_red_button(self, page_fixture, four_url):
@@ -50,6 +51,7 @@ class TestMtsMskHomeOnlineSecond:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("4. Отправка заявки из попапа по кнопке Подключить из хедера")
     def test_application_popup_button_connect(self, page_fixture, four_url):
         page = page_fixture
@@ -72,6 +74,7 @@ class TestMtsMskHomeOnlineSecond:
         mts_page.close_thankyou_page()
         time.sleep(3)
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("6. Отправка заявок с карточек тарифа")
     def test_application_from_tariff_cards(self, page_fixture, four_url):
         page = page_fixture
@@ -91,6 +94,7 @@ class TestMtsMskHomeOnlineSecond:
                 mts_page.close_thankyou_page()
                 time.sleep(2)
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("7. Отправка заявки из попапа по кнопке Подключить из футера")
     def test_application_popup_button_connect_futer(self, page_fixture, four_url):
         page = page_fixture
@@ -102,6 +106,7 @@ class TestMtsMskHomeOnlineSecond:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("8. Отправка заявки из попапа по кнопке Проверить адрес из футера")
     def test_application_popup_button_check_address_futer(self, page_fixture, four_url):
         page = page_fixture

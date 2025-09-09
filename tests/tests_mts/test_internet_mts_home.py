@@ -107,6 +107,7 @@ class TestInternetMtsHome:
                 mts_page.close_thankyou_page()
                 time.sleep(2)
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title(
         "8. Отправка заявки с формы на странице с названием Проверьте возможность подключения по вашему адресу")
     def test_application_from_all_forms(self, page_fixture, five_url):

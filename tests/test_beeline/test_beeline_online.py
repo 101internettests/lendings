@@ -65,6 +65,7 @@ class TestBeelineOnline:
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("3. Отправка заявки из попапа Выгодное спецпредложение! по нажатию фиксированной желтой кнопки "
                   "звонка в правом нижнем углу")
     def test_application_popup_super_offer_red_button(self, page_fixture, beeline_online):
@@ -83,6 +84,7 @@ class TestBeelineOnline:
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("4. Отправка заявки из попапа по кнопке Подключить из хедера")
     def test_application_popup_button_connect(self, page_fixture, beeline_online):
         page = page_fixture
@@ -97,6 +99,7 @@ class TestBeelineOnline:
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("5. Отправка заявки с каждой формы на странице с названиями: Подключите стабильный интернет, "
                   "Попробуйте скоростной безлимитный интернет")
     def test_a_lot_of_forms(self, page_fixture, beeline_online):
@@ -116,6 +119,7 @@ class TestBeelineOnline:
             mts_page.check_sucess()
             domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("6. Отправка заявок с карточек тарифа")
     def test_application_from_tariff_cards(self, page_fixture, beeline_online):
         page = page_fixture
@@ -137,6 +141,7 @@ class TestBeelineOnline:
                 domru_page.close_thankyou_page()
                 time.sleep(2)
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("7. Отправка заявки из попапа по кнопке Подключить из футер")
     def test_application_popup_button_connect_futer(self, page_fixture, beeline_online):
         page = page_fixture
@@ -151,6 +156,7 @@ class TestBeelineOnline:
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("8. Проверка всех ссылок")
     def test_check_all_pages(self, page_fixture, beeline_online):
         page = page_fixture

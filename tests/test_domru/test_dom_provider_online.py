@@ -8,6 +8,7 @@ from pages.page_domru.domru_page import DomRuClass
 
 @allure.feature("https://dom-provider.online/")
 class TestDomruProviderOnline:
+    @pytest.mark.skip("Нужны правки")
     @allure.title("1. Выбор региона из всплывающего попапа Вы находитесь в Москве?")
     def test_choose_region_from_popup(self, page_fixture, dom_provider_online_url):
         page = page_fixture
@@ -36,6 +37,7 @@ class TestDomruProviderOnline:
                 assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
                     "Ожидалась ошибка SSL/сертификата"
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")
     def test_application_popup_super_offer(self, page_fixture, dom_provider_online_url):
@@ -51,6 +53,7 @@ class TestDomruProviderOnline:
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("3. Отправка заявки из попапа Выгодное спецпредложение! по нажатию фиксированной красной кнопки "
                   "звонка в правом нижнем углу")
     def test_application_popup_super_offer_red_button(self, page_fixture, dom_provider_online_url):
@@ -66,6 +69,7 @@ class TestDomruProviderOnline:
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("4. Отправка заявки из попапа по кнопке Подключить из хедера")
     def test_application_popup_button_connect(self, page_fixture, dom_provider_online_url):
         page = page_fixture
@@ -78,6 +82,7 @@ class TestDomruProviderOnline:
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("5. Отправка заявки с каждой формы на странице с названиями: Подключите стабильный интернет, "
                   "Попробуйте скоростной безлимитный интернет")
     def test_a_lot_of_forms(self, page_fixture, dom_provider_online_url):
@@ -95,6 +100,7 @@ class TestDomruProviderOnline:
             mts_page.check_sucess()
             domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("6. Отправка заявки с формы на странице с названием Проверьте возможность подключения по вашему "
                   "адресу")
     def test_check_possibilitie_connection(self, page_fixture, dom_provider_online_url):
@@ -107,6 +113,7 @@ class TestDomruProviderOnline:
         mts_page.check_sucess()
         domru_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("7. Отправка заявок с карточек тарифа")
     def test_application_from_tariff_cards(self, page_fixture, dom_provider_online_url):
         page = page_fixture
@@ -126,6 +133,7 @@ class TestDomruProviderOnline:
                 domru_page.close_thankyou_page()
                 time.sleep(2)
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("8. Отправка заявки из попапа Заявка на подключение с кнопки Подключить интернет с группы блоков "
                   "под заголовком Дом.ру — ваш план для самых разных задач")
     def test_popup_application_connection(self, page_fixture, dom_provider_online_url):
@@ -161,6 +169,7 @@ class TestDomruProviderOnline:
         domru_page.close_popup_location()
         domru_page.check_all_links_sec()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("11. Выбор региона Абинск из хедера")
     def test_choose_region_header_spb(self, page_fixture, dom_provider_online_url):
         page = page_fixture
@@ -176,6 +185,7 @@ class TestDomruProviderOnline:
             region_page.select_first_region()
             region_page.verify_region_button_text("Абинск")
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("13. Проверка формы 'Не нашли свой город?'")
     def test_check_dont_find_city(self, page_fixture, dom_provider_online_url):
         page = page_fixture

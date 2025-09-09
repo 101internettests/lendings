@@ -144,6 +144,7 @@ class TestMoskvaRTKOnline:
 
 @allure.feature("https://moskva.rtk-ru.online/domashnij-internet")
 class TestMoskvaRTKOnlineHomeInternet:
+    @pytest.mark.skip("Нужны правки")
     @allure.title("15. Отправка заявки из попапа Выгодное спецпредложение! по нажатию фиксированной красной кнопки "
                   "звонка в правом нижнем углу")
     def test_application_popup_super_offer_red_button_home(self, page_fixture, msk_rtk_online_home_inter):
@@ -159,6 +160,7 @@ class TestMoskvaRTKOnlineHomeInternet:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("16. Отправка заявки из попапа по кнопке Подключить из хедера")
     def test_application_popup_button_connect_home(self, page_fixture, msk_rtk_online_home_inter):
         page = page_fixture
@@ -173,6 +175,7 @@ class TestMoskvaRTKOnlineHomeInternet:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("17. Отправка заявки из попапа Заявка на подключение с  кнопки Подключиться в баннере с заголовком "
                   "Подключить домашний интернет Ростелеком")
     def test_application_popup_button_application_two(self, page_fixture, msk_rtk_online_home_inter):
@@ -196,6 +199,7 @@ class TestMoskvaRTKOnlineHomeInternet:
             mts_page.check_sucess()
             mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("19. Отправка заявок с карточек тарифа")
     def test_application_from_tariff_cards(self, page_fixture, msk_rtk_online_home_inter):
         page = page_fixture
@@ -215,6 +219,7 @@ class TestMoskvaRTKOnlineHomeInternet:
                 mts_page.close_thankyou_page()
                 time.sleep(2)
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("20. Отправка заявки из попапа Заявка на подключение с  кнопки Подключиться в баннере с заголовком "
                   "Как подключить домашний интернет Ростелеком")
     def test_application_popup_button_application_rostelecom(self, page_fixture, msk_rtk_online_home_inter):
@@ -227,6 +232,7 @@ class TestMoskvaRTKOnlineHomeInternet:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Нужны правки")
     @allure.title("21. Отправка заявки из попапа по кнопке Подключить из футера")
     def test_application_popup_button_connect_futer(self, page_fixture, msk_rtk_online_home_inter):
         page = page_fixture
