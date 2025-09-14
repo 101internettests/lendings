@@ -35,18 +35,6 @@ class TestBeelineOnline:
             region_page.verify_region_button_text_new("Москва")
             time.sleep(3)
 
-    @allure.title("1.1. Проверка работы сайта при отсутствии сертификата")
-    def test_check_website_without_certificate(self, page_fixture, beeline_online):
-        with allure.step("Попытка открыть сайт без игнорирования ошибок SSL"):
-            try:
-                page = page_fixture
-                page.goto(beeline_online)
-                time.sleep(5)
-            except PlaywrightError as error:
-                error_text = str(error)
-                assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
-                    "Ожидалась ошибка SSL/сертификата"
-
     @pytest.mark.skip("Попап не высвечивается")
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")

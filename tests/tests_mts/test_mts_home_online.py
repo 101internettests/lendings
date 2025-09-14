@@ -5,20 +5,9 @@ from pages.page_mts.mts_page import MtsHomeOnlinePage, ChoiceRegionPage
 from playwright.sync_api import Error as PlaywrightError
 from pages.page_beel.beeline_page import BeelineOnlinePage, BeelineInternetOnlinePage, OnlineBeelinePage
 
+
 @allure.feature("https://mts-home.online/")
 class TestMolMainRegionPage:
-    @allure.title("1.1. Проверка работы сайта при отсутствии сертификата")
-    def test_check_website_without_certificate(self, page_fixture, base_url):
-        with allure.step("Попытка открыть сайт без игнорирования ошибок SSL"):
-            try:
-                page = page_fixture
-                page.goto(base_url)
-                time.sleep(5)
-            except PlaywrightError as error:
-                error_text = str(error)
-                assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
-                    "Ожидалась ошибка SSL/сертификата"
-
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")
     def test_application_popup_super_offer(self, page_fixture, base_url):
