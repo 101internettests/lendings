@@ -6,6 +6,7 @@ from playwright.sync_api import Error as PlaywrightError
 from pages.page_mts.internet_mts_page import MtsInternetHomeOnlinePage
 from pages.page_rtk.rostel_page import RostelecomPage
 from pages.page_beel.beeline_page import OnlineBeelinePage
+from conftest import check_page_status_code
 
 
 @allure.feature("https://moskva.rtk-ru.online/")

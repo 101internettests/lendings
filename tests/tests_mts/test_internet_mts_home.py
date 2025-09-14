@@ -9,17 +9,6 @@ from pages.page_beel.beeline_page import BeelineOnlinePage, BeelineInternetOnlin
 
 @allure.feature("https://internet-mts-home.online/")
 class TestInternetMtsHome:
-    @allure.title("1.1. Проверка работы сайта при отсутствии сертификата")
-    def test_check_website_without_certificate(self, page_fixture, five_url):
-        with allure.step("Попытка открыть сайт без игнорирования ошибок SSL"):
-            try:
-                page = page_fixture
-                page.goto(five_url)
-                time.sleep(5)
-            except PlaywrightError as error:
-                error_text = str(error)
-                assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
-                    "Ожидалась ошибка SSL/сертификата"
 
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")

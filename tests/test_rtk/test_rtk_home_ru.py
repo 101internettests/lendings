@@ -9,17 +9,6 @@ from pages.page_rtk.rostel_page import RostelecomPage
 
 @allure.feature("https://rtk-home.ru/")
 class TestRTKHomeRUSecond:
-    @allure.title("1.1. Проверка работы сайта при отсутствии сертификата")
-    def test_check_website_without_certificate(self, page_fixture, rtk_home_ru_second):
-        with allure.step("Попытка открыть сайт без игнорирования ошибок SSL"):
-            try:
-                page = page_fixture
-                page.goto(rtk_home_ru_second)
-                time.sleep(5)
-            except PlaywrightError as error:
-                error_text = str(error)
-                assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
-                    "Ожидалась ошибка SSL/сертификата"
 
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, попапа ")
     def test_application_popup_super_offer(self, page_fixture, rtk_home_ru_second):

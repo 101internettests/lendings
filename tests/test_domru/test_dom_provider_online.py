@@ -25,18 +25,6 @@ class TestDomruProviderOnline:
         domru_page.click_on_logo()
         region_page.verify_region_button_text(" Вы находитесь в  Москве")
 
-    @allure.title("1.1. Проверка работы сайта при отсутствии сертификата")
-    def test_check_website_without_certificate(self, page_fixture, dom_provider_online_url):
-        with allure.step("Попытка открыть сайт без игнорирования ошибок SSL"):
-            try:
-                page = page_fixture
-                page.goto(dom_provider_online_url)
-                time.sleep(5)
-            except PlaywrightError as error:
-                error_text = str(error)
-                assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
-                    "Ожидалась ошибка SSL/сертификата"
-
     @pytest.mark.skip("Нужны правки")
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")

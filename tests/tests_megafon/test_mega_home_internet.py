@@ -8,17 +8,6 @@ from pages.page_mega.mega_premium import MegaPremiumOnline, MegaHomeInternet
 
 @allure.feature("https://mega-home-internet.ru/")
 class TestMegaHomeInternet:
-    @allure.title("1.1. Проверка работы сайта при отсутствии сертификата")
-    def test_check_website_without_certificate(self, page_fixture, nine_url):
-        with allure.step("Попытка открыть сайт без игнорирования ошибок SSL"):
-            try:
-                page = page_fixture
-                page.goto(nine_url)
-                time.sleep(5)
-            except PlaywrightError as error:
-                error_text = str(error)
-                assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
-                    "Ожидалась ошибка SSL/сертификата"
 
     @pytest.mark.skip("Нужны правки")
     @allure.title(

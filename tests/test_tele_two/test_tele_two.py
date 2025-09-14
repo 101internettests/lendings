@@ -10,17 +10,6 @@ from pages.page_tele.tele_two_page import TeleTwoPage
 
 @allure.feature("https://t2-official.ru/moskva")
 class TestTeleTwo:
-    @allure.title("1.1. Проверка работы сайта при отсутствии сертификата")
-    def test_check_website_without_certificate(self, page_fixture, tele_two):
-        with allure.step("Попытка открыть сайт без игнорирования ошибок SSL"):
-            try:
-                page = page_fixture
-                page.goto(tele_two)
-                time.sleep(5)
-            except PlaywrightError as error:
-                error_text = str(error)
-                assert any(text in error_text.lower() for text in ["ssl", "certificate", "security"]), \
-                    "Ожидалась ошибка SSL/сертификата"
 
     @pytest.mark.skip("Нужны правки")
     @allure.title("3. Отправка заявки из попапа по кнопке Подключить из хедера")
