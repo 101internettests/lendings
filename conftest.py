@@ -450,7 +450,7 @@ def tele_two():
 @pytest.fixture(scope="session")
 def msk_rtk_online():
     """Базовый URL для тестов"""
-    return "https://moskva.rtk-ru.online/"
+    return "https://serpukhov.rtk-ru.online/"
 
 
 @pytest.fixture(scope="session")
@@ -614,6 +614,7 @@ def pytest_sessionfinish(session, exitstatus):
             'errors': 0,
             'skipped': 0,
             'titles_failed': [],
+            'titles_skipped': [],
         })
 
         def site_key_for(nodeid: str) -> str:
@@ -650,17 +651,15 @@ def pytest_sessionfinish(session, exitstatus):
                 continue
             site = site_key_for(report.nodeid)
             site_stats[site]['skipped'] += 1
+            title = TEST_META.get(report.nodeid, {}).get('title')
+            site_stats[site]['titles_skipped'].append(title if title else report.nodeid)
 
-        def is_certificate_test(nodeid: str) -> bool:
-            lower = nodeid.lower()
-            return ('without_certificate' in lower) or ('certificate' in lower)
-
-        cert_passed = sum(1 for r in passed_reports if is_certificate_test(r.nodeid))
-        cert_failed = sum(1 for r in failed_reports if is_certificate_test(r.nodeid))
-        cert_total = cert_passed + cert_failed
+        
 
 
         failed_nodeids = sorted({r.nodeid for r in failed_reports})
+        skipped_reports = get_reports(['skipped'])
+        skipped_nodeids = sorted({r.nodeid for r in skipped_reports})
 
         # Формируем строки для упавших тестов: берем allure.title и URL (feature)
         def failed_line(nodeid: str) -> str:
@@ -671,7 +670,17 @@ def pytest_sessionfinish(session, exitstatus):
             url_part = f" — {feature_url}" if feature_url else ""
             return f"• {title_part}{url_part}"
 
+        # Формируем строки для пропущенных тестов: берем allure.title и URL (feature)
+        def skipped_line(nodeid: str) -> str:
+            meta = TEST_META.get(nodeid, {})
+            title = meta.get("title")
+            feature_url = meta.get("feature_url")
+            title_part = title if (isinstance(title, str) and title.strip()) else nodeid
+            url_part = f" — {feature_url}" if feature_url else ""
+            return f"• {title_part}{url_part}"
+
         failed_lines = "\n".join(failed_line(n) for n in failed_nodeids) if failed_nodeids else ""
+        skipped_lines = "\n".join(skipped_line(n) for n in skipped_nodeids) if skipped_nodeids else ""
 
         ok = (failed == 0 and errors == 0)
         status_emoji = "✅" if ok else "❌"
@@ -688,14 +697,11 @@ def pytest_sessionfinish(session, exitstatus):
             f"📄 Страниц: {collected}\n"
             f"✅ Успешно: {passed}\n"
             f"❌ Ошибок: {failed + errors}\n"
+            f"⏭ Пропущено: {skipped}\n"
             f"📊 Процент успеха: {success_rate:.1f}%" + duration_line
         )
 
-        # Блок с категориями (только сертификаты)
-        categories_block = (
-            f"\n\n🔍 Важная проверка:\n"
-            f"\n🔐 Сертификаты: {cert_total} | ✅ {cert_passed} | ❌ {cert_failed}"
-        )
+        
 
         # Детали по сайтам
         def site_section(site: str, data: dict) -> str:
@@ -703,23 +709,31 @@ def pytest_sessionfinish(session, exitstatus):
             passed_s = data['passed']
             failed_s = data['failed']
             errors_s = data['errors']
+            skipped_s = data['skipped']
             success_rate_s = (passed_s / total_s * 100.0) if total_s else 0.0
-            titles = data['titles_failed']
-            titles_block = "\n".join(f"• {t}" for t in titles) if titles else "-"
+            titles_failed = data['titles_failed']
+            titles_skipped = data['titles_skipped']
+            failed_block = "\n".join(f"• {t}" for t in titles_failed) if titles_failed else "-"
+            skipped_block = "\n".join(f"• {t}" for t in titles_skipped) if titles_skipped else "-"
             return (
                 f"\n🌐 {site}\n"
                 f"  📄 Страниц: {total_s}\n"
                 f"  ✅ Успешно: {passed_s}\n"
                 f"  ❌ Ошибок: {failed_s + errors_s}\n"
+                f"  ⏭ Пропущено: {skipped_s}\n"
                 f"  📊 Процент успеха: {success_rate_s:.1f}%\n"
-                f"  🔻 Упавшие тесты:\n{titles_block}"
+                f"  🔻 Упавшие тесты:\n{failed_block}\n"
+                f"  ⏭ Пропущенные тесты:\n{skipped_block}"
             )
 
         sites_block = "\n\n🌐 ДЕТАЛИ ПО САЙТАМ:" + "".join(site_section(site, data) for site, data in site_stats.items())
 
         # Блок с упавшими тестами (общий список, если нужен)
         failed_block = f"\n\n🔻 Упавшие тесты (общий):\n{failed_lines}" if failed_lines else ""
+        
+        # Блок с пропущенными тестами (общий список, если нужен)
+        skipped_block = f"\n\n⏭ Пропущенные тесты (общий):\n{skipped_lines}" if skipped_lines else ""
 
-        send_long_message(bot, chat_id, message + categories_block + sites_block + failed_block)
+        send_long_message(bot, chat_id, message + sites_block + failed_block + skipped_block)
     except Exception as e:
         send_long_message(bot, chat_id, f"🤖 Отчет по лендингам готов, но не удалось собрать статистику: {e}")
