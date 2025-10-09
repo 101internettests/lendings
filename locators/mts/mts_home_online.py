@@ -1,7 +1,9 @@
 class MTSHomeOnlineMain:
-    SUPER_OFFER_HEADER = "xpath=//div[contains(text(),'Выгодное спецпредложение!')]"
+    SUPER_OFFER_HEADER = "xpath=//h3[contains(text(),'Выгодное спецпредложение!')]"
+    SUPER_OFFER_HEADER_SECOND = "xpath=//div[contains(text(),'Выгодное спецпредложение!')]"
     SUPER_OFFER_CLOSE = "xpath=(//button[@class='popup__close'])[4]"
     SUPER_OFFER_CLOSE_HOME = "xpath=(//button[@class='popup__close'])[2]"
+    SUPER_OFFER_CLOSE_MEGA = "xpath=(//button[@class='popup__close'])[1]"
     SUPER_OFFER_CLOSE_SECOND = "xpath=(//button[@class='popup__close'])[2]"
     SUPER_OFFER_TEXT = "xpath=//div[contains(text(),'С экономией в год от 9000 рублей!')]"
     INPUT_OFFER_POPUP_SECOND = "xpath=(//input[@name='Phone'])[2]"
@@ -11,8 +13,10 @@ class MTSHomeOnlineMain:
     INPUT_OFFER_POPUP_SEVEN = "xpath=(//input[@name='Phone'])[7]"
     SEND_BUTTON_OFFER_POPUP = "xpath=(//form[@aria-label='Контактная форма']//input[@value='Отправить'])[2]"
     THANKYOU_TEXT = "xpath=//div[@class='thanks']"
+    THANKYOU_TEXT_SECOND = "xpath=//h1[text()='Заявка принята!']"
     RED_BUTTON = "xpath=//button[@class='button-lead-catcher']"
     CLOSE_BUTTON = "xpath=//a[@class='thanks__close']//img[@alt='Вектор закрытия']"
+    THANKYOU_CLOSE = "xpath=//a[@class='page-thanks__close']"
     CLOSE_BUTTON_SECOND = "xpath=(//button[@class='popup__close'])[4]"
     CONNECT_BUTTON = "xpath=(//button[contains(text(),'Подключить')])[1]"
     CONNECTING_BUTTON = "xpath=(//button[contains(text(),'Подключиться')])[1]"
@@ -61,6 +65,7 @@ class MTSHomeOnlineMain:
     HOUSE_BUTTON_FIVE = "xpath=(//input[@placeholder='Дом'])[5]"
     FIRST_STREET = "xpath=(//div[@class='autocomplete-street'])[1]"
     FIRST_HOUSE = "xpath=(//div[@class='autocomplete-item'])[1]"
+    FIRST_HOUSE_SECOND = "xpath=(//div[@id='house-list']//div[@class='autocomplete-item'])[1]"
     SEND_BUTTON = "xpath=(//input[@value='Отправить'])[1]"
     SEND_BUTTON_TWO = "xpath=(//input[@value='Отправить'])[2]"
     ANOTHER_CITY_BUTTON = "xpath=//button[text()='Выбрать город']"
@@ -103,13 +108,17 @@ class FormApplicationCheckConnection:
 
 
 class RegionChoice:
+    RANSOM_CITY_BUTTON = "xpath=(//table[@class='city_list']//tbody//tr//td//a)"
     NEW_REGION_CHOICE_BUTTON = "xpath=(//span[@id='city'])[1]"
+    TELE_REGION_CHOICE_BUTTON = "xpath=(//a[@id='city'])[1]"
     HEADER_BUTTON_NEW = "xpath=(//span[@id='city'])[1]"
     NEW_REGION_CHOICE_BUTTON_HEADER = "xpath=(//span[@id='city'])[2]"
     NEW_REGION_CHOICE_BUTTON_FUTER = "xpath=(//span[@id='city'])[3]"
     REGION_CHOICE_BUTTON = "xpath=(//a[@id='city'])[1]"
     REGION_CHOICE_BUTTON_FUTER = "xpath=(//a[@id='city'])[2]"
     REGION_CHOICE_BUTTON_THREE = "xpath=(//a[@id='city'])[3]"
+    FOOTER_BUTTON = "xpath=//div[@class='footer__city']//a"
+    FOOTER_SECOND_TIME = "xpath=(//div[@class='footer__city']//span)[1]"
     FUTER_CHOICE = "xpath=(//span[@id='city'])[2]"
     FUTER_MTS_NEW = "xpath=(//a[@class='city'])[2]"
     CITY_INPUT = "xpath=//input[@placeholder='Введите название города']"
@@ -145,7 +154,8 @@ class MskMtsMainWeb:
     CHECK_ADDRESS_BUTTON_SECOND = "xpath=(//input[@value='Проверить адрес'])[3]"
     HEADER_LINKS_GPON = {
         "home_internet": "xpath=(//a[contains(text(),'Тарифы с домашним интернетом')])[2]",
-        "mobile": "xpath=(//a[contains(text(),'Мобильная связь')])[2]"
+        "mobile": "xpath=(//a[contains(text(),'Мобильная связь')])[2]",
+        "business": "xpath=(//a[contains(text(),'Бизнесу')])[2]"
     }
     REGION_CHOICE_BUTTON_SECOND = "xpath=(//a[@id='city'])[2]"
     REGION_CHOICE_GPON = "xpath=(//a[@id='city'])[3]"
@@ -161,7 +171,8 @@ class MtsThirdOnline:
     MORE_INFO_BUTTON = "xpath=(//button[@id='btnup'])[3]"
     HEADER_LINKS = {
         "all_in_one": "xpath=(//a[contains(text(),'Всё в одном')])[1]",
-        "mobile": "xpath=(//a[contains(text(),'Мобильная связь')])[1]"
+        "mobile": "xpath=(//a[contains(text(),'Мобильная связь')])[1]",
+        "home": "xpath=(//a[contains(text(),'Домашний интернет')])[1]",
     }
     FOOTER_LINKS = {
         "cookie_policy": "xpath=//a[contains(text(),'Политики обработки файлов cookie')]"

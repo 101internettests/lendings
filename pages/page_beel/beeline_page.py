@@ -344,6 +344,12 @@ class BeelineOnlinePage(BasePage):
         for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
             self.check_link(locator, f"Footer: {name}")
 
+    @allure.title("Проверить видимость ссылок ТТК во футере")
+    def check_all_links_ttk(self):
+        """Проверяет, что все локаторы ссылок ТТК во футере видимы"""
+        for name, locator in BeelineMain.FOOTER_LINKS_TTK.items():
+            with allure.step(f"Проверить видимость элемента: {name}"):
+                expect(self.page.locator(locator)).to_be_visible()
 
 class OnlineBeelinePage(BasePage):
     @allure.title("Проверить, что попап появился и нажать на  кнопку выбора города")

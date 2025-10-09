@@ -47,6 +47,18 @@ class MainPageLocs:
         "cookie_policy": "xpath=//a[contains(text(),'Политики обработки файлов cookie')]",
         "privacy_policy": "xpath=//a[contains(text(),'Политику конфиденциальности')]"
     }
+    MEGA_HEADER = {
+        "home_imternet": "xpath=(//a[contains(text(),'Домашний интернет')])[1]",
+        "internet_tv": "xpath=(//a[contains(text(),'Интернет и ТВ')])[1]",
+        "family_tariffs": "xpath=(//a[contains(text(),'Тарифы для семьи')])[1]",
+
+    }
+    MEGA_FUTER = {
+        "home_imternet": "xpath=(//a[contains(text(),'Домашний интернет')])[3]",
+        "internet_tv": "xpath=(//a[contains(text(),'Интернет и ТВ')])[3]",
+        "family_tariffs": "xpath=(//a[contains(text(),'Тарифы для семьи')])[3]",
+
+    }
     BUTTON_DONT_FIND_BUTTON = "xpath=//button[@class='region-search__button button button-green']"
 
 

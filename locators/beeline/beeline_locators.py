@@ -100,6 +100,12 @@ class BeelineMain:
     FOOTER_LINKS_SEC = {
         "privacy_policy": "xpath=(//a[contains(text(),'cookies')])[1]"
     }
+    FOOTER_LINKS_TTK = {
+        "personal": "xpath=(//a[text()='скачать PDF'])[1]",
+        "personal2": "xpath=(//a[text()='скачать PDF'])[2]",
+        "personal3": "xpath=(//a[text()='скачать PDF'])[3]",
+        "personal4": "xpath=(//a[text()='скачать PDF'])[4]"
+    }
 
 
 class OnlineBeeline:

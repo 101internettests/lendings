@@ -4,6 +4,7 @@ class InternetMTSHomeOnlineMain:
     ACCEPT_COOKIES = "xpath=//button[@id='cookieAccept']"
     BANNER = "xpath=//button[contains(text(),'Подобрать тариф')]"
     HEADER_LINKS = {
+        "home": "xpath=(//a[contains(text(),'Домашний интернет')])[1]",
         "all_internet": "xpath=(//a[contains(text(),'Всё в одном')])[1]",
         "mobile": "xpath=(//a[contains(text(),'Мобильная связь')])[1]"
     }

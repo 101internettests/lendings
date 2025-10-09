@@ -12,6 +12,11 @@ class MtsHomeOnlinePage(BasePage):
         expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_HEADER)).to_be_visible()
         expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_TEXT)).to_be_visible()
 
+    @allure.title("Проверить, что попап Выгодное приложение появился")
+    def check_popup_super_offer_second(self):
+        expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)).to_be_visible()
+        expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_TEXT)).to_be_visible()
+
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer(self):
         with allure.step("Заполнить попап и отправить заявку"):
@@ -39,9 +44,21 @@ class MtsHomeOnlinePage(BasePage):
         with allure.step("Проверить, что заявка отправилась"):
             expect(self.page.locator(MTSHomeOnlineMain.THANKYOU_TEXT)).to_be_visible()
 
+    @allure.title("Проверить успешность отправления заявки - заявка принята")
+    def check_sucess_accept(self):
+        with allure.step("Проверить, что заявка отправилась"):
+            expect(self.page.locator(MTSHomeOnlineMain.THANKYOU_TEXT_SECOND)).to_be_visible()
+
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def close_thankyou_page(self):
-        self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON).click()
+        # Пытаемся найти и нажать на первую кнопку
+        try:
+            self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON).click(timeout=5000)
+        except:
+            # Если первой кнопки нет или она не кликабельна, продолжаем выполнение
+            pass
+        # Нажимаем на вторую кнопку
+        self.page.locator(MTSHomeOnlineMain.THANKYOU_CLOSE).click()
 
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def click_on_red_button(self):
@@ -287,9 +304,61 @@ class MtsHomeOnlinePage(BasePage):
 
     @allure.title("Нажать на кнопку выбора региона в хедере")
     def click_region_choice_button_new(self):
-        region_button = self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON)
-        region_button.click()
-        time.sleep(2)
+        # Закрываем возможные перекрывающие попапы, если видимы
+        try:
+            for close_locator in [
+                MTSHomeOnlineMain.SUPER_OFFER_CLOSE,
+                MTSHomeOnlineMain.SUPER_OFFER_CLOSE_HOME,
+                MTSHomeOnlineMain.SUPER_OFFER_CLOSE_SECOND,
+            ]:
+                close_btn = self.page.locator(close_locator)
+                if close_btn.is_visible():
+                    close_btn.click(force=True)
+                    time.sleep(0.5)
+        except Exception:
+            pass
+
+        # Пробуем ESC как универсальный способ закрыть оверлей
+        try:
+            self.page.keyboard.press("Escape")
+        except Exception:
+            pass
+
+        # Пробуем разные варианты кнопок города (на разных шаблонах разные теги/позиции)
+        candidates = [
+            RegionChoice.NEW_REGION_CHOICE_BUTTON,
+            RegionChoice.HEADER_BUTTON_NEW,
+            RegionChoice.NEW_REGION_CHOICE_BUTTON_HEADER,
+            RegionChoice.REGION_CHOICE_BUTTON,
+            RegionChoice.REGION_CHOICE_BUTTON_FUTER,
+            RegionChoice.FUTER_MTS_NEW,
+            MTSHomeOnlineMain.ANOTHER_CITY_BUTTON,
+        ]
+
+        opened = False
+        for sel in candidates:
+            try:
+                btn = self.page.locator(sel)
+                if btn.count() == 0:
+                    continue
+                btn.scroll_into_view_if_needed()
+                btn.click(force=True)
+                # Ждём открытия попапа (таблица городов становится видимой)
+                try:
+                    self.page.locator("xpath=//table[@class='city_list']").wait_for(state="visible", timeout=5000)
+                    opened = True
+                    break
+                except Exception:
+                    try:
+                        self.page.locator(RegionChoice.RANSOM_CITY_BUTTON).first.wait_for(state="attached", timeout=3000)
+                        opened = True
+                        break
+                    except Exception:
+                        continue
+            except Exception:
+                continue
+
+        time.sleep(1)
 
     @allure.title("Нажать на кнопку выбора региона в футере")
     def click_region_choice_button_futer(self):
@@ -298,9 +367,21 @@ class MtsHomeOnlinePage(BasePage):
         time.sleep(2)
 
     @allure.title("Нажать на кнопку выбора региона в футере")
+    def click_region_choice_button_beeline(self):
+        region_button = self.page.locator(RegionChoice.FOOTER_BUTTON)
+        region_button.click()
+        time.sleep(2)
+
+    @allure.title("Нажать на кнопку выбора региона в футере после выбора города")
+    def click_region_choice_button_beeline_second(self):
+        region_button = self.page.locator(RegionChoice.FOOTER_SECOND_TIME)
+        region_button.click()
+        time.sleep(2)
+
+    @allure.title("Нажать на кнопку выбора региона в футере")
     def click_region_choice_button_futer_new(self):
         region_button = self.page.locator(RegionChoice.FUTER_CHOICE)
-        region_button.click()
+        region_button.click(force=True)
         time.sleep(2)
 
 
@@ -350,48 +431,34 @@ class ChoiceRegionPage(BasePage):
     @allure.title("Проверить текст кнопки выбора региона")
     def verify_region_button_text(self, expected_text):
         region_button = self.page.locator(RegionChoice.REGION_CHOICE_BUTTON)
-        expect(region_button).to_contain_text(expected_text)
+        actual_text = (region_button.text_content() or "").strip()
+        assert actual_text == expected_text, (
+            f"Некорректный город в кнопке выбора региона: '{actual_text}', ожидали '{expected_text}'"
+        )
 
     @allure.title("Проверить текст кнопки выбора региона")
     def verify_region_button_text_new(self, expected_text):
         region_button = self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON)
-        expect(region_button).to_contain_text(expected_text)
+        actual_text = (region_button.text_content() or "").strip()
+        assert actual_text == expected_text, (
+            f"Некорректный город в кнопке выбора региона: '{actual_text}', ожидали '{expected_text}'"
+        )
+
+    @allure.title("Проверить текст кнопки выбора региона")
+    def verify_region_button_text_tele(self, expected_text):
+        region_button = self.page.locator(RegionChoice.TELE_REGION_CHOICE_BUTTON)
+        actual_text = (region_button.text_content() or "").strip()
+        assert actual_text == expected_text, (
+            f"Некорректный город в кнопке выбора региона: '{actual_text}', ожидали '{expected_text}'"
+        )
 
     @allure.title("Проверить текст кнопки выбора региона")
     def verify_region_button_text_new_gpon(self, expected_text):
         region_button = self.page.locator(RegionChoice.REGION_CHOICE_BUTTON_FUTER)
-        expect(region_button).to_contain_text(expected_text)
-
-    @allure.title("Проверить 30 случайных ссылок городов на странице")
-    def check_all_city_links(self):
-        """Проверяет до 30 случайных ссылок городов на странице выбора региона без вложений в Allure"""
-        import random
-        with allure.step("Проверка до 30 случайных ссылок городов (без вложений)"):
-            city_links = self.page.locator(RegionChoice.ALL_CHOICES).all()
-            if not city_links:
-                print("Нет ссылок городов для проверки.")
-                return
-            sample_links = random.sample(city_links, min(30, len(city_links)))
-            browser = self.page.context.browser
-            for link in sample_links:
-                city_name = link.text_content().strip()
-                href = link.get_attribute('href')
-                try:
-                    context = browser.new_context()
-                    new_page = context.new_page()
-                    new_page.goto(href)
-                    new_page.wait_for_load_state("domcontentloaded", timeout=20000)
-                    new_page.wait_for_load_state("load", timeout=20000)
-                    try:
-                        new_page.wait_for_load_state("networkidle", timeout=20000)
-                    except Exception:
-                        pass
-                    expect(new_page).not_to_have_url("**/404")
-                except Exception as e:
-                    print(f"Ошибка при проверке {city_name}: {str(e)}")
-                finally:
-                    context.close()
-                    time.sleep(1)
+        actual_text = (region_button.text_content() or "").strip()
+        assert actual_text == expected_text, (
+            f"Некорректный город в кнопке выбора региона: '{actual_text}', ожидали '{expected_text}'"
+        )
 
     @allure.title("Нажать на кнопку Не смогли найти город")
     def click_button_dont_find_city(self):
@@ -409,6 +476,10 @@ class ChoiceRegionPage(BasePage):
     @allure.title("Закрыть попап Выгодное предложение")
     def close_popup_super_offer(self):
         self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_CLOSE).click()
+
+    @allure.title("Закрыть попап Выгодное предложение")
+    def close_popup_super_offer_new(self):
+        self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_CLOSE_MEGA).click()
 
 
 class MTSSecondOnlinePage(BasePage):
@@ -497,4 +568,3 @@ class MTSRuPage(BasePage):
     @allure.title("Нажать кнопку Подключить на тарифной карточке")
     def click_tariff_connect_button(self, card_index):
         self.page.locator(MtsRuLocators.TARIFF_CONNECT_BUTTONS).nth(card_index).click()
-

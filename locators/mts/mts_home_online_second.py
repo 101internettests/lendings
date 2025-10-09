@@ -25,7 +25,8 @@ class ApplicationPopupCheckConnectionSecond:
 # Ссылки в хедере
     HEADER_LINKS = {
         "home_internet": "xpath=(//a[contains(text(),'Тарифы с домашним интернетом')])[2]",
-        "mobile": "xpath=(//a[contains(text(),'Мобильная связь')])[2]"
+        "mobile": "xpath=(//a[contains(text(),'Мобильная связь')])[2]",
+        "business": "xpath=(//a[contains(text(),'Бизнесу')])[2]"
     }
     FOOTER_LINKS = {
         "cookie_policy": "xpath=//a[contains(text(),'Политики обработки файлов cookie')]"
