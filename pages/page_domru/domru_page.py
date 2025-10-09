@@ -18,6 +18,10 @@ class DomRuClass(BasePage):
     def choose_msk_location_new(self):
         self.page.locator(LocationPopup.NEW_BUTTON_NO).click()
 
+    @allure.title("Ответить в всплывашке, что нахожусь не в Москве третий")
+    def choose_msk_location_new_third(self):
+        self.page.locator(LocationPopup.NEW_BUTTON_NO_SECOND).click()
+
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer_new(self):
         with allure.step("Заполнить попап и отправить заявку"):

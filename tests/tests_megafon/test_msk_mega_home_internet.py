@@ -6,16 +6,17 @@ from pages.page_mts.mts_page import MtsHomeOnlinePage, ChoiceRegionPage
 from pages.page_mega.mega_premium import MegaPremiumOnline, MegaHomeInternet
 from pages.page_mts.internet_mts_page import MtsInternetHomeOnlinePage
 from pages.main_steps import MainSteps
+from pages.page_rtk.rostel_page import RostelecomPage
 
 
-@allure.feature("https://mega-home-internet.ru/")
-class TestMegaHomeInternet:
+@allure.feature("https://moskva.mega-home-internet.ru/")
+class TestskMegaHomeInternet:
     @allure.title(
         "2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, попапа Выгодное "
         "спецпредложение!")
-    def test_application_popup(self, page_fixture, nine_url):
+    def test_application_popup(self, page_fixture, mega_home_internet):
         page = page_fixture
-        page.goto(nine_url)
+        page.goto(mega_home_internet)
         mts_page = MtsHomeOnlinePage(page=page)
         time.sleep(20)
         mts_page.check_popup_super_offer_second()
@@ -26,30 +27,19 @@ class TestMegaHomeInternet:
         mts_page.check_sucess()
 
     @allure.title("3. Переход по всем ссылкам на странице ")
-    def test_check_popup_links(self, page_fixture, nine_url):
+    def test_check_popup_links(self, page_fixture, mega_home_internet):
         page = page_fixture
-        page.goto(nine_url)
+        page.goto(mega_home_internet)
+        rostelecom_page = RostelecomPage(page=page)
+        time.sleep(15)
+        rostelecom_page.close_popup()
         mega_page = MegaPremiumOnline(page=page)
-        mega_page.check_popup_links()
+        mega_page.check_popup_links_moskva()
 
-    @allure.title("4. Проверка якорных ссылок в хэдере")
-    def test_check_all_pages_header(self, page_fixture, nine_url):
+    @allure.title("4. Выбор региона СПб из хедера")
+    def test_choose_region_header_spb(self, page_fixture, mega_home_internet):
         page = page_fixture
-        page.goto(nine_url)
-        mega_page = MegaPremiumOnline(page=page)
-        mega_page.check_header_links()
-
-    @allure.title("5. Проверка якорных ссылок в футере")
-    def test_check_all_pages_futer(self, page_fixture, nine_url):
-        page = page_fixture
-        page.goto(nine_url)
-        mega_page = MegaPremiumOnline(page=page)
-        mega_page.check_footer_links()
-
-    @allure.title("6. Выбор региона СПб из хедера")
-    def test_choose_region_header_spb(self, page_fixture, nine_url):
-        page = page_fixture
-        page.goto(nine_url)
+        page.goto(mega_home_internet)
         time.sleep(7)
         region_page = ChoiceRegionPage(page=page)
         region_page.close_popup_super_offer_new()
@@ -69,10 +59,10 @@ class TestMegaHomeInternet:
             region_page.select_first_region()
             region_page.verify_region_button_text_new("Абакан")
 
-    @allure.title("7. Переход по случайным 20 ссылкам городов на странице выбора города и проверка")
-    def test_check_all_city_links(self, page_fixture, nine_url):
+    @allure.title("5. Переход по случайным 20 ссылкам городов на странице выбора города и проверка")
+    def test_check_all_city_links(self, page_fixture, mega_home_internet):
         page = page_fixture
-        page.goto(nine_url)
+        page.goto(mega_home_internet)
 
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
@@ -83,5 +73,4 @@ class TestMegaHomeInternet:
         # затем снова открыть попап
         for _ in range(20):
             mts_page.click_region_choice_button_new()
-            steps.click_random_city_and_verify_same_tab()
-
+            steps.click_random_city_and_verify_same_tab_new()

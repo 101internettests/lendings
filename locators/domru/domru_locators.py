@@ -3,6 +3,7 @@ class LocationPopup:
         YES_BUTTON = "xpath=//button[@id='yesButton']"
         NO_BUTTON = "xpath=//button[@id='noButton']"
         NEW_BUTTON_NO = "xpath=//button[@class='popup-select-region__button city']"
+        NEW_BUTTON_NO_SECOND = "xpath=(//button[@class='popup-select-region__button city'])[1]"
         SEND_BUTTON_OFFER_POPUP = "xpath=(//form[@aria-label='Контактная форма']//input[@value='Отправить'])[2]"
         INPUT_OFFER_POPUP = "xpath=(//input[@name='Phone'])[7]"
         CLOSE_BUTTON = "xpath=//a[@class='thanks__close']//img"

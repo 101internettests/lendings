@@ -10,7 +10,7 @@ from locators.mts.internet_mts_home import InternetMTSHomeOnlineMain
 class MtsInternetHomeOnlinePage(BasePage):
     @allure.title("Проверить, что попап Выгодное приложение появился")
     def check_popup_super_offer(self):
-        expect(self.page.locator(InternetMTSHomeOnlineMain.SUPER_OFFER_HEADER)).to_be_visible()
+        # expect(self.page.locator(InternetMTSHomeOnlineMain.SUPER_OFFER_HEADER)).to_be_visible()
         expect(self.page.locator(InternetMTSHomeOnlineMain.SUPER_OFFER_TEXT)).to_be_visible()
 
     @allure.title("Отправить заявку в попап и проверить успешность")

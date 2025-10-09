@@ -352,6 +352,12 @@ def nine_url():
 
 
 @pytest.fixture(scope="session")
+def mega_home_internet():
+    """Базовый URL для тестов"""
+    return "https://moskva.mega-home-internet.ru/"
+
+
+@pytest.fixture(scope="session")
 def nine_two_url():
     """Базовый URL для тестов"""
     return "https://sankt-peterburg.mega-home-internet.ru/"
@@ -379,6 +385,18 @@ def dom_provider_online_url():
 def beeline_online():
     """Базовый URL для тестов"""
     return "https://beeline-ru.online/"
+
+
+@pytest.fixture(scope="session")
+def ttk_internet():
+    """Базовый URL для тестов"""
+    return "https://ttk-internet.ru/"
+
+
+@pytest.fixture(scope="session")
+def ttk_online():
+    """Базовый URL для тестов"""
+    return "https://ttk-ru.online/"
 
 
 @pytest.fixture(scope="session")
@@ -561,10 +579,7 @@ def page_fixture_ignore_https(browser_fixture_ignore_https):
     context = browser_fixture_ignore_https.new_context(ignore_https_errors=True)
     page = context.new_page()
     yield page
-    context.close()
-
-
-@pytest.hookimpl(trylast=True)
+    context.close()@pytest.hookimpl(trylast=True)
 def pytest_sessionfinish(session, exitstatus):
     try:
         tr = session.config.pluginmanager.getplugin('terminalreporter')
@@ -737,3 +752,5 @@ def pytest_sessionfinish(session, exitstatus):
         send_long_message(bot, chat_id, message + sites_block + failed_block + skipped_block)
     except Exception as e:
         send_long_message(bot, chat_id, f"🤖 Отчет по лендингам готов, но не удалось собрать статистику: {e}")
+
+
