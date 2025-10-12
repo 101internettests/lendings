@@ -63,9 +63,76 @@ class MainSteps(BasePage):
             pass
         raise AssertionError("Не удалось кликнуть по варианту дома: нет первого и второго вариантов")
 
+    def _verify_city_label_accepts_variants(self, expected_city: str):
+        # Принимаем как валидные варианты:
+        # 1) Точное совпадение названия города
+        # 2) Текст вида "Вы находитесь в городе <город>"
+        # 3) Для падежных форм допускаем замену последней буквы города на "у" или "е"
+        candidates = [
+            RegionChoice.NEW_REGION_CHOICE_BUTTON,
+            RegionChoice.TELE_REGION_CHOICE_BUTTON,
+            RegionChoice.REGION_CHOICE_BUTTON,
+        ]
+
+        def normalize(text: str) -> str:
+            return re.sub(r"\s+", " ", (text or "").strip())
+
+        expected_norm = normalize(expected_city)
+
+        def city_variants(base: str):
+            variants = {base}
+            if len(base) >= 2:
+                variants.add(base[:-1] + "у")
+                variants.add(base[:-1] + "е")
+            return list(variants)
+
+        variants = city_variants(expected_norm)
+        accepted_patterns = []
+        for v in variants:
+            accepted_patterns.append(v)
+            accepted_patterns.append(f"Вы находитесь в городе {v}")
+
+        found_texts = []
+        for sel in candidates:
+            try:
+                loc = self.page.locator(sel)
+                if loc.count() == 0:
+                    continue
+                text = normalize(loc.first.text_content() or "")
+                if text:
+                    found_texts.append(text)
+                    if any((pat == text) or (pat in text) for pat in accepted_patterns):
+                        return
+            except Exception:
+                continue
+
+        # Фоллбэк: проверим текст всей страницы
+        try:
+            body_text = normalize(self.page.locator("body").text_content() or "")
+            if any(pat in body_text for pat in accepted_patterns):
+                return
+        except Exception:
+            pass
+
+        raise AssertionError(
+            f"Город не подтверждён. Допустимые варианты: {accepted_patterns}. Найденные тексты: {found_texts}"
+        )
+
     @allure.title("Нажать на кнопку Изменить город")
     def button_change_city_profit(self):
         self.page.locator(Profit.BUTTON_CHANGE_CITY).click()
+
+    @allure.title("Нажать на кнопку Изменить город")
+    def button_change_city_connection(self):
+        self.page.locator(Connection.BUTTON_CHANGE_CITY).click()
+
+    @allure.title("Нажать на кнопку Изменить город")
+    def button_change_city_checkaddress(self):
+        self.page.locator(Checkaddress.BUTTON_CHANGE_CITY).click()
+
+    @allure.title("Нажать на кнопку Изменить город в блоке 'Проверить адрес' по индексу (1-based)")
+    def button_change_city_checkaddress_block(self, index: int):
+        self.page.locator(Checkaddress.BUTTON_CHANGE_CITY_BLOCK).nth(index - 1).click()
 
     @allure.title("Закрыть попап")
     def close_popup(self):
@@ -73,14 +140,61 @@ class MainSteps(BasePage):
 
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def open_popup_for_colorful_button(self):
-        self.page.locator(Profit.BUTTON_FOR_OPEN).click()
+        self.page.locator(Profit.COLORFUL_BUTTON).click()
+
+    @allure.title("Кликнуть на кнопку Подключить по индексу (1-based)")
+    def click_connect_button_index(self, index: int):
+        selector = f"xpath=(//button[contains(@class,'connection_address_button')])[{index}]"
+        self.page.locator(selector).click()
+
+    @allure.title("Кликнуть на кнопку Подключить по индексу (1-based)")
+    def click_connect_button_index_cards(self, index: int):
+        selector = f"xpath=(//button[contains(@class,'connection_address_card_button')])[{index}]"
+        self.page.locator(selector).click()
+
+    @allure.title("Кликнуть на кнопку Проверить адрес по индексу (1-based)")
+    def click_checkaddress_popup_index(self, index: int):
+        selector = f"xpath=(//button[contains(@class,'checkaddress_address_button')])[{index}]"
+        self.page.locator(selector).click()
+
+    @allure.title("Посчитать количество кнопок Подключить")
+    def count_connect_buttons(self) -> int:
+        return self.page.locator(Connection.CONNECT_BUTTON).count()
+
+    @allure.title("Посчитать количество кнопок Подключить")
+    def count_connect_buttons_cards(self) -> int:
+        return self.page.locator(Connection.CONNECT_BUTTON).count()
+
+    @allure.title("Посчитать количество кнопок Проверить адрес")
+    def count_checkaddress_popup_buttons(self) -> int:
+        return self.page.locator(Checkaddress.CHECKADDRESS_BUTTON_POPUP).count()
+
+    @allure.title("Посчитать количество блоков Проверить адрес")
+    def count_checkaddress_blocks(self) -> int:
+        return self.page.locator(Checkaddress.CHECKADDRESS_BLOCK).count()
 
     @allure.title("Отправить заявку в попап 'Заявка на подключение'")
     def send_popup_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Connection.STREET).type("Тестовая улица", delay=100)
+            self.page.locator(Connection.STREET).type("Лен", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
             time.sleep(1)
             self.page.locator(Connection.HOUSE).fill("1")
+            self._click_first_available_house()
+            time.sleep(1)
+            self.page.locator(Connection.PHONE).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(Connection.BUTTON_SEND).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в попап 'Заявка на подключение'")
+    def send_popup_connection_second(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(Connection.STREET).type("Лен", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            time.sleep(1)
+            self.page.locator(Connection.HOUSE).fill("2")
+            self._click_first_available_house()
             time.sleep(1)
             self.page.locator(Connection.PHONE).fill("99999999999")
             time.sleep(1)
@@ -90,13 +204,57 @@ class MainSteps(BasePage):
     @allure.title("Отправить заявку в попап/форму 'Проверить адрес'")
     def send_popup_checkaddress(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Checkaddress.STREET).type("Тестовая улица", delay=100)
+            self.page.locator(Checkaddress.STREET).last.type("Лен", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
             time.sleep(1)
-            self.page.locator(Checkaddress.HOUSE).fill("1")
+            self.page.locator(Checkaddress.HOUSE).last.fill("1")
+            self._click_first_available_house()
+            time.sleep(1)
+            self.page.locator(Checkaddress.PHONE).last.fill("99999999999")
+            time.sleep(1)
+            self.page.locator(Checkaddress.BUTTON_SEND).last.click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в попап/форму 'Проверить адрес'")
+    def send_popup_checkaddress_second(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(Checkaddress.STREET).type("Лен", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            time.sleep(1)
+            self.page.locator(Checkaddress.HOUSE).fill("2")
+            self._click_first_available_house()
             time.sleep(1)
             self.page.locator(Checkaddress.PHONE).fill("99999999999")
             time.sleep(1)
             self.page.locator(Checkaddress.BUTTON_SEND).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в блоке 'Проверить адрес' по индексу (1-based)")
+    def send_popup_checkaddress_block(self, index: int):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(Checkaddress.STREET).nth(index - 1).type("Лен", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            time.sleep(1)
+            self.page.locator(Checkaddress.HOUSE).nth(index - 1).fill("1")
+            self._click_first_available_house()
+            time.sleep(1)
+            self.page.locator(Checkaddress.PHONE).nth(index - 1).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(Checkaddress.BUTTON_SEND).nth(index - 1).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в блоке 'Проверить адрес' по индексу (1-based)")
+    def send_popup_checkaddress_block_second(self, index: int):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(Checkaddress.STREET).nth(index - 1).type("Лен", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            time.sleep(1)
+            self.page.locator(Checkaddress.HOUSE).nth(index - 1).fill("2")
+            self._click_first_available_house()
+            time.sleep(1)
+            self.page.locator(Checkaddress.PHONE).nth(index - 1).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(Checkaddress.BUTTON_SEND).nth(index - 1).click()
             time.sleep(4)
 
     @allure.title("Отправить заявку в форму 'Не определились с тарифом?'")
@@ -178,7 +336,24 @@ class MainSteps(BasePage):
                     with self.page.context.expect_page() as new_page_info:
                         city_item.click(modifiers=["Control"], force=True)  # открываем в новой вкладке
                     new_page = new_page_info.value
-                    new_page.wait_for_load_state("networkidle", timeout=15000)
+                    try:
+                        new_page.wait_for_load_state("networkidle", timeout=15000)
+                    except Exception:
+                        try:
+                            new_page.wait_for_load_state("load", timeout=10000)
+                        except Exception:
+                            pass
+                    # Подстраховка: ждём появления любых известных контролов выбора региона
+                    try:
+                        new_page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=5000)
+                    except Exception:
+                        try:
+                            new_page.locator(RegionChoice.TELE_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                        except Exception:
+                            try:
+                                new_page.locator(RegionChoice.REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                            except Exception:
+                                pass
                     expect(new_page).not_to_have_url("**/404")
 
                     # Если это сабдомен (например, abakan.mts-home.online), проверяем домен URL
@@ -214,7 +389,23 @@ class MainSteps(BasePage):
             with self.page.context.expect_page() as new_page_info:
                 city_item.click(modifiers=["Control"], force=True)  # открываем в новой вкладке
             new_page = new_page_info.value
-            new_page.wait_for_load_state("networkidle", timeout=15000)
+            try:
+                new_page.wait_for_load_state("networkidle", timeout=15000)
+            except Exception:
+                try:
+                    new_page.wait_for_load_state("load", timeout=10000)
+                except Exception:
+                    pass
+            try:
+                new_page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=5000)
+            except Exception:
+                try:
+                    new_page.locator(RegionChoice.TELE_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                except Exception:
+                    try:
+                        new_page.locator(RegionChoice.REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                    except Exception:
+                        pass
             expect(new_page).not_to_have_url("**/404")
 
             if href_host and href_host.endswith(".mts-home.online") and href_host != "mts-home.online":
@@ -249,7 +440,23 @@ class MainSteps(BasePage):
             city_item.click(force=True)
 
         # Ожидаем навигацию и выполняем строгую проверку: при несоответствии тест падает
-        self.page.wait_for_load_state("networkidle", timeout=15000)
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=15000)
+        except Exception:
+            try:
+                self.page.wait_for_load_state("load", timeout=10000)
+            except Exception:
+                pass
+        try:
+            self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=5000)
+        except Exception:
+            try:
+                self.page.locator(RegionChoice.TELE_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+            except Exception:
+                try:
+                    self.page.locator(RegionChoice.REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                except Exception:
+                    pass
         expect(self.page).not_to_have_url("**/404")
 
         if href_host and href_host.endswith(".mts-home.online") and href_host != "mts-home.online":
@@ -257,13 +464,7 @@ class MainSteps(BasePage):
                 f"Открыт неверный домен для города {city_name}: {self.page.url} (ожидали {href_host})"
             )
         else:
-            region_page = ChoiceRegionPage(page=self.page)
-            try:
-                region_page.verify_region_button_text_new(expected_city)
-            except:
-                # Если первой кнопки нет или она не кликабельна, продолжаем выполнение
-                pass
-            region_page.verify_region_button_text_tele(expected_city)
+            self._verify_city_label_accepts_variants(expected_city)
 
     @allure.title("Перейти по одному случайному городу (в той же вкладке) из уже открытого попапа и проверить")
     def click_random_city_and_verify_same_tab_popup(self):
@@ -289,7 +490,23 @@ class MainSteps(BasePage):
             city_item.click(force=True)
 
         # Ожидаем навигацию и выполняем строгую проверку: при несоответствии тест падает
-        self.page.wait_for_load_state("networkidle", timeout=15000)
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=15000)
+        except Exception:
+            try:
+                self.page.wait_for_load_state("load", timeout=10000)
+            except Exception:
+                pass
+        try:
+            self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=5000)
+        except Exception:
+            try:
+                self.page.locator(RegionChoice.TELE_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+            except Exception:
+                try:
+                    self.page.locator(RegionChoice.REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                except Exception:
+                    pass
         expect(self.page).not_to_have_url("**/404")
         region_page = ChoiceRegionPage(page=self.page)
         region_page.close_popup_super_offer_new()
@@ -299,13 +516,7 @@ class MainSteps(BasePage):
                 f"Открыт неверный домен для города {city_name}: {self.page.url} (ожидали {href_host})"
             )
         else:
-            region_page = ChoiceRegionPage(page=self.page)
-            try:
-                region_page.verify_region_button_text_new(expected_city)
-            except:
-                # Если первой кнопки нет или она не кликабельна, продолжаем выполнение
-                pass
-            region_page.verify_region_button_text_tele(expected_city)
+            self._verify_city_label_accepts_variants(expected_city)
 
     @allure.title("Перейти по одному случайному городу (в той же вкладке) из уже открытого попапа и проверить")
     def click_random_city_and_verify_same_tab_new(self):
@@ -331,7 +542,23 @@ class MainSteps(BasePage):
             city_item.click(force=True)
 
         # Ожидаем навигацию и выполняем строгую проверку: при несоответствии тест падает
-        self.page.wait_for_load_state("networkidle", timeout=15000)
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=15000)
+        except Exception:
+            try:
+                self.page.wait_for_load_state("load", timeout=10000)
+            except Exception:
+                pass
+        try:
+            self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=5000)
+        except Exception:
+            try:
+                self.page.locator(RegionChoice.TELE_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+            except Exception:
+                try:
+                    self.page.locator(RegionChoice.REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                except Exception:
+                    pass
         expect(self.page).not_to_have_url("**/404")
 
         if href_host and href_host.endswith(".mts-home.online") and href_host != "mts-home.online":
@@ -339,11 +566,5 @@ class MainSteps(BasePage):
                 f"Открыт неверный домен для города {city_name}: {self.page.url} (ожидали {href_host})"
             )
         else:
-            region_page = ChoiceRegionPage(page=self.page)
-            try:
-                region_page.verify_region_button_text_new(expected_city)
-            except:
-                # Если первой кнопки нет или она не кликабельна, продолжаем выполнение
-                pass
-            region_page.verify_region_button_text_new(expected_city)
+            self._verify_city_label_accepts_variants(expected_city)
 

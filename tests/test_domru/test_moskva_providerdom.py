@@ -15,7 +15,6 @@ class TestMoskvaDomruProviderDom:
         page = page_fixture
         page.goto(msk_providerdom_url)
         mts_page = MtsHomeOnlinePage(page=page)
-        time.sleep(25)
         mts_page.check_popup_super_offer_second()
         time.sleep(2)
         steps = MainSteps(page=page)
@@ -41,7 +40,7 @@ class TestMoskvaDomruProviderDom:
             region_page.fill_region_search_new("Ангар")
             region_page.verify_first_region_choice("Ангарск")
             region_page.select_first_region()
-            region_page.verify_region_button_text_new("Ангарск")
+            region_page.verify_region_button_text_new("Вы находитесь в  Ангарске")
 
     @allure.title("4. Переход по случайным 20 ссылкам городов на странице выбора города и проверка")
     def test_check_all_city_links(self, page_fixture, msk_providerdom_url):

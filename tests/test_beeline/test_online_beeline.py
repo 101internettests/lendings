@@ -33,7 +33,6 @@ class TestOnlineBeeline:
         time.sleep(8)
         online_beeline_page = OnlineBeelinePage(page=page)
         online_beeline_page.popup_choose_city()
-        time.sleep(50)
         mts_page.check_popup_super_offer_second()
         time.sleep(2)
         steps = MainSteps(page=page)

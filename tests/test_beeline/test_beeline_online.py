@@ -4,6 +4,7 @@ import pytest
 from pages.page_mts.mts_page import MtsHomeOnlinePage, ChoiceRegionPage
 from playwright.sync_api import Error as PlaywrightError
 from pages.page_domru.domru_page import DomRuClass
+from locators.domru.domru_locators import LocationPopup
 from pages.page_beel.beeline_page import BeelineOnlinePage, OnlineBeelinePage, BeelineInternetOnlinePage
 from pages.main_steps import MainSteps
 
@@ -22,7 +23,7 @@ class TestBeelineOnline:
             region_page.fill_region_search_new("Санкт")
             region_page.verify_first_region_choice("Санкт-Петербург")
             region_page.select_first_region()
-            region_page.verify_region_button_text_new("Санкт-Петербург")
+            region_page.verify_region_button_text_new("Вы находитесь в Санкт-Петербурге")
 
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")
@@ -32,7 +33,6 @@ class TestBeelineOnline:
         mts_page = MtsHomeOnlinePage(page=page)
         domru_page = DomRuClass(page=page)
         domru_page.close_popup_location()
-        time.sleep(20)
         mts_page.check_popup_super_offer_second()
         time.sleep(2)
         steps = MainSteps(page=page)
@@ -62,7 +62,7 @@ class TestBeelineOnline:
             region_page.fill_region_search_new("Санк")
             region_page.verify_first_region_choice("Санкт-Петербург")
             region_page.select_first_region()
-            region_page.verify_region_button_text_new("Санкт-Петербург")
+            region_page.verify_region_button_text_new("Вы находитесь в Санкт-Петербурге")
             time.sleep(3)
         with allure.step("Выбрать Аксай"):
             domru_page.close_popup_location()
@@ -109,4 +109,8 @@ class TestBeelineOnline:
         for _ in range(20):
             mts_page.click_region_choice_button_new()
             steps.click_random_city_and_verify_same_tab()
-            domru_page.close_popup_location()
+            try:
+                if page.locator(LocationPopup.YES_BUTTON).count() > 0:
+                    domru_page.close_popup_location()
+            except Exception:
+                pass

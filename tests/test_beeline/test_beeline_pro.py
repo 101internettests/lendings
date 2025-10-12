@@ -33,7 +33,6 @@ class TestBeelinePro:
         domru_page = DomRuClass(page=page)
         time.sleep(5)
         domru_page.close_popup_location()
-        time.sleep(30)
         mts_page.check_popup_super_offer_second()
         time.sleep(2)
         steps = MainSteps(page=page)

@@ -18,7 +18,6 @@ class TestMoskvaMtsHomeOnline:
         page = page_fixture
         page.goto(second_url)
         mts_page = MtsHomeOnlinePage(page=page)
-        time.sleep()
         mts_page.check_popup_super_offer_second()
         time.sleep(2)
         steps = MainSteps(page=page)

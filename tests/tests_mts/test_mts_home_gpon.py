@@ -18,10 +18,8 @@ class TestGponMtsHomeOnline:
         page = page_fixture
         page.goto(third_url)
         mts_page = MtsHomeOnlinePage(page=page)
-        time.sleep(65)
         mts_page.check_popup_super_offer()
         time.sleep(2)
-        online = BeelineOnlinePage(page=page)
         steps = MainSteps(page=page)
         steps.send_popup_profit()
         time.sleep(4)
@@ -72,5 +70,5 @@ class TestGponMtsHomeOnline:
         # 20 раз: открыть попап, кликнуть случайный город в этой же вкладке и проверить,
         # затем снова открыть попап
         for _ in range(20):
-            mts_page.click_region_choice_button_new()
+            mts_page.click_region_choice_button_gpon()
             steps.click_random_city_and_verify_same_tab()

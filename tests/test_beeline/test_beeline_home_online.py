@@ -16,7 +16,6 @@ class TestBeelineHomeOnline:
         page.goto(beeline_home_online)
         domru_page = DomRuClass(page=page)
         domru_page.choose_msk_location_new()
-        region_page = ChoiceRegionPage(page=page)
         with allure.step("Выбрать СПб"):
             region_page = ChoiceRegionPage(page=page)
             region_page.fill_region_search_new("Санкт")
@@ -33,7 +32,6 @@ class TestBeelineHomeOnline:
         domru_page = DomRuClass(page=page)
         time.sleep(5)
         domru_page.close_popup_location()
-        time.sleep(30)
         mts_page.check_popup_super_offer_second()
         time.sleep(2)
         steps = MainSteps(page=page)

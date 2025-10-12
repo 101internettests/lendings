@@ -15,7 +15,6 @@ class TestMolMainRegionPage:
         page = page_fixture
         page.goto(base_url)
         mts_page = MtsHomeOnlinePage(page=page)
-        time.sleep(65)
         mts_page.check_popup_super_offer()
         time.sleep(2)
         steps = MainSteps(page=page)

@@ -32,7 +32,6 @@ class TestBeelineInternetOnline:
         mts_page = MtsHomeOnlinePage(page=page)
         domru_page = DomRuClass(page=page)
         domru_page.close_popup_location()
-        time.sleep(20)
         mts_page.check_popup_super_offer_second()
         time.sleep(2)
         steps = MainSteps(page=page)

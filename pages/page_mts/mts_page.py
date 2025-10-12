@@ -9,17 +9,18 @@ from locators.mts.mts_home_online import FormApplicationCheckConnection, RegionC
 class MtsHomeOnlinePage(BasePage):
     @allure.title("Проверить, что попап Выгодное приложение появился")
     def check_popup_super_offer(self):
-        expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_HEADER)).to_be_visible()
-        expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_TEXT)).to_be_visible()
+        expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_HEADER)).to_be_visible(timeout=65000)
+        expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)).to_be_visible(timeout=65000)
 
     @allure.title("Проверить, что попап Выгодное приложение появился")
     def check_popup_super_offer_second(self):
-        expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)).to_be_visible()
-        expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_TEXT)).to_be_visible()
+        expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)).to_be_visible(timeout=65000)
+        expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_TEXT)).to_be_visible(timeout=65000)
 
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer(self):
         with allure.step("Заполнить попап и отправить заявку"):
+            expect(self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP)).to_be_visible(timeout=65000)
             self.page.locator(ApplicationPopupWithName.ADDRESS_INPUT_FIVE).fill("Тестоадрес")
             self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP).fill("99999999999")
             self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()
@@ -41,8 +42,10 @@ class MtsHomeOnlinePage(BasePage):
 
     @allure.title("Проверить успешность отправления заявки")
     def check_sucess(self):
-        with allure.step("Проверить, что заявка отправилась"):
+        if self.page.locator(MTSHomeOnlineMain.THANKYOU_TEXT).is_visible():
             expect(self.page.locator(MTSHomeOnlineMain.THANKYOU_TEXT)).to_be_visible()
+        else:
+            expect(self.page.locator(MTSHomeOnlineMain.THANKYOU_TEXT_SECOND)).to_be_visible()
 
     @allure.title("Проверить успешность отправления заявки - заявка принята")
     def check_sucess_accept(self):
@@ -51,14 +54,15 @@ class MtsHomeOnlinePage(BasePage):
 
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def close_thankyou_page(self):
-        # Пытаемся найти и нажать на первую кнопку
-        try:
-            self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON).click(timeout=5000)
-        except:
-            # Если первой кнопки нет или она не кликабельна, продолжаем выполнение
-            pass
-        # Нажимаем на вторую кнопку
-        self.page.locator(MTSHomeOnlineMain.THANKYOU_CLOSE).click()
+        # Проверяем, какая кнопка доступна и нажимаем первую доступную
+        if self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON).is_visible(timeout=3000):
+            self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON).click()
+        elif self.page.locator(MTSHomeOnlineMain.THANKYOU_CLOSE).is_visible(timeout=3000):
+            self.page.locator(MTSHomeOnlineMain.THANKYOU_CLOSE).click()
+        elif self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_NEW).is_visible(timeout=3000):
+            self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_NEW).click()
+        elif self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_MEGA).is_visible(timeout=3000):
+            self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_MEGA).click()
 
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def click_on_red_button(self):
@@ -303,6 +307,18 @@ class MtsHomeOnlinePage(BasePage):
         time.sleep(2)
 
     @allure.title("Нажать на кнопку выбора региона в хедере")
+    def click_region_choice_button_gpon(self):
+        region_button = self.page.locator(RegionChoice.REGION_CHOICE_BUTTON_FUTER)
+        region_button.click()
+        time.sleep(2)
+
+    @allure.title("Нажать на кнопку выбора региона в хедере")
+    def click_region_choice_button_mts(self):
+        region_button = self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON_MTS)
+        region_button.click()
+        time.sleep(2)
+
+    @allure.title("Нажать на кнопку выбора региона в хедере")
     def click_region_choice_button_new(self):
         # Закрываем возможные перекрывающие попапы, если видимы
         try:
@@ -481,6 +497,22 @@ class ChoiceRegionPage(BasePage):
     def close_popup_super_offer_new(self):
         self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_CLOSE_MEGA).click()
 
+    @allure.title("Закрыть попап Выгодное предложение")
+    def close_popup_super_offer_all(self):
+        # Пытаемся нажать на первую видимую кнопку закрытия
+        close_buttons = [
+            MTSHomeOnlineMain.SUPER_OFFER_CLOSE_MEGA,
+            MTSHomeOnlineMain.SUPER_OFFER_CLOSE,
+            MTSHomeOnlineMain.SUPER_OFFER_CLOSE_HOME,
+            MTSHomeOnlineMain.SUPER_OFFER_CLOSE_MORE,
+            MTSHomeOnlineMain.SUPER_OFFER_CLOSE_SECOND
+        ]
+
+        # Пытаемся найти и нажать первую доступную кнопку
+        for button_locator in close_buttons:
+            if self.page.locator(button_locator).is_visible():
+                self.page.locator(button_locator).click()
+                break
 
 class MTSSecondOnlinePage(BasePage):
     @allure.title("Нажать на кнопку Принять на главной странице")

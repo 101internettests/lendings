@@ -123,6 +123,7 @@ class MegaPremiumOnline(BasePage):
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer(self):
         with allure.step("Заполнить попап и отправить заявку"):
+            expect(self.page.locator(CheckConnectApplicationForms.SECOND_PHONE_INPUT)).to_be_visible(timeout=65000)
             self.page.locator(CheckConnectApplicationForms.SECOND_PHONE_INPUT).fill("99999999999")
             self.page.locator(CheckConnectApplicationForms.POPUP_SEND_BUTTON).click()
             time.sleep(4)
