@@ -17,7 +17,6 @@ class TestInternetMtsHome:
         page = page_fixture
         page.goto(five_url)
         mts_page = MtsHomeOnlinePage(page=page)
-        time.sleep(60)
         internet_page = MtsInternetHomeOnlinePage(page=page)
         internet_page.check_popup_super_offer()
         time.sleep(2)
@@ -70,11 +69,12 @@ class TestInternetMtsHome:
 
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
-        time.sleep(7)
+        internet_page = MtsInternetHomeOnlinePage(page=page)
+        internet_page.check_popup_super_offer()
         region_page = ChoiceRegionPage(page=page)
         region_page.close_popup_super_offer()
         # 20 раз: открыть попап, кликнуть случайный город в этой же вкладке и проверить,
         # затем снова открыть попап
         for _ in range(20):
-            mts_page.click_region_choice_button_new()
+            mts_page.click_region_choice_button_mts()
             steps.click_random_city_and_verify_same_tab()

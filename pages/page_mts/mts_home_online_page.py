@@ -12,11 +12,12 @@ class MtsHomeOnlineSecondPage(BasePage):
     @allure.title("Проверить, что попап Выгодное приложение появился")
     def check_popup_super_offer(self):
         # expect(self.page.locator(MTSHomeOnlineSecondMain.SUPER_OFFER_HEADER)).to_be_visible()
-        expect(self.page.locator(MTSHomeOnlineSecondMain.SUPER_OFFER_TEXT)).to_be_visible()
+        expect(self.page.locator(MTSHomeOnlineSecondMain.SUPER_OFFER_TEXT)).to_be_visible(timeout=65000)
 
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer(self):
         with allure.step("Заполнить попап и отправить заявку"):
+            expect(self.page.locator(MTSHomeOnlineSecondMain.INPUT_OFFER_POPUP)).to_be_visible(timeout=65000)
             self.page.locator(MTSHomeOnlineSecondMain.ADDRESS_INPUT).fill("Тестоулица")
             self.page.locator(MTSHomeOnlineSecondMain.INPUT_OFFER_POPUP).fill("99999999999")
             self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()

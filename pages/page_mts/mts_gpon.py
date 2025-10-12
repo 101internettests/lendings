@@ -9,16 +9,22 @@ from locators.mts.mts_home_online import FormApplicationCheckConnection, RegionC
 class MtsGponHomeOnlinePage(BasePage):
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def close_thankyou_page(self):
-        self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_SECOND).click()
+        try:
+            self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_SECOND).click(timeout=5000)
+        except Exception:
+            pass
+        # Если первой кнопки нет или она не кликабельна, нажимаем на вторую
+        self.page.locator(MTSHomeOnlineMain.THANKYOU_CLOSE).click()
 
     @allure.title("Проверить, что попап Выгодное приложение появился")
     def check_popup_super_offer(self):
-        expect(self.page.locator(MskMtsMainWeb.SUPER_OFFER_HEADER)).to_be_visible()
-        expect(self.page.locator(MskMtsMainWeb.SUPER_OFFER_TEXT)).to_be_visible()
+        expect(self.page.locator(MskMtsMainWeb.SUPER_OFFER_HEADER)).to_be_visible(timeout=65000)
+        expect(self.page.locator(MskMtsMainWeb.SUPER_OFFER_TEXT)).to_be_visible(timeout=65000)
 
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer(self):
         with allure.step("Заполнить попап и отправить заявку"):
+            expect(self.page.locator(MskMtsMainWeb.INPUT_OFFER_POPUP)).to_be_visible(timeout=65000)
             self.page.locator(MskMtsMainWeb.ADDRESS_FIVE).fill("Тестадрес")
             self.page.locator(MskMtsMainWeb.INPUT_OFFER_POPUP).fill("99999999999")
             self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()

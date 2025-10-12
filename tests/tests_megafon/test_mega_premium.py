@@ -16,7 +16,6 @@ class TestMegaPremium:
         page = page_fixture
         page.goto(eight_url)
         mts_page = MtsHomeOnlinePage(page=page)
-        time.sleep(20)
         mts_page.check_popup_super_offer_second()
         time.sleep(2)
         steps = MainSteps(page=page)
@@ -57,7 +56,7 @@ class TestMegaPremium:
             region_page.fill_region_search_new("Санкт")
             region_page.verify_first_region_choice("Санкт-Петербург")
             region_page.select_first_region()
-            region_page.verify_region_button_text_new("Санкт-Петербург")
+            region_page.verify_region_button_text_new("Вы находитесь в   Санкт-Петербурге")
 
     @allure.title("7. Переход по случайным 20 ссылкам городов на странице выбора города и проверка")
     def test_check_all_city_links(self, page_fixture, eight_url):

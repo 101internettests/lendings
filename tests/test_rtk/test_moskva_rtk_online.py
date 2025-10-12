@@ -18,7 +18,6 @@ class TestMoskvaRTKOnline:
         page.goto(msk_rtk_online)
         mts_page = MtsHomeOnlinePage(page=page)
         mts_second_page = MtsHomeOnlineSecondPage(page=page)
-        time.sleep(35)
         mts_second_page.check_popup_super_offer()
         time.sleep(2)
         steps = MainSteps(page=page)
@@ -45,14 +44,14 @@ class TestMoskvaRTKOnline:
             region_page.fill_region_search_new("Санкт")
             region_page.verify_first_region_choice("Санкт-Петербург")
             region_page.select_first_region()
-            region_page.verify_region_button_text_new("Санкт-Петербург")
+            region_page.verify_region_button_text_new("Вы находитесь в городе Санкт-Петербург")
         with allure.step("Выбрать Абакан"):
             internet_page.click_region_choice_button_new()
             time.sleep(3)
             region_page.fill_region_search_new("Абак")
             region_page.verify_first_region_choice("Абакан")
             region_page.select_first_region()
-            region_page.verify_region_button_text_new("Абакан")
+            region_page.verify_region_button_text_new("Вы находитесь в городе Абакан")
 
     @allure.title("6. Переход по случайным 20 ссылкам городов на странице выбора города и проверка")
     def test_check_all_city_links(self, page_fixture, msk_rtk_online):
@@ -66,4 +65,4 @@ class TestMoskvaRTKOnline:
         # затем снова открыть попап
         for _ in range(20):
             mts_page.click_region_choice_button_new()
-            steps.click_random_city_and_verify_same_tab()
+            steps.click_random_city_and_verify_same_tab_new()

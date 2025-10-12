@@ -1,6 +1,7 @@
 class LocationPopup:
         POPUP_HEADER = "xpath=//p[text()='Вы находитесь в Москве?']"
         YES_BUTTON = "xpath=//button[@id='yesButton']"
+        CHECK_LOCATION_POPUP = "xpath=//p[text()='Вы находитесь в Москве?']"
         NO_BUTTON = "xpath=//button[@id='noButton']"
         NEW_BUTTON_NO = "xpath=//button[@class='popup-select-region__button city']"
         NEW_BUTTON_NO_SECOND = "xpath=(//button[@class='popup-select-region__button city'])[1]"

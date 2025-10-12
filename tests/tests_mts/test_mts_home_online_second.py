@@ -17,7 +17,6 @@ class TestMtsMskHomeOnlineSecond:
         page.goto(four_url)
         mts_page = MtsHomeOnlinePage(page=page)
         mts_second_page = MtsHomeOnlineSecondPage(page=page)
-        time.sleep(60)
         mts_second_page.check_popup_super_offer()
         time.sleep(2)
         steps = MainSteps(page=page)

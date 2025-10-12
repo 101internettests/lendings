@@ -17,7 +17,6 @@ class TestRTKOInternetOnline:
         page.goto(rtk_internet_online_ru)
         mts_page = MtsHomeOnlinePage(page=page)
         internet_page = MtsInternetHomeOnlinePage(page=page)
-        time.sleep(15)
         internet_page.check_popup_super_offer()
         time.sleep(2)
         steps = MainSteps(page=page)

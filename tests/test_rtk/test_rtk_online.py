@@ -17,7 +17,6 @@ class TestRTKOnlineRU:
         page.goto(rtk_online_ru)
         mts_page = MtsHomeOnlinePage(page=page)
         internet_page = MtsInternetHomeOnlinePage(page=page)
-        time.sleep(35)
         internet_page.check_popup_super_offer()
         time.sleep(2)
         steps = MainSteps(page=page)
@@ -44,14 +43,14 @@ class TestRTKOnlineRU:
             region_page.fill_region_search_new("Санкт")
             region_page.verify_first_region_choice("Санкт-Петербург")
             region_page.select_first_region()
-            region_page.verify_region_button_text_new("Санкт-Петербурге")
+            region_page.verify_region_button_text_new("Вы находитесь в городе Санкт-Петербург")
         with allure.step("Выбрать Абакан"):
             internet_page.click_region_choice_button_new()
             time.sleep(3)
             region_page.fill_region_search_new("Абак")
             region_page.verify_first_region_choice("Абакан")
             region_page.select_first_region()
-            region_page.verify_region_button_text_new("Абакан")
+            region_page.verify_region_button_text_new("Вы находитесь в городе Абакан")
 
     @allure.title("6. Переход по случайным 20 ссылкам городов на странице выбора города и проверка")
     def test_check_all_city_links(self, page_fixture, rtk_online_ru):

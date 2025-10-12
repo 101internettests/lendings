@@ -47,5 +47,5 @@ class TestTeleTwo:
         # 20 раз: открыть попап, кликнуть случайный город в этой же вкладке и проверить,
         # затем снова открыть попап
         for _ in range(20):
-            mts_page.click_region_choice_button_new()
+            mts_page.click_region_choice_button()
             steps.click_random_city_and_verify_same_tab()

@@ -6,6 +6,10 @@ from locators.domru.domru_locators import LocationPopup, PopUps, CardsPopup
 
 
 class DomRuClass(BasePage):
+    @allure.title("Проверить, что появилась всплывашка Вы находитесь в городе")
+    def check_location_popup(self):
+        self.page.locator(LocationPopup.CHECK_LOCATION_POPUP).click()
+
     @allure.title("Ответить в всплывашке, что нахожусь в Москве")
     def close_popup_location(self):
         self.page.locator(LocationPopup.YES_BUTTON).click()
