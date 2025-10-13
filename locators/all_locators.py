@@ -39,12 +39,24 @@ class Undecided:
     PHONE = "xpath=//input[contains(@class,'undecided_address_phone')]"
     BUTTON_SEND = "xpath=//input[contains(@class,'undecided_address_button_send')]"
     BUTTON_CHANGE_CITY = "xpath=//button[contains(@class,'undecided_address_button_change_city')]"
-    BUTTON_UNDECIDED = "xpath=()"
+    UNDECIDED_BLOCK = "xpath=//div[contains(@id,'checkaddress-undecided')]"
+
 
 class Business:
     FULL_ADDRESS = "xpath=//input[contains(@class,'business_no_address_full_address')]"
     PHONE = "xpath=//input[contains(@class,'business_no_address_phone')]"
     BUTTON_SEND = "xpath=//input[contains(@class,'business_no_address_button_send')]"
+
+    MORE_BUTTON = "xpath=//a[contains(@class,'services-business')]"
+    MORE_BUTTON_SECOND = "xpath=//button[contains(@class,'services-business')]"
+    MORE_BUTTON_ANY = "xpath=//div[contains(@class,'services-business')]//a[contains(@href,'/business')]"
+
+    BUSINESS_BUTTON = "xpath=(//a[@href='/business/business'])[1]"
+    BUSINESS_BUTTON_SECOND = "xpath=//a[text()='Для бизнеса']"
+    BUSINESS_BUTTON_THIRD = "xpath=(//a[text()='Бизнесу'])[2]"
+
+    CONNECT_BUTTON = "xpath=//a[contains(@class,'business_no_address_button')]"
+    CONNECT_BUTTON_SECOND = "xpath=//button[contains(@class,'business_no_address_button')]"
 
 
 class Moving:
@@ -54,6 +66,8 @@ class Moving:
     BUTTON_SEND = "xpath=//input[contains(@class,'moving_address_button_send')]"
     BUTTON_CHANGE_CITY = "xpath=//button[contains(@class,'moving_address_button_change_city')]"
 
+    MOVING_BUTTON = "xpath=//button[contains(@class,'moving_address_button')]"
+
 
 class ExpressConnection:
     STREET = "xpath=//input[contains(@class,'express-connection_address_street')]"
@@ -61,5 +75,7 @@ class ExpressConnection:
     PHONE = "xpath=//input[contains(@class,'express-connection_address_phone')]"
     BUTTON_SEND = "xpath=//input[contains(@class,'express-connection_address_button_send')]"
     BUTTON_CHANGE_CITY = "xpath=//button[contains(@class,'express-connection_address_button_change_city')]"
+
+    FORM_BUTTON = "xpath=(//header//button[contains(@class,'connection_address_button')])[1]"
 
 

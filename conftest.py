@@ -240,6 +240,12 @@ def pytest_runtest_makereport(item, call):
                         attachment_type=allure.attachment_type.TEXT
                     )
 
+@pytest.fixture(scope="session")
+def ttk_pack():
+    """Базовый URL для тестов"""
+    return "https://internet-mts-home.online/"
+
+
 
 @pytest.fixture(scope="session")
 def base_url():

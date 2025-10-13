@@ -130,6 +130,18 @@ class MainSteps(BasePage):
     def button_change_city_checkaddress(self):
         self.page.locator(Checkaddress.BUTTON_CHANGE_CITY).click()
 
+    @allure.title("Нажать на кнопку Изменить город")
+    def button_change_city_moving(self):
+        self.page.locator(Moving.BUTTON_CHANGE_CITY).click()
+
+    @allure.title("Нажать на кнопку Изменить город")
+    def button_change_city_express_connection(self):
+        self.page.locator(ExpressConnection.BUTTON_CHANGE_CITY).click()
+
+    @allure.title("Нажать на кнопку Изменить город в блоке 'Остались вопросы?' по индексу (1-based)")
+    def button_change_city_undecideds(self, index: int):
+        self.page.locator(Undecided.BUTTON_CHANGE_CITY).nth(index - 1).click()
+
     @allure.title("Нажать на кнопку Изменить город в блоке 'Проверить адрес' по индексу (1-based)")
     def button_change_city_checkaddress_block(self, index: int):
         self.page.locator(Checkaddress.BUTTON_CHANGE_CITY_BLOCK).nth(index - 1).click()
@@ -141,6 +153,10 @@ class MainSteps(BasePage):
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def open_popup_for_colorful_button(self):
         self.page.locator(Profit.COLORFUL_BUTTON).click()
+
+    @allure.title("Нажать на кнопку Подключиться в хедере")
+    def open_popup_express_connection_button(self):
+        self.page.locator(ExpressConnection.FORM_BUTTON).click()
 
     @allure.title("Кликнуть на кнопку Подключить по индексу (1-based)")
     def click_connect_button_index(self, index: int):
@@ -155,6 +171,11 @@ class MainSteps(BasePage):
     @allure.title("Кликнуть на кнопку Проверить адрес по индексу (1-based)")
     def click_checkaddress_popup_index(self, index: int):
         selector = f"xpath=(//button[contains(@class,'checkaddress_address_button')])[{index}]"
+        self.page.locator(selector).click()
+
+    @allure.title("Кликнуть на кнопку Переехать по индексу (1-based)")
+    def click_moving_popup_index(self, index: int):
+        selector = f"xpath=(//button[contains(@class,'moving_address_button')])[{index}]"
         self.page.locator(selector).click()
 
     @allure.title("Посчитать количество кнопок Подключить")
@@ -172,6 +193,81 @@ class MainSteps(BasePage):
     @allure.title("Посчитать количество блоков Проверить адрес")
     def count_checkaddress_blocks(self) -> int:
         return self.page.locator(Checkaddress.CHECKADDRESS_BLOCK).count()
+
+    @allure.title("Посчитать количество блоков формы Остались вопросы?")
+    def count_undecided_blocks(self) -> int:
+        return self.page.locator(Undecided.UNDECIDED_BLOCK).count()
+
+    @allure.title("Посчитать количество кнопок Переехать")
+    def count_moving_popup_buttons(self) -> int:
+        return self.page.locator(Moving.MOVING_BUTTON).count()
+
+    @allure.title("Посчитать количество кнопок Подробнее на странице бизнеса")
+    def count_business_buttons(self) -> int:
+        first_count = self.page.locator(Business.MORE_BUTTON).count()
+        if first_count > 0:
+            return first_count
+        second_count = self.page.locator(Business.MORE_BUTTON_SECOND).count()
+        if second_count > 0:
+            return second_count
+        return self.page.locator(Business.MORE_BUTTON_ANY).count()
+
+    @allure.title("Клик по бизнес-кнопке: хедер или 'Подробнее' по индексу")
+    def click_business_button(self, index: int = 0):
+        # index <= 0: клик по кнопке в хэдере (первой доступной)
+        # index >= 1: клик по кнопке 'Подробнее' на странице бизнеса по индексу (1-based)
+        if index <= 0:
+            header_candidates = [
+                getattr(Business, "BUSINESS_BUTTON", None),
+                getattr(Business, "BUSINESS_BUTTON_SECOND", None),
+                getattr(Business, "BUSINESS_BUTTON_THIRD", None),
+            ]
+            for sel in header_candidates:
+                if not sel:
+                    continue
+                try:
+                    self.page.locator(sel).click(timeout=3000)
+                    return
+                except Exception:
+                    continue
+            raise AssertionError("Кнопка Бизнес не появилась")
+
+        # Иначе кликаем по кнопкам 'Подробнее' по индексу
+        buttons_primary = self.page.locator(Business.MORE_BUTTON)
+        total_primary = buttons_primary.count()
+        if total_primary >= index and total_primary > 0:
+            buttons_primary.nth(index - 1).click()
+            return
+
+        buttons_fallback = self.page.locator(Business.MORE_BUTTON_SECOND)
+        total_fallback = buttons_fallback.count()
+        if total_fallback >= index and total_fallback > 0:
+            buttons_fallback.nth(index - 1).click()
+            return
+
+        # Третий вариант: любой элемент с классом services-business
+        buttons_any = self.page.locator(Business.MORE_BUTTON_ANY)
+        total_any = buttons_any.count()
+        if total_any >= index and total_any > 0:
+            buttons_any.nth(index - 1).click()
+            return
+
+        raise AssertionError(f"Кнопка Подробнее №{index} не найдена")
+
+    @allure.title("Нажать на кнопку Подключить на странице бизнеса")
+    def connect_business_page(self):
+        try:
+            self.page.locator(Business.CONNECT_BUTTON).click(timeout=3000)
+            return
+        except Exception:
+            pass
+        try:
+            self.page.locator(Business.CONNECT_BUTTON_SECOND).click(timeout=3000)
+            return
+        except Exception:
+            pass
+        raise AssertionError("Кнопка Подключить на странице бизнеса не найдена")
+        self.page.locator(Business.CONNECT_BUTTON_SECOND).click()
 
     @allure.title("Отправить заявку в попап 'Заявка на подключение'")
     def send_popup_connection(self):
@@ -258,12 +354,36 @@ class MainSteps(BasePage):
             time.sleep(4)
 
     @allure.title("Отправить заявку в форму 'Не определились с тарифом?'")
-    def send_form_undecided(self):
-        with allure.step("Заполнить форму и отправить заявку"):
-            self.page.locator(Undecided.STREET).type("Тестовая улица", delay=100)
+    def send_form_undecided(self, index: int):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(Undecided.STREET).nth(index - 1).type("Лен", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
             time.sleep(1)
-            self.page.locator(Undecided.HOUSE).fill("1")
+            self.page.locator(Undecided.HOUSE).nth(index - 1).fill("1")
+            self._click_first_available_house()
             time.sleep(1)
+            self.page.locator(Undecided.PHONE).nth(index - 1).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(Undecided.BUTTON_SEND).nth(index - 1).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в форму 'Не определились с тарифом?'")
+    def send_form_undecided_second(self, index: int):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(Undecided.STREET).nth(index - 1).type("Лен", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            time.sleep(1)
+            self.page.locator(Undecided.HOUSE).nth(index - 1).fill("2")
+            self._click_first_available_house()
+            time.sleep(1)
+            self.page.locator(Undecided.PHONE).nth(index - 1).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(Undecided.BUTTON_SEND).nth(index - 1).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в форму 'Не определились с тарифом?'")
+    def send_form_undecided_third(self):
+        with allure.step("Заполнить попап и отправить заявку"):
             self.page.locator(Undecided.PHONE).fill("99999999999")
             time.sleep(1)
             self.page.locator(Undecided.BUTTON_SEND).click()
@@ -272,19 +392,35 @@ class MainSteps(BasePage):
     @allure.title("Отправить заявку в попап 'Заявка на подключение для Бизнеса'")
     def send_popup_business(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Business.FULL_ADDRESS).type("Тестовый адрес, 1", delay=100)
+            self.page.locator(Business.FULL_ADDRESS).last.type("Тестадрес", delay=100)
             time.sleep(1)
-            self.page.locator(Business.PHONE).fill("99999999999")
+            self.page.locator(Business.PHONE).last.fill("99999999999")
             time.sleep(1)
-            self.page.locator(Business.BUTTON_SEND).click()
-            time.sleep(4)
+            self.page.locator(Business.BUTTON_SEND).last.click()
+            time.sleep(1)
 
     @allure.title("Отправить заявку в попап 'Заявка на подключение для Услуги переезд'")
     def send_popup_moving(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Moving.STREET).type("Тестовая улица", delay=100)
+            self.page.locator(Moving.STREET).type("Лен", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
             time.sleep(1)
             self.page.locator(Moving.HOUSE).fill("1")
+            self._click_first_available_house()
+            time.sleep(1)
+            self.page.locator(Moving.PHONE).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(Moving.BUTTON_SEND).click()
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в попап 'Заявка на подключение для Услуги переезд'")
+    def send_popup_moving_second(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(Moving.STREET).type("Лен", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            time.sleep(1)
+            self.page.locator(Moving.HOUSE).fill("2")
+            self._click_first_available_house()
             time.sleep(1)
             self.page.locator(Moving.PHONE).fill("99999999999")
             time.sleep(1)
@@ -294,14 +430,30 @@ class MainSteps(BasePage):
     @allure.title("Отправить заявку в попап 'Заявка на экспресс подключение'")
     def send_popup_express_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(ExpressConnection.STREET).type("Тестовая улица", delay=100)
+            self.page.locator(ExpressConnection.STREET).type("Лен", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
             time.sleep(1)
             self.page.locator(ExpressConnection.HOUSE).fill("1")
+            self._click_first_available_house()
             time.sleep(1)
             self.page.locator(ExpressConnection.PHONE).fill("99999999999")
             time.sleep(1)
             self.page.locator(ExpressConnection.BUTTON_SEND).click()
-            time.sleep(4)
+            time.sleep(2)
+
+    @allure.title("Отправить заявку в попап 'Заявка на экспресс подключение'")
+    def send_popup_express_connection_second(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            self.page.locator(ExpressConnection.STREET).type("Лен", delay=100)
+            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            time.sleep(1)
+            self.page.locator(ExpressConnection.HOUSE).fill("2")
+            self._click_first_available_house()
+            time.sleep(1)
+            self.page.locator(ExpressConnection.PHONE).fill("99999999999")
+            time.sleep(1)
+            self.page.locator(ExpressConnection.BUTTON_SEND).click()
+            time.sleep(2)
 
     @allure.title("Перейти по случайным ссылкам городов из попапа выбора города и проверить")
     def check_random_city_links(self, desired_count: int = 20):
