@@ -42,10 +42,23 @@ class MtsHomeOnlinePage(BasePage):
 
     @allure.title("Проверить успешность отправления заявки")
     def check_sucess(self):
-        if self.page.locator(MTSHomeOnlineMain.THANKYOU_TEXT).is_visible():
-            expect(self.page.locator(MTSHomeOnlineMain.THANKYOU_TEXT)).to_be_visible()
-        else:
-            expect(self.page.locator(MTSHomeOnlineMain.THANKYOU_TEXT_SECOND)).to_be_visible()
+        candidates = [
+            MTSHomeOnlineMain.THANKYOU_TEXT,
+            MTSHomeOnlineMain.THANKYOU_TEXT_SECOND,
+            MTSHomeOnlineMain.THANKYOU_HEADER,
+            MTSHomeOnlineMain.MORE_THANKYOU
+        ]
+        last_error = None
+        for sel in candidates:
+            try:
+                expect(self.page.locator(sel)).to_be_visible(timeout=10000)
+                return
+            except Exception as e:
+                last_error = e
+                continue
+        raise AssertionError(
+            "Страница благодарности не появилась ни по одному из известных селекторов"
+        )
 
     @allure.title("Проверить успешность отправления заявки - заявка принята")
     def check_sucess_accept(self):
@@ -63,6 +76,8 @@ class MtsHomeOnlinePage(BasePage):
             self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_NEW).click()
         elif self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_MEGA).is_visible(timeout=3000):
             self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_MEGA).click()
+        elif self.page.locator(MTSHomeOnlineMain.GO_TO_MAIN).is_visible(timeout=3000):
+            self.page.locator(MTSHomeOnlineMain.GO_TO_MAIN).click()
 
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def click_on_red_button(self):
@@ -505,7 +520,8 @@ class ChoiceRegionPage(BasePage):
             MTSHomeOnlineMain.SUPER_OFFER_CLOSE,
             MTSHomeOnlineMain.SUPER_OFFER_CLOSE_HOME,
             MTSHomeOnlineMain.SUPER_OFFER_CLOSE_MORE,
-            MTSHomeOnlineMain.SUPER_OFFER_CLOSE_SECOND
+            MTSHomeOnlineMain.SUPER_OFFER_CLOSE_SECOND,
+            MTSHomeOnlineMain.SUPER_OFFER_CLOSE_NEW
         ]
 
         # Пытаемся найти и нажать первую доступную кнопку

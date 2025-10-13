@@ -9,12 +9,7 @@ from locators.mts.mts_home_online import FormApplicationCheckConnection, RegionC
 class MtsGponHomeOnlinePage(BasePage):
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def close_thankyou_page(self):
-        try:
-            self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_SECOND).click(timeout=5000)
-        except Exception:
-            pass
-        # Если первой кнопки нет или она не кликабельна, нажимаем на вторую
-        self.page.locator(MTSHomeOnlineMain.THANKYOU_CLOSE).click()
+        self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_SECOND).click()
 
     @allure.title("Проверить, что попап Выгодное приложение появился")
     def check_popup_super_offer(self):
