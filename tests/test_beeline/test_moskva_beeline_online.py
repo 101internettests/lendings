@@ -6,6 +6,7 @@ from playwright.sync_api import Error as PlaywrightError
 from pages.page_domru.domru_page import DomRuClass
 from pages.page_beel.beeline_page import BeelineOnlinePage, BeelineInternetOnlinePage, OnlineBeelinePage
 from pages.main_steps import MainSteps
+from locators.mts.mts_home_online import MTSHomeOnlineMain
 from locators.domru.domru_locators import LocationPopup
 
 
@@ -45,7 +46,22 @@ class TestMskBeelineOnline:
         page = page_fixture
         page.goto(msk_beeline_online)
         domru_page = DomRuClass(page=page)
+        region_page = ChoiceRegionPage(page=page)
         domru_page.close_popup_location()
+        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
+            try:
+                def strip_xpath(sel: str) -> str:
+                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
+
+                union_xpath = (
+                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
+                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
+                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
+                )
+                page.wait_for_selector(union_xpath, state="visible", timeout=60000)
+                region_page.close_popup_super_offer_all()
+            except Exception:
+                pass
         beeline_page = BeelineOnlinePage(page=page)
         beeline_page.check_all_links_msk()
 

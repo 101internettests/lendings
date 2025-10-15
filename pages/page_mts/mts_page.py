@@ -9,13 +9,19 @@ from locators.mts.mts_home_online import FormApplicationCheckConnection, RegionC
 class MtsHomeOnlinePage(BasePage):
     @allure.title("Проверить, что попап Выгодное приложение появился")
     def check_popup_super_offer(self):
-        expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_HEADER)).to_be_visible(timeout=65000)
-        expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)).to_be_visible(timeout=65000)
+        try:
+            expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_HEADER)).to_be_visible(timeout=65000)
+            expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)).to_be_visible(timeout=65000)
+        except Exception:
+            raise AssertionError("Попап не появился на странице за 65 секунд")
 
     @allure.title("Проверить, что попап Выгодное приложение появился")
     def check_popup_super_offer_second(self):
-        expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)).to_be_visible(timeout=65000)
-        expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_TEXT)).to_be_visible(timeout=65000)
+        try:
+            expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)).to_be_visible(timeout=65000)
+            expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_TEXT)).to_be_visible(timeout=65000)
+        except Exception:
+            raise AssertionError("Попап не появился на странице за 65 секунд")
 
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer(self):
@@ -60,6 +66,10 @@ class MtsHomeOnlinePage(BasePage):
             "Страница благодарности не появилась ни по одному из известных селекторов"
         )
 
+    @allure.title("Проверить успешность отправления заявки")
+    def check_sucess_express(self):
+        expect(self.page.locator(MTSHomeOnlineMain.MORE_THANKYOU)).to_be_visible(timeout=10000)
+
     @allure.title("Проверить успешность отправления заявки - заявка принята")
     def check_sucess_accept(self):
         with allure.step("Проверить, что заявка отправилась"):
@@ -78,6 +88,10 @@ class MtsHomeOnlinePage(BasePage):
             self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_MEGA).click()
         elif self.page.locator(MTSHomeOnlineMain.GO_TO_MAIN).is_visible(timeout=3000):
             self.page.locator(MTSHomeOnlineMain.GO_TO_MAIN).click()
+
+    @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
+    def close_thankyou_page_express(self):
+        self.page.locator(MTSHomeOnlineMain.GO_TO_MAIN).click()
 
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def click_on_red_button(self):
@@ -307,13 +321,16 @@ class MtsHomeOnlinePage(BasePage):
     @allure.title("Проверить все ссылки на странице")
     def check_all_links(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in MTSHomeOnlineMain.HEADER_LINKS.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in MTSHomeOnlineMain.HEADER_LINKS.items():
+                self.check_link(locator, f"Header: {name}")
 
-        # Проверяем ссылки в футере
-        for name, locator in MTSHomeOnlineMain.FOOTER_LINKS.items():
-            self.check_link(locator, f"Footer: {name}")
+            # Проверяем ссылки в футере
+            for name, locator in MTSHomeOnlineMain.FOOTER_LINKS.items():
+                self.check_link(locator, f"Footer: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Нажать на кнопку выбора региона в хедере")
     def click_region_choice_button(self):
@@ -579,13 +596,16 @@ class MTSSecondOnlinePage(BasePage):
     @allure.title("Проверить все ссылки на странице")
     def check_all_links(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in MtsThirdOnline.HEADER_LINKS.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in MtsThirdOnline.HEADER_LINKS.items():
+                self.check_link(locator, f"Header: {name}")
 
-        # Проверяем ссылки в футере
-        for name, locator in MtsThirdOnline.FOOTER_LINKS.items():
-            self.check_link(locator, f"Footer: {name}")
+            # Проверяем ссылки в футере
+            for name, locator in MtsThirdOnline.FOOTER_LINKS.items():
+                self.check_link(locator, f"Footer: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Открыть попап выбора")
     def other_city_popup_choice(self):

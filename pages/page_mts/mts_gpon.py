@@ -103,13 +103,16 @@ class MtsGponHomeOnlinePage(BasePage):
     @allure.title("Проверить все ссылки на странице")
     def check_all_links(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in MskMtsMainWeb.HEADER_LINKS_GPON.items():
-            self.check_link(locator, f"Header: {name}")
-        # self.close_thankyou_page()
-        # Проверяем ссылки в футере
-        for name, locator in MTSHomeOnlineMain.FOOTER_LINKS.items():
-            self.check_link(locator, f"Footer: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in MskMtsMainWeb.HEADER_LINKS_GPON.items():
+                self.check_link(locator, f"Header: {name}")
+            # self.close_thankyou_page()
+            # Проверяем ссылки в футере
+            for name, locator in MTSHomeOnlineMain.FOOTER_LINKS.items():
+                self.check_link(locator, f"Footer: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Нажать на кнопку выбора региона в хедере")
     def click_region_choice_button_gpon(self):

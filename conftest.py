@@ -2,7 +2,14 @@ import os
 import pytest
 import allure
 import time
+import json
+import threading
+from datetime import datetime
+from urllib.parse import urlparse
+from pathlib import Path
+from collections import defaultdict
 from dotenv import load_dotenv
+from slugify import slugify
 from playwright.sync_api import sync_playwright, Error as PlaywrightError
 from config import bot, chat_id
 # Загружаем переменные окружения из .env файла
@@ -10,6 +17,239 @@ load_dotenv()
 
 # Хранилище метаданных по тестам для итогового отчета (title, description, feature/url)
 TEST_META = {}
+
+# ==== Allure step tracking (capture last step name per test thread) ====
+_ORIGINAL_ALLURE_STEP = allure.step
+_TLS = threading.local()
+
+class _StepProxy:
+    def __init__(self, cm, name):
+        self._cm = cm
+        self._name = name
+
+    def __enter__(self):
+        try:
+            _TLS.last_step_name = self._name
+        except Exception:
+            pass
+        return self._cm.__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return self._cm.__exit__(exc_type, exc_val, exc_tb)
+
+
+def _patched_allure_step(name: str):
+    return _StepProxy(_ORIGINAL_ALLURE_STEP(name), name)
+
+
+try:
+    allure.step = _patched_allure_step  # type: ignore
+except Exception:
+    pass
+
+
+# ==== Alerts configuration and state ====
+ALERTS_ENABLED = os.getenv("ALERTS_ENABLED", "true").strip().lower() == "true"
+SUPPRESS_PERSISTENT_ALERTS = os.getenv("SUPPRESS_PERSISTENT_ALERTS", "true").strip().lower() == "true"
+REPORT_URL = os.getenv("REPORT_URL")
+PER_DOMAIN_THRESHOLD = int(os.getenv("AGGR_THRESHOLD_PER_DOMAIN", "5"))
+SYSTEMIC_LANDINGS_THRESHOLD = int(os.getenv("SYSTEMIC_LANDINGS_THRESHOLD", "10"))
+TIMEZONE_LABEL = os.getenv("TZ_LABEL", "MSK")
+
+_STATE_FILE = Path(".alerts_state.json")
+_STATE = {"domain_errors": {}, "systemic_errors": {}}
+
+def _load_state():
+    global _STATE
+    try:
+        if _STATE_FILE.exists():
+            _STATE = json.loads(_STATE_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        _STATE = {"domain_errors": {}, "systemic_errors": {}}
+
+
+def _save_state():
+    try:
+        _STATE_FILE.write_text(json.dumps(_STATE, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+
+
+_load_state()
+
+
+# ==== Run-time aggregation structures ====
+RUN_TOTAL_PAGES = 0
+RUN_PASSED = 0
+RUN_FAILED = 0
+RUN_LANDINGS = set()
+PAGES_PER_DOMAIN = defaultdict(int)
+DOMAIN_ERROR_COUNTS = defaultdict(int)  # key: (domain, error_key)
+DOMAIN_ERROR_URLS = defaultdict(set)    # key: (domain, error_key) -> urls
+ERROR_DOMAINS = defaultdict(set)        # key: error_key -> domains
+
+
+# ==== Persistent errors counter (external file) ====
+ERRORS_COUNT_PATH_ENV = os.getenv("ERRORS_COUNT_PATH", "errors_count.json").strip()
+_ERRORS_COUNT_PATH = Path(ERRORS_COUNT_PATH_ENV)
+_ERRORS_COUNT = {"by_domain": {}, "total": 0, "updated_at": None}
+
+
+def _load_errors_counter():
+    global _ERRORS_COUNT
+    try:
+        if _ERRORS_COUNT_PATH.exists():
+            _ERRORS_COUNT = json.loads(_ERRORS_COUNT_PATH.read_text(encoding="utf-8"))
+        else:
+            _save_errors_counter()
+    except Exception:
+        # keep in-memory defaults if file is unreadable
+        _ERRORS_COUNT = {"by_domain": {}, "total": 0, "updated_at": None}
+
+
+def _save_errors_counter():
+    try:
+        _ERRORS_COUNT_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _ERRORS_COUNT_PATH.write_text(json.dumps(_ERRORS_COUNT, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+
+
+def _inc_error_counter(domain: str, error_key: str):
+    try:
+        by_domain = _ERRORS_COUNT.setdefault("by_domain", {})
+        domain_map = by_domain.setdefault(domain, {})
+        domain_map[error_key] = int(domain_map.get(error_key, 0)) + 1
+        _ERRORS_COUNT["total"] = int(_ERRORS_COUNT.get("total", 0)) + 1
+        _ERRORS_COUNT["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        _save_errors_counter()
+    except Exception:
+        pass
+
+
+_load_errors_counter()
+
+
+# ==== Cross-worker dedup flags (to avoid duplicate alerts in parallel) ====
+ALERTS_FLAG_DIR = Path(os.getenv("ALERTS_FLAG_DIR", ".alerts_flags"))
+try:
+    ALERTS_FLAG_DIR.mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
+
+
+def _flag_path(domain: str, error_key: str, kind: str = "single") -> Path:
+    safe = slugify(f"{domain}-{error_key}") or "key"
+    return ALERTS_FLAG_DIR / f"{kind}-{safe}.flag"
+
+
+def _claim_flag(domain: str, error_key: str, kind: str = "single") -> bool:
+    """Return True if we created the flag (first claimant), False if already exists."""
+    try:
+        p = _flag_path(domain, error_key, kind)
+        with open(p, "x", encoding="utf-8") as _:
+            _.write("1")
+        return True
+    except FileExistsError:
+        return False
+    except Exception:
+        # If anything goes wrong, don't block alerts; return True only on success
+        return False
+
+
+def _now_str():
+    return f"{datetime.utcnow().strftime('%Y-%m-%d %H:%M')} ({TIMEZONE_LABEL})"
+
+
+def _get_domain(url: str | None) -> str | None:
+    try:
+        if not url:
+            return None
+        return urlparse(url).netloc or None
+    except Exception:
+        return None
+
+
+def _get_last_step_name() -> str | None:
+    try:
+        return getattr(_TLS, "last_step_name", None)
+    except Exception:
+        return None
+
+
+def _send_telegram_message(text: str) -> None:
+    if not ALERTS_ENABLED:
+        return
+    try:
+        bot.send_message(chat_id, text)
+    except Exception:
+        pass
+
+
+def _format_single_error_message(form_title: str | None, url: str | None, step_name: str | None, details: str | None) -> str:
+    domain = _get_domain(url) or "—"
+    form_part = form_title or ""
+    msg = []
+    msg.append(f"🚨 Ошибка автотеста формы {f'[{form_part}]' if form_part else ''}")
+    msg.append("")
+    msg.append(f"🕒 Время: {_now_str()}")
+    msg.append(f"🌐 Лендинг: {domain}")
+    if url:
+        msg.append(f"🔗 URL: {url}")
+    if step_name:
+        msg.append(f"❌ Ошибка: Не выполнен шаг \"{step_name}\"")
+    if details:
+        msg.append(f"🔎 Детали: {details}")
+    if REPORT_URL:
+        msg.append(f"🔎 Отчёт: {REPORT_URL}")
+    return "\n".join(msg)
+
+
+def _format_domain_aggregated_message(form_title: str | None, domain: str, error_key: str, checked: int, failed: int) -> str:
+    pct = int(round((failed / checked) * 100)) if checked else 0
+    form_part = form_title or ""
+    msg = []
+    msg.append(f"🚨 Ошибка автотеста формы {f'[{form_part}]' if form_part else ''}")
+    msg.append("")
+    msg.append(f"🕒 Время: {_now_str()}")
+    msg.append(f"🌐 Лендинг: {domain}")
+    msg.append(f"🔗 Проверено: {checked} страниц")
+    msg.append(f"❌ Ошибка: Не выполнен шаг \"{error_key}\"")
+    msg.append(f"📊 Масштаб: {failed} страниц ({pct}%) ")
+    if REPORT_URL:
+        msg.append(f"🔎 Детали: {REPORT_URL}")
+    return "\n".join(msg)
+
+
+def _format_systemic_message(form_title: str | None, error_key: str, total_pages: int, affected_pages: int, landings_count: int) -> str:
+    form_part = form_title or ""
+    msg = []
+    msg.append(f"🚨 Массовая ошибка автотеста формы {f'[{form_part}]' if form_part else ''}")
+    msg.append("")
+    msg.append(f"🕒 Время: {_now_str()}")
+    msg.append(f"🌐 Затронуто: {landings_count} лендингов")
+    msg.append(f"❌ Ошибка: Не выполнен шаг \"{error_key}\"")
+    msg.append(f"📊 Масштаб: {affected_pages} страниц ")
+    if REPORT_URL:
+        msg.append(f"🔎 Детали: {REPORT_URL}")
+    return "\n".join(msg)
+
+
+def _format_run_summary() -> str:
+    success = RUN_PASSED
+    errors = RUN_FAILED
+    total = RUN_TOTAL_PAGES
+    pct = int(round((success / total) * 100)) if total else 0
+    msg = []
+    msg.append(f"✅ Автотест завершён ({_now_str()})")
+    msg.append("")
+    msg.append(f"🌐 Лендингов проверено: {len(RUN_LANDINGS)}")
+    msg.append(f"🔗 Страниц: {total}")
+    msg.append(f"✔️ Успешных: {success} ({pct}%)")
+    msg.append(f"❌ Ошибок: {errors} ({100 - pct if total else 0}%)")
+    if REPORT_URL:
+        msg.append(f"📊 Детали: {REPORT_URL}")
+    return "\n".join(msg)
 
 def extract_run_labels(session, stats) -> list:
     """Возвращает список названий папок запуска (например, test_beeline),
@@ -194,6 +434,69 @@ def pytest_runtest_makereport(item, call):
             # Не мешаем основному ходу, если метаданные не удалось собрать
             pass
 
+    # Update counters and possibly send immediate alerts on failure
+    try:
+        current_url = None
+        for param_name, param_value in (item.funcargs or {}).items():
+            if isinstance(param_value, str) and param_value.startswith("http"):
+                current_url = param_value
+                break
+        domain = _get_domain(current_url)
+
+        form_title = None
+        try:
+            meta = TEST_META.get(item.nodeid) or {}
+            form_title = meta.get("title")
+        except Exception:
+            pass
+
+        if call.when == "call":
+            global RUN_TOTAL_PAGES, RUN_PASSED, RUN_FAILED
+            RUN_TOTAL_PAGES += 1
+            if domain:
+                RUN_LANDINGS.add(domain)
+                PAGES_PER_DOMAIN[domain] += 1
+            if call.excinfo is None:
+                RUN_PASSED += 1
+            else:
+                RUN_FAILED += 1
+                step_name = _get_last_step_name() or ""
+                error_key = step_name or type(call.excinfo.value).__name__
+                dom_key = (domain or "—", error_key)
+                DOMAIN_ERROR_COUNTS[dom_key] += 1
+                if current_url:
+                    DOMAIN_ERROR_URLS[dom_key].add(current_url)
+                ERROR_DOMAINS[error_key].add(domain or "—")
+
+                # Persist counters to external file
+                _inc_error_counter(domain or "—", error_key)
+
+                already_active = False
+                try:
+                    already_active = bool(_STATE.get("domain_errors", {}).get(domain or "—", {}).get(error_key, {}).get("active"))
+                except Exception:
+                    already_active = False
+
+                if not (SUPPRESS_PERSISTENT_ALERTS and already_active):
+                    current_count = DOMAIN_ERROR_COUNTS[dom_key]
+                    total_checked = PAGES_PER_DOMAIN.get(domain or "—", 0)
+                    if current_count < PER_DOMAIN_THRESHOLD:
+                        # Cross-worker dedup for single alerts
+                        if _claim_flag(domain or "—", error_key, kind="single"):
+                            details = str(call.excinfo.value) if call.excinfo else None
+                            _send_telegram_message(_format_single_error_message(form_title, current_url, step_name, details))
+                    elif current_count == PER_DOMAIN_THRESHOLD:
+                        # Cross-worker dedup for aggregated alert
+                        if _claim_flag(domain or "—", error_key, kind="agg"):
+                            _send_telegram_message(_format_domain_aggregated_message(form_title, domain or "—", error_key, total_checked, current_count))
+        elif call.excinfo is not None and call.when in ("setup", "teardown"):
+            # Count failures that happen outside the 'call' phase as well
+            step_name = _get_last_step_name() or ""
+            error_key = step_name or type(call.excinfo.value).__name__
+            _inc_error_counter(domain or "—", error_key)
+    except Exception:
+        pass
+
     if call.when == "call" and call.excinfo is not None:
         # Получаем фикстуру page если она есть
         page_fixture = None
@@ -251,6 +554,12 @@ def ttk_pack():
 def base_url():
     """Базовый URL для тестов"""
     return "https://mts-home.online/"
+
+
+@pytest.fixture(scope="session")
+def express_url():
+    """Базовый URL для тестов"""
+    return "https://mts-home-online.ru/"
 
 
 @pytest.fixture(scope="session")
@@ -540,7 +849,60 @@ def page_fixture_ignore_https(browser_fixture_ignore_https):
 
 @pytest.hookimpl(trylast=True)
 def pytest_sessionfinish(session, exitstatus):
-    # Сообщения после прохода отключены. Оставлен пустой хук.
-    return
+    # Aggregated alerts, fixed notifications, run summary, and persistence
+    try:
+        if not ALERTS_ENABLED:
+            return
+
+        # Systemic errors across many landings
+        for error_key, domains in list(ERROR_DOMAINS.items()):
+            landings_count = len({d for d in domains if d and d != '—'})
+            if landings_count >= SYSTEMIC_LANDINGS_THRESHOLD:
+                prev = bool(_STATE.get("systemic_errors", {}).get(error_key, {}).get("active"))
+                if not (SUPPRESS_PERSISTENT_ALERTS and prev):
+                    affected_pages = sum(
+                        DOMAIN_ERROR_COUNTS.get((d, error_key), 0)
+                        for d in domains
+                    )
+                    _send_telegram_message(_format_systemic_message(None, error_key, RUN_TOTAL_PAGES, affected_pages, landings_count))
+                _STATE.setdefault("systemic_errors", {}).setdefault(error_key, {})["active"] = True
+            else:
+                if _STATE.get("systemic_errors", {}).get(error_key, {}).get("active"):
+                    msg = [
+                        f"✅ Массовая ошибка Не выполнен шаг \"{error_key}\" автотеста формы исправлена",
+                        "",
+                        f"🕒 Время: {_now_str()}",
+                        f"🌐 Затронуто: {landings_count} лендингов",
+                    ]
+                    if REPORT_URL:
+                        msg.append(f"🔎 Детали: {REPORT_URL}")
+                    _send_telegram_message("\n".join(msg))
+                    _STATE["systemic_errors"][error_key]["active"] = False
+
+        # Mark active per-domain errors seen this run
+        seen_pairs = {(d, ek) for (d, ek) in DOMAIN_ERROR_COUNTS.keys()}
+        for (domain, error_key), cnt in list(DOMAIN_ERROR_COUNTS.items()):
+            _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(error_key, {})["active"] = True
+
+        # Send fixed alerts for pairs that were active but did not occur now
+        for domain, errors in list(_STATE.get("domain_errors", {}).items()):
+            for error_key, info in list(errors.items()):
+                if info.get("active") and (domain, error_key) not in seen_pairs:
+                    msg = [
+                        f"✅ Ошибка Не выполнен шаг \"{error_key}\" автотеста формы исправлена",
+                        "",
+                        f"🕒 Время: {_now_str()}",
+                        f"🌐 Лендинг: {domain}",
+                    ]
+                    if REPORT_URL:
+                        msg.append(f"🔎 Детали: {REPORT_URL}")
+                    _send_telegram_message("\n".join(msg))
+                    _STATE["domain_errors"][domain][error_key]["active"] = False
+
+        # Run summary
+        _send_telegram_message(_format_run_summary())
+    finally:
+        _save_state()
+        return
 
 
