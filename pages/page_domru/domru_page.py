@@ -143,24 +143,30 @@ class DomRuClass(BasePage):
     @allure.title("Проверить все ссылки на странице")
     def check_all_links(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in LocationPopup.HEADER_LINKS.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in LocationPopup.HEADER_LINKS.items():
+                self.check_link(locator, f"Header: {name}")
 
-        # Проверяем ссылки в футере
-        for name, locator in LocationPopup.FOOTER_LINKS.items():
-            self.check_link(locator, f"Footer: {name}")
+            # Проверяем ссылки в футере
+            for name, locator in LocationPopup.FOOTER_LINKS.items():
+                self.check_link(locator, f"Footer: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Проверить все ссылки на странице")
     def check_all_links_sec(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in LocationPopup.HEADER_LINKS.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in LocationPopup.HEADER_LINKS.items():
+                self.check_link(locator, f"Header: {name}")
 
-        # Проверяем ссылки в футере
-        for name, locator in LocationPopup.FOOTER_LINKS_SEC.items():
-            self.check_link(locator, f"Footer: {name}")
+            # Проверяем ссылки в футере
+            for name, locator in LocationPopup.FOOTER_LINKS_SEC.items():
+                self.check_link(locator, f"Footer: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def close_popup(self):

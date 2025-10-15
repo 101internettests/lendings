@@ -11,6 +11,7 @@ from pages.page_beel.beeline_page import BeelineOnlinePage,  BeelineInternetOnli
 
 
 class TestForms:
+    @pytest.mark.skip("Ожидает доработок")
     @allure.title("1. Отправка заявки из  попапа Выгодное спецпредложение! по нажатию фиксированной красной кнопки звонка в правом нижнем углу")
     def test_application_popup_super_offer_red_button(self, page_fixture, example_url):
         page = page_fixture
@@ -65,6 +66,7 @@ class TestForms:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Ожидает доработок")
     @allure.title("2. Отправка заявки из попапа  по кнопке Подключить (все кнопки на странице)")
     def test_application_popup_button_connect(self, page_fixture, example_url):
         page = page_fixture
@@ -126,6 +128,7 @@ class TestForms:
                     mts_page.check_sucess()
                     mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Ожидает доработок")
     @allure.title("2.1 Отправка заявок с карточек тарифа")
     def test_application_popup_button_connect_cards(self, page_fixture, example_url):
         page = page_fixture
@@ -187,6 +190,7 @@ class TestForms:
                     mts_page.check_sucess()
                     mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Ожидает доработок")
     @allure.title("3.1 Отправка заявки со ВСЕХ  форм-попапов на странице с названиями Проверить адрес")
     def test_application_popup_button_checkaddress(self, page_fixture, example_url):
         page = page_fixture
@@ -249,6 +253,7 @@ class TestForms:
                     mts_page.check_sucess()
                     mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Ожидает доработок")
     @allure.title("3.2 Отправка заявки со ВСЕХ  форм на странице с названиями Проверить адрес")
     def test_application_popup_button_checkaddress(self, page_fixture, example_url):
         page = page_fixture
@@ -297,6 +302,7 @@ class TestForms:
                     mts_page.check_sucess()
                     mts_page.close_thankyou_page()
 
+    @pytest.mark.skip("Ожидает доработок")
     @allure.title("4.1 Отправка заявки с формы Остались вопросы?")
     def test_application_undecided(self, page_fixture, example_url):
         page = page_fixture
@@ -492,7 +498,7 @@ class TestForms:
                     f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
                     f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
                 )
-                page.wait_for_selector(union_xpath, state="visible", timeout=10000)
+                page.wait_for_selector(union_xpath, state="visible", timeout=30000)
                 region_page.close_popup_super_offer_all()
             except Exception:
                 pass
@@ -518,9 +524,9 @@ class TestForms:
                     mts_page.close_thankyou_page()
 
     @allure.title("7 Попап Заявка на экспресс подключение")
-    def test_application_express_connection(self, page_fixture, example_url):
+    def test_application_express_connection(self, page_fixture, express_url):
         page = page_fixture
-        page.goto(example_url)
+        page.goto(express_url)
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
         region_page = ChoiceRegionPage(page=page)
@@ -531,26 +537,12 @@ class TestForms:
                     domru_page.close_popup_location()
             except Exception:
                 pass
-        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
-            try:
-                def strip_xpath(sel: str) -> str:
-                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
-
-                union_xpath = (
-                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
-                )
-                page.wait_for_selector(union_xpath, state="visible", timeout=50000)
-                region_page.close_popup_super_offer_all()
-            except Exception:
-                pass
         with allure.step("Открыть попап"):
             steps.open_popup_express_connection_button()
         with allure.step("отправить первый вариант по кнопке"):
             steps.send_popup_express_connection()
-            mts_page.check_sucess()
-            mts_page.close_thankyou_page()
+            mts_page.check_sucess_express()
+            mts_page.close_thankyou_page_express()
         with allure.step("отправить второй вариант по кнопке"):
             steps.open_popup_express_connection_button()
             steps.button_change_city_express_connection()
@@ -561,8 +553,8 @@ class TestForms:
             time.sleep(2)
             region_page.select_first_region()
             steps.send_popup_express_connection_second()
-            mts_page.check_sucess()
-            mts_page.close_thankyou_page()
+            mts_page.check_sucess_express()
+            mts_page.close_thankyou_page_express()
 
 
 

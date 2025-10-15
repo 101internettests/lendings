@@ -242,115 +242,142 @@ class BeelineOnlinePage(BasePage):
     @allure.title("Проверить все ссылки на странице")
     def check_all_links_sec(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in BeelineMain.HEADER_LINKS.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in BeelineMain.HEADER_LINKS.items():
+                self.check_link(locator, f"Header: {name}")
 
-        # Проверяем ссылки в футере
-        for name, locator in BeelineMain.FOOTER_LINKS.items():
-            self.check_link(locator, f"Footer: {name}")
+            # Проверяем ссылки в футере
+            for name, locator in BeelineMain.FOOTER_LINKS.items():
+                self.check_link(locator, f"Footer: {name}")
 
-        for name, locator in BeelineMain.OTHER_HEADERS.items():
-            self.check_link(locator, f"Footer: {name}")
+            for name, locator in BeelineMain.OTHER_HEADERS.items():
+                self.check_link(locator, f"Footer: {name}")
 
-        for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
-            self.check_link(locator, f"Footer: {name}")
+            for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
+                self.check_link(locator, f"Footer: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Проверить все ссылки на странице")
     def check_all_links_msk(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in BeelineMain.HEADER_LINKS_SECOND.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in BeelineMain.HEADER_LINKS_SECOND.items():
+                self.check_link(locator, f"Header: {name}")
 
-        # Проверяем ссылки в футере
-        for name, locator in BeelineMain.FOOTER_LINKS_SECOND.items():
-            self.check_link(locator, f"Footer: {name}")
+            # Проверяем ссылки в футере
+            for name, locator in BeelineMain.FOOTER_LINKS_SECOND.items():
+                self.check_link(locator, f"Footer: {name}")
 
-        for name, locator in BeelineMain.OTHER_HEADERS.items():
-            self.check_link(locator, f"Footer: {name}")
+            for name, locator in BeelineMain.OTHER_HEADERS.items():
+                self.check_link(locator, f"Footer: {name}")
 
-        for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
-            self.check_link(locator, f"Footer: {name}")
+            for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
+                self.check_link(locator, f"Footer: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Проверить все ссылки на странице")
     def check_all_links_msk_dom(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in BeelineMain.HEADER_LINKS_SECOND.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in BeelineMain.HEADER_LINKS_SECOND.items():
+                self.check_link(locator, f"Header: {name}")
 
-        # Проверяем ссылки в футере
-        for name, locator in BeelineMain.FOOTER_LINKS_SECOND.items():
-            self.check_link(locator, f"Footer: {name}")
+            # Проверяем ссылки в футере
+            for name, locator in BeelineMain.FOOTER_LINKS_SECOND.items():
+                self.check_link(locator, f"Footer: {name}")
 
-        for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
-            self.check_link(locator, f"Footer: {name}")
+            for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
+                self.check_link(locator, f"Footer: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Проверить все ссылки на странице")
     def check_all_links_online(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in BeelineMain.HEADER_LINKS_FOUR.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in BeelineMain.HEADER_LINKS_FOUR.items():
+                self.check_link(locator, f"Header: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Проверить все ссылки на странице")
     def check_all_links_online_second(self):
-        # Проверяем ссылки в футере
-        for name, locator in BeelineMain.FOOTER_LINKS_FOUR.items():
-            self.check_link(locator, f"Footer: {name}")
+        try:
+            # Проверяем ссылки в футере
+            for name, locator in BeelineMain.FOOTER_LINKS_FOUR.items():
+                self.check_link(locator, f"Footer: {name}")
 
-        for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
-            self.check_link(locator, f"Footer: {name}")
+            for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
+                self.check_link(locator, f"Footer: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Проверить все ссылки на странице")
     def check_all_links_online_beeline(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in BeelineMain.HEADER_LINKS_THIRD.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in BeelineMain.HEADER_LINKS_THIRD.items():
+                self.check_link(locator, f"Header: {name}")
 
-        # Проверяем ссылки в футере
-        for name, locator in BeelineMain.FOOTER_LINKS_THIRD.items():
-            self.check_link(locator, f"Footer: {name}")
+            # Проверяем ссылки в футере
+            for name, locator in BeelineMain.FOOTER_LINKS_THIRD.items():
+                self.check_link(locator, f"Footer: {name}")
 
-        for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
-            self.check_link(locator, f"Footer: {name}")
+            for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
+                self.check_link(locator, f"Footer: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Проверить все ссылки на странице")
     def check_all_links_online_pro(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in BeelineMain.HEADER_LINKS_PRO.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in BeelineMain.HEADER_LINKS_PRO.items():
+                self.check_link(locator, f"Header: {name}")
 
-        # Проверяем ссылки в футере
-        for name, locator in BeelineMain.FOOTER_LINKS_THIRD.items():
-            self.check_link(locator, f"Footer: {name}")
+            # Проверяем ссылки в футере
+            for name, locator in BeelineMain.FOOTER_LINKS_THIRD.items():
+                self.check_link(locator, f"Footer: {name}")
 
-        for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
-            self.check_link(locator, f"Footer: {name}")
+            for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
+                self.check_link(locator, f"Footer: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Проверить все ссылки на странице")
     def check_all_links_online_tele(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in BeelineMain.HEADER_LINKS_TELE.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in BeelineMain.HEADER_LINKS_TELE.items():
+                self.check_link(locator, f"Header: {name}")
 
-        # Проверяем ссылки в футере
-        for name, locator in BeelineMain.FUTER_LINKS_TELE.items():
-            self.check_link(locator, f"Footer: {name}")
+            # Проверяем ссылки в футере
+            for name, locator in BeelineMain.FUTER_LINKS_TELE.items():
+                self.check_link(locator, f"Footer: {name}")
 
-        for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
-            self.check_link(locator, f"Footer: {name}")
+            for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
+                self.check_link(locator, f"Footer: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Проверить видимость ссылок ТТК во футере")
     def check_all_links_ttk(self):
         """Проверяет, что все локаторы ссылок ТТК во футере видимы"""
-        for name, locator in BeelineMain.FOOTER_LINKS_TTK.items():
-            with allure.step(f"Проверить видимость элемента: {name}"):
-                expect(self.page.locator(locator)).to_be_visible()
+        try:
+            for name, locator in BeelineMain.FOOTER_LINKS_TTK.items():
+                with allure.step(f"Проверить видимость элемента: {name}"):
+                    expect(self.page.locator(locator)).to_be_visible()
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
 class OnlineBeelinePage(BasePage):
     @allure.title("Проверить, что попап появился и нажать на  кнопку выбора города")

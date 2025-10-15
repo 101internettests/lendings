@@ -221,6 +221,8 @@ class MainSteps(BasePage):
                 getattr(Business, "BUSINESS_BUTTON", None),
                 getattr(Business, "BUSINESS_BUTTON_SECOND", None),
                 getattr(Business, "BUSINESS_BUTTON_THIRD", None),
+                getattr(Business, "BUSINESS_BUTTON_FOUR", None),
+                getattr(Business, "BUSINESS_BUTTON_BEELINE", None),
             ]
             for sel in header_candidates:
                 if not sel:

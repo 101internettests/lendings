@@ -5,6 +5,7 @@ from playwright.sync_api import Error as PlaywrightError
 from pages.page_mts.mts_page import MtsHomeOnlinePage, ChoiceRegionPage
 from pages.page_mega.mega_premium import MegaPremiumOnline, MegaHomeInternet
 from pages.page_mts.internet_mts_page import MtsInternetHomeOnlinePage
+from locators.mts.mts_home_online import MTSHomeOnlineMain
 from pages.main_steps import MainSteps
 
 
@@ -28,6 +29,21 @@ class TestMegaHomeInternet:
     def test_check_popup_links(self, page_fixture, nine_url):
         page = page_fixture
         page.goto(nine_url)
+        region_page = ChoiceRegionPage(page=page)
+        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
+            try:
+                def strip_xpath(sel: str) -> str:
+                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
+
+                union_xpath = (
+                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
+                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
+                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
+                )
+                page.wait_for_selector(union_xpath, state="visible", timeout=30000)
+                region_page.close_popup_super_offer_all()
+            except Exception:
+                pass
         mega_page = MegaPremiumOnline(page=page)
         mega_page.check_popup_links()
 

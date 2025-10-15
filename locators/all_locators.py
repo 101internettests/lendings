@@ -54,6 +54,8 @@ class Business:
     BUSINESS_BUTTON = "xpath=(//a[@href='/business/business'])[1]"
     BUSINESS_BUTTON_SECOND = "xpath=//a[text()='Для бизнеса']"
     BUSINESS_BUTTON_THIRD = "xpath=(//a[text()='Бизнесу'])[2]"
+    BUSINESS_BUTTON_FOUR = "xpath=(//a[text()='Бизнесу'])[1]"
+    BUSINESS_BUTTON_BEELINE = "xpath=(//a[text()='бизнесу'])[1]"
 
     CONNECT_BUTTON = "xpath=//a[contains(@class,'business_no_address_button')]"
     CONNECT_BUTTON_SECOND = "xpath=//button[contains(@class,'business_no_address_button')]"
@@ -64,18 +66,18 @@ class Moving:
     HOUSE = "xpath=//input[contains(@class,'moving_address_house')]"
     PHONE = "xpath=//input[contains(@class,'moving_address_phone')]"
     BUTTON_SEND = "xpath=//input[contains(@class,'moving_address_button_send')]"
-    BUTTON_CHANGE_CITY = "xpath=//button[contains(@class,'moving_address_button_change_city')]"
+    BUTTON_CHANGE_CITY = "xpath=//span[contains(@class,'moving_address_button_change_city')]"
 
     MOVING_BUTTON = "xpath=//button[contains(@class,'moving_address_button')]"
 
 
 class ExpressConnection:
-    STREET = "xpath=//input[contains(@class,'express-connection_address_street')]"
-    HOUSE = "xpath=//input[contains(@class,'express-connection_address_house')]"
-    PHONE = "xpath=//input[contains(@class,'express-connection_address_phone')]"
-    BUTTON_SEND = "xpath=//input[contains(@class,'express-connection_address_button_send')]"
-    BUTTON_CHANGE_CITY = "xpath=//button[contains(@class,'express-connection_address_button_change_city')]"
+    STREET = "xpath=(//input[contains(@class,'express-connection_address_street')])[1]"
+    HOUSE = "xpath=(//input[contains(@class,'express-connection_address_house')])[1]"
+    PHONE = "xpath=(//input[contains(@class,'express-connection_address_phone')])[1]"
+    BUTTON_SEND = "xpath=(//input[contains(@class,'express-connection_address_button_send')])[1]"
+    BUTTON_CHANGE_CITY = "xpath=(//div[contains(@class,'express-connection_address_button_change_city')])[1]"
 
-    FORM_BUTTON = "xpath=(//header//button[contains(@class,'connection_address_button')])[1]"
+    FORM_BUTTON = "xpath=(//button[contains(@class,'connection_address_button')])[1]"
 
 

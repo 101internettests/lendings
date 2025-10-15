@@ -326,50 +326,62 @@ class RostelecomPage(BasePage):
     @allure.title("Проверить все ссылки на странице")
     def check_all_links(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in Rostelecom.HEADER_LINKS.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in Rostelecom.HEADER_LINKS.items():
+                self.check_link(locator, f"Header: {name}")
 
-        # Проверяем ссылки в футере
-        for name, locator in Rostelecom.FOOTER_LINKS.items():
-            self.check_link(locator, f"Footer: {name}")
-        for name, locator in Rostelecom.FOOTER_LINKS_SECOND.items():
-            self.check_link(locator, f"Footer: {name}")
+            # Проверяем ссылки в футере
+            for name, locator in Rostelecom.FOOTER_LINKS.items():
+                self.check_link(locator, f"Footer: {name}")
+            for name, locator in Rostelecom.FOOTER_LINKS_SECOND.items():
+                self.check_link(locator, f"Footer: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Проверить все ссылки на странице")
     def check_all_links_online(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in Rostelecom.HEADER_LINKS_SECOND.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in Rostelecom.HEADER_LINKS_SECOND.items():
+                self.check_link(locator, f"Header: {name}")
 
-        # Проверяем ссылки в футере
-        for name, locator in Rostelecom.FOOTER_LINKS_THIRD.items():
-            self.check_link(locator, f"Footer: {name}")
-        for name, locator in Rostelecom.FOOTER_LINKS_FOUR.items():
-            self.check_link(locator, f"Footer: {name}")
+            # Проверяем ссылки в футере
+            for name, locator in Rostelecom.FOOTER_LINKS_THIRD.items():
+                self.check_link(locator, f"Footer: {name}")
+            for name, locator in Rostelecom.FOOTER_LINKS_FOUR.items():
+                self.check_link(locator, f"Footer: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Проверить все ссылки на странице")
     def check_all_links_rtk(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in Rostelecom.HEADER_LINKS_THIRD.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in Rostelecom.HEADER_LINKS_THIRD.items():
+                self.check_link(locator, f"Header: {name}")
 
-        # Проверяем ссылки в футере
-        for name, locator in Rostelecom.FOOTER_LINKS_RTK.items():
-            self.check_link(locator, f"Footer: {name}")
+            # Проверяем ссылки в футере
+            for name, locator in Rostelecom.FOOTER_LINKS_RTK.items():
+                self.check_link(locator, f"Footer: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Проверить все ссылки на странице")
     def check_all_links_rtk_home(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in Rostelecom.HEADER_LINKS_FOUR.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in Rostelecom.HEADER_LINKS_FOUR.items():
+                self.check_link(locator, f"Header: {name}")
 
-        # Проверяем ссылки в футере
-        for name, locator in Rostelecom.FOOTER_LINKS_RTK.items():
-            self.check_link(locator, f"Footer: {name}")
+            # Проверяем ссылки в футере
+            for name, locator in Rostelecom.FOOTER_LINKS_RTK.items():
+                self.check_link(locator, f"Footer: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Нажать на кнопку выбора региона в хедере")
     def click_region_choice_button(self):

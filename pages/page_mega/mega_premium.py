@@ -84,36 +84,48 @@ class MegaPremiumOnline(BasePage):
     @allure.title("Проверить все ссылки на странице")
     def check_header_links(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in MainPageLocs.HEADER_LINKS.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in MainPageLocs.HEADER_LINKS.items():
+                self.check_link(locator, f"Header: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Проверить все ссылки на странице")
     def check_footer_links(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in MainPageLocs.POPUP_LINKS.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in MainPageLocs.POPUP_LINKS.items():
+                self.check_link(locator, f"Header: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Проверить все ссылки на странице")
     def check_popup_links(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in MainPageLocs.POPUP_LINKS.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in MainPageLocs.POPUP_LINKS.items():
+                self.check_link(locator, f"Header: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Проверить все ссылки на странице")
     def check_popup_links_moskva(self):
         """Проверяет все ссылки в хедере и футере"""
-        # Проверяем ссылки в хедере
-        for name, locator in MainPageLocs.MEGA_HEADER.items():
-            self.check_link(locator, f"Header: {name}")
+        try:
+            # Проверяем ссылки в хедере
+            for name, locator in MainPageLocs.MEGA_HEADER.items():
+                self.check_link(locator, f"Header: {name}")
 
-        for name, locator in MainPageLocs.MEGA_FUTER.items():
-            self.check_link(locator, f"Header: {name}")
+            for name, locator in MainPageLocs.MEGA_FUTER.items():
+                self.check_link(locator, f"Header: {name}")
 
-        for name, locator in MainPageLocs.POPUP_LINKS.items():
-            self.check_link(locator, f"Header: {name}")
+            for name, locator in MainPageLocs.POPUP_LINKS.items():
+                self.check_link(locator, f"Header: {name}")
+        except Exception:
+            raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
     @allure.title("Нажать на кнопку Не смогли найти город")
     def click_button_dont_find_city(self):
