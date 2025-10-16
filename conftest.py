@@ -55,6 +55,7 @@ REPORT_URL = os.getenv("REPORT_URL")
 PER_DOMAIN_THRESHOLD = int(os.getenv("AGGR_THRESHOLD_PER_DOMAIN", "5"))
 SYSTEMIC_LANDINGS_THRESHOLD = int(os.getenv("SYSTEMIC_LANDINGS_THRESHOLD", "10"))
 TIMEZONE_LABEL = os.getenv("TZ_LABEL", "MSK")
+RUN_SUMMARY_ENABLED = os.getenv("RUN_SUMMARY_ENABLED", "true").strip().lower() == "true"
 
 ALERTS_STATE_PATH_ENV = os.getenv("ALERTS_STATE_PATH", ".alerts_state.json").strip()
 _STATE_FILE = Path(ALERTS_STATE_PATH_ENV)
@@ -946,8 +947,9 @@ def pytest_sessionfinish(session, exitstatus):
                     _send_telegram_message("\n".join(msg))
                     _STATE["domain_errors"][domain][error_key]["active"] = False
 
-        # Run summary
-        _send_telegram_message(_format_run_summary())
+        # Run summary (optional)
+        if RUN_SUMMARY_ENABLED:
+            _send_telegram_message(_format_run_summary())
     finally:
         _save_state()
         return
