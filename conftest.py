@@ -56,7 +56,8 @@ PER_DOMAIN_THRESHOLD = int(os.getenv("AGGR_THRESHOLD_PER_DOMAIN", "5"))
 SYSTEMIC_LANDINGS_THRESHOLD = int(os.getenv("SYSTEMIC_LANDINGS_THRESHOLD", "10"))
 TIMEZONE_LABEL = os.getenv("TZ_LABEL", "MSK")
 
-_STATE_FILE = Path(".alerts_state.json")
+ALERTS_STATE_PATH_ENV = os.getenv("ALERTS_STATE_PATH", ".alerts_state.json").strip()
+_STATE_FILE = Path(ALERTS_STATE_PATH_ENV)
 _STATE = {"domain_errors": {}, "systemic_errors": {}}
 
 def _load_state():
@@ -115,7 +116,7 @@ def _save_errors_counter():
         pass
 
 
-def _inc_error_counter(domain: str, error_key: str):
+def _inc_error_counter(domain: str, error_key: str) -> int:
     try:
         by_domain = _ERRORS_COUNT.setdefault("by_domain", {})
         domain_map = by_domain.setdefault(domain, {})
@@ -123,8 +124,9 @@ def _inc_error_counter(domain: str, error_key: str):
         _ERRORS_COUNT["total"] = int(_ERRORS_COUNT.get("total", 0)) + 1
         _ERRORS_COUNT["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         _save_errors_counter()
+        return int(domain_map.get(error_key, 0))
     except Exception:
-        pass
+        return 0
 
 
 _load_errors_counter()
@@ -159,6 +161,15 @@ def _claim_flag(domain: str, error_key: str, kind: str = "single") -> bool:
 
 def _now_str():
     return f"{datetime.utcnow().strftime('%Y-%m-%d %H:%M')} ({TIMEZONE_LABEL})"
+
+
+def _should_notify_persistent(count: int) -> bool:
+    # 1-й, 4-й, 12-й, далее каждые 10 (22, 32, 42, ...)
+    if count in (1, 4, 12):
+        return True
+    if count >= 12 and (count - 12) % 10 == 0:
+        return True
+    return False
 
 
 def _get_domain(url: str | None) -> str | None:
@@ -200,6 +211,24 @@ def _format_single_error_message(form_title: str | None, url: str | None, step_n
         msg.append(f"❌ Ошибка: Не выполнен шаг \"{step_name}\"")
     if details:
         msg.append(f"🔎 Детали: {details}")
+    if REPORT_URL:
+        msg.append(f"🔎 Отчёт: {REPORT_URL}")
+    return "\n".join(msg)
+
+
+def _format_persistent_error_message(form_title: str | None, url: str | None, step_name: str | None, details: str | None, domain: str, error_key: str, repeats_count: int) -> str:
+    form_part = form_title or ""
+    msg = []
+    msg.append(f"🚨 Ошибка автотеста формы {f'[{form_part}]' if form_part else ''}")
+    msg.append("")
+    msg.append(f"🕒 Время: {_now_str()}")
+    msg.append(f"🌐 Лендинг: {domain}")
+    if url:
+        msg.append(f"🔗 URL: {url}")
+    msg.append(f"❌ Ошибка: Не выполнен шаг \"{step_name or error_key}\"")
+    if details:
+        msg.append(f"🔎 Детали: {details}")
+    msg.append(f"🔁 Повтор: {repeats_count}")
     if REPORT_URL:
         msg.append(f"🔎 Отчёт: {REPORT_URL}")
     return "\n".join(msg)
@@ -468,8 +497,8 @@ def pytest_runtest_makereport(item, call):
                     DOMAIN_ERROR_URLS[dom_key].add(current_url)
                 ERROR_DOMAINS[error_key].add(domain or "—")
 
-                # Persist counters to external file
-                _inc_error_counter(domain or "—", error_key)
+                # Persist counters to external file and notify on persistent schedule
+                new_count = _inc_error_counter(domain or "—", error_key)
 
                 already_active = False
                 try:
@@ -478,22 +507,40 @@ def pytest_runtest_makereport(item, call):
                     already_active = False
 
                 if not (SUPPRESS_PERSISTENT_ALERTS and already_active):
-                    current_count = DOMAIN_ERROR_COUNTS[dom_key]
-                    total_checked = PAGES_PER_DOMAIN.get(domain or "—", 0)
-                    if current_count < PER_DOMAIN_THRESHOLD:
-                        # Cross-worker dedup for single alerts
-                        if _claim_flag(domain or "—", error_key, kind="single"):
+                    if _should_notify_persistent(new_count):
+                        # Cross-worker dedup per specific occurrence count
+                        if _claim_flag(domain or "—", f"{error_key}-{new_count}", kind="persist"):
                             details = str(call.excinfo.value) if call.excinfo else None
-                            _send_telegram_message(_format_single_error_message(form_title, current_url, step_name, details))
-                    elif current_count == PER_DOMAIN_THRESHOLD:
-                        # Cross-worker dedup for aggregated alert
-                        if _claim_flag(domain or "—", error_key, kind="agg"):
-                            _send_telegram_message(_format_domain_aggregated_message(form_title, domain or "—", error_key, total_checked, current_count))
+                            _send_telegram_message(
+                                _format_persistent_error_message(
+                                    form_title,
+                                    current_url,
+                                    step_name,
+                                    details,
+                                    domain or "—",
+                                    error_key,
+                                    new_count,
+                                )
+                            )
         elif call.excinfo is not None and call.when in ("setup", "teardown"):
             # Count failures that happen outside the 'call' phase as well
             step_name = _get_last_step_name() or ""
             error_key = step_name or type(call.excinfo.value).__name__
-            _inc_error_counter(domain or "—", error_key)
+            new_count = _inc_error_counter(domain or "—", error_key)
+            if not SUPPRESS_PERSISTENT_ALERTS and _should_notify_persistent(new_count):
+                if _claim_flag(domain or "—", f"{error_key}-{new_count}", kind="persist"):
+                    details = str(call.excinfo.value) if call.excinfo else None
+                    _send_telegram_message(
+                        _format_persistent_error_message(
+                            None,
+                            current_url,
+                            step_name,
+                            details,
+                            domain or "—",
+                            error_key,
+                            new_count,
+                        )
+                    )
     except Exception:
         pass
 
