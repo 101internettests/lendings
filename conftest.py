@@ -254,7 +254,7 @@ def _format_persistent_error_message(form_title: str | None, url: str | None, st
     return "\n".join(msg)
 
 
-def _format_persistent_url_message(form_title: str | None, url: str | None, repeats_count: int, test_name: str | None) -> str:
+def _format_persistent_url_message(form_title: str | None, url: str | None, repeats_count: int, test_name: str | None, details: str | None) -> str:
     domain = _get_domain(url) or "—"
     form_part = form_title or ""
     msg = []
@@ -266,6 +266,8 @@ def _format_persistent_url_message(form_title: str | None, url: str | None, repe
         msg.append(f"🔗 URL: {url}")
     if test_name:
         msg.append(f"🧪 Тест: {test_name}")
+    if details:
+        msg.append(f"🔎 Детали: {details}")
     msg.append(f"🔁 Повтор: {repeats_count}")
     if REPORT_URL:
         msg.append(f"🔎 Отчёт: {REPORT_URL}")
@@ -553,12 +555,14 @@ def pytest_runtest_makereport(item, call):
                     if _should_notify_persistent(new_count):
                         # Cross-worker dedup per URL-specific occurrence count
                         if _claim_flag(domain or "—", f"url-{current_url}-{new_count}", kind="persist"):
+                            details = str(call.excinfo.value) if call.excinfo else None
                             _send_telegram_message(
                                 _format_persistent_url_message(
                                     form_title,
                                     current_url,
                                     new_count,
                                     test_display_name,
+                                    details,
                                 )
                             )
         elif call.excinfo is not None and call.when in ("setup", "teardown"):
@@ -573,12 +577,14 @@ def pytest_runtest_makereport(item, call):
                         test_display_name = form_title or getattr(item, "name", None) or item.nodeid
                     except Exception:
                         test_display_name = form_title
+                    details = str(call.excinfo.value) if call.excinfo else None
                     _send_telegram_message(
                         _format_persistent_url_message(
                             None,
                             current_url,
                             new_count,
                             test_display_name,
+                            details,
                         )
                     )
     except Exception:
