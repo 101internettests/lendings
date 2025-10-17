@@ -25,29 +25,72 @@ class MainSteps(BasePage):
     @allure.title("Отправить заявку в попап 'Выгодное спецпредложение!' с домом 1")
     def send_popup_profit(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Profit.STREET).type("Лен", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            try:
+                self.page.locator(Profit.STREET).type("Лен", delay=100)
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось ввести улицу в форму 'Выгодное спецпредложение!'. Возможные причины: поле недоступно/не найдено. Детали: {e}"
+                )
+            try:
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось выбрать первую подсказку улицы. Возможные причины: подсказки не подгрузились или изменился селектор. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Profit.HOUSE).fill("1")
-            self._click_first_available_house()
+            try:
+                self.page.locator(Profit.HOUSE).fill("1")
+                self._click_first_available_house()
+            except AssertionError as e:
+                raise
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось указать дом в форме 'Выгодное спецпредложение!'. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Profit.PHONE).fill("99999999999")
+            try:
+                self.page.locator(Profit.PHONE).fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось ввести телефон в форму 'Выгодное спецпредложение!'. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Profit.BUTTON_SEND).click()
+            try:
+                self.page.locator(Profit.BUTTON_SEND).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось отправить форму 'Выгодное спецпредложение!'. Кнопка недоступна или не найдена. Детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап 'Выгодное спецпредложение!' с домом 2")
     def send_popup_profit_second_house(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Profit.STREET).type("Лен", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            try:
+                self.page.locator(Profit.STREET).type("Лен", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось выбрать улицу/подсказку в форме 'Выгодное спецпредложение!'. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Profit.HOUSE).fill("2")
-            self._click_first_available_house()
+            try:
+                self.page.locator(Profit.HOUSE).fill("2")
+                self._click_first_available_house()
+            except AssertionError as e:
+                raise
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось указать дом (вариант 2) в форме 'Выгодное спецпредложение!'. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Profit.PHONE).fill("99999999999")
-            time.sleep(1)
-            self.page.locator(Profit.BUTTON_SEND).click()
+            try:
+                self.page.locator(Profit.PHONE).fill("99999999999")
+                self.page.locator(Profit.BUTTON_SEND).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось отправить форму 'Выгодное спецпредложение!' (дом 2). Детали: {e}"
+                )
             time.sleep(4)
 
     def _click_first_available_house(self):
@@ -61,7 +104,11 @@ class MainSteps(BasePage):
             return
         except Exception:
             pass
-        raise AssertionError("Не удалось кликнуть по варианту дома: нет первого и второго вариантов")
+        raise AssertionError(
+            "Не удалось кликнуть по варианту дома.\n"
+            "Пробовали клики по FIRST_HOUSE и FIRST_HOUSE_SECOND, оба варианта недоступны.\n"
+            "Возможные причины: подсказки не подгрузились, изменился селектор, попап/выпадающий список не активен."
+        )
 
     def _verify_city_label_accepts_variants(self, expected_city: str):
         # Принимаем как валидные варианты:
@@ -232,7 +279,11 @@ class MainSteps(BasePage):
                     return
                 except Exception:
                     continue
-            raise AssertionError("Кнопка Бизнес не появилась")
+            raise AssertionError(
+                "Кнопка раздела 'Бизнес' не найдена в хедере.\n"
+                "Пробовали несколько вариантов селекторов (BUSINESS_BUTTON...); ни один не кликабелен.\n"
+                "Возможные причины: разметка страницы изменилась, кнопка скрыта/отсутствует, страница не успела прогрузиться."
+            )
 
         # Иначе кликаем по кнопкам 'Подробнее' по индексу
         buttons_primary = self.page.locator(Business.MORE_BUTTON)
@@ -254,7 +305,11 @@ class MainSteps(BasePage):
             buttons_any.nth(index - 1).click()
             return
 
-        raise AssertionError(f"Кнопка Подробнее №{index} не найдена")
+        raise AssertionError(
+            f"Кнопка 'Подробнее' №{index} не найдена.\n"
+            f"Найдено основных: {total_primary}, запасных: {total_fallback}, любых: {total_any}.\n"
+            "Проверьте корректность индекса и возможные изменения разметки."
+        )
 
     @allure.title("Нажать на кнопку Подключить на странице бизнеса")
     def connect_business_page(self):
@@ -268,193 +323,421 @@ class MainSteps(BasePage):
             return
         except Exception:
             pass
-        raise AssertionError("Кнопка Подключить на странице бизнеса не найдена")
+        raise AssertionError(
+            "Кнопка 'Подключить' на странице бизнеса не найдена.\n"
+            "Пробовали оба варианта селекторов (CONNECT_BUTTON / CONNECT_BUTTON_SECOND).\n"
+            "Возможные причины: элемент скрыт, не отрисован или изменился селектор."
+        )
         self.page.locator(Business.CONNECT_BUTTON_SECOND).click()
 
     @allure.title("Отправить заявку в попап 'Заявка на подключение'")
     def send_popup_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Connection.STREET).type("Лен", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            try:
+                self.page.locator(Connection.STREET).type("Лен", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось выбрать улицу/подсказку в форме 'Заявка на подключение'. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Connection.HOUSE).fill("1")
-            self._click_first_available_house()
+            try:
+                self.page.locator(Connection.HOUSE).fill("1")
+                self._click_first_available_house()
+            except AssertionError as e:
+                raise
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось указать дом в форме 'Заявка на подключение'. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Connection.PHONE).fill("99999999999")
-            time.sleep(1)
-            self.page.locator(Connection.BUTTON_SEND).click()
+            try:
+                self.page.locator(Connection.PHONE).fill("99999999999")
+                time.sleep(1)
+                self.page.locator(Connection.BUTTON_SEND).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось отправить форму 'Заявка на подключение'. Детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап 'Заявка на подключение'")
     def send_popup_connection_second(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Connection.STREET).type("Лен", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            try:
+                self.page.locator(Connection.STREET).type("Лен", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось выбрать улицу/подсказку в форме 'Заявка на подключение' (вариант 2). Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Connection.HOUSE).fill("2")
-            self._click_first_available_house()
+            try:
+                self.page.locator(Connection.HOUSE).fill("2")
+                self._click_first_available_house()
+            except AssertionError as e:
+                raise
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось указать дом (вариант 2) в форме 'Заявка на подключение'. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Connection.PHONE).fill("99999999999")
-            time.sleep(1)
-            self.page.locator(Connection.BUTTON_SEND).click()
+            try:
+                self.page.locator(Connection.PHONE).fill("99999999999")
+                time.sleep(1)
+                self.page.locator(Connection.BUTTON_SEND).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось отправить форму 'Заявка на подключение' (вариант 2). Детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап/форму 'Проверить адрес'")
     def send_popup_checkaddress(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Checkaddress.STREET).last.type("Лен", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            try:
+                self.page.locator(Checkaddress.STREET).last.type("Лен", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось выбрать улицу/подсказку в форме 'Проверить адрес'. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Checkaddress.HOUSE).last.fill("1")
-            self._click_first_available_house()
+            try:
+                self.page.locator(Checkaddress.HOUSE).last.fill("1")
+                self._click_first_available_house()
+            except AssertionError:
+                raise
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось указать дом в форме 'Проверить адрес'. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Checkaddress.PHONE).last.fill("99999999999")
-            time.sleep(1)
-            self.page.locator(Checkaddress.BUTTON_SEND).last.click()
+            try:
+                self.page.locator(Checkaddress.PHONE).last.fill("99999999999")
+                time.sleep(1)
+                self.page.locator(Checkaddress.BUTTON_SEND).last.click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось отправить форму 'Проверить адрес'. Детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап/форму 'Проверить адрес'")
     def send_popup_checkaddress_second(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Checkaddress.STREET).type("Лен", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            try:
+                self.page.locator(Checkaddress.STREET).type("Лен", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось выбрать улицу/подсказку в форме 'Проверить адрес' (вариант 2). Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Checkaddress.HOUSE).fill("2")
-            self._click_first_available_house()
+            try:
+                self.page.locator(Checkaddress.HOUSE).fill("2")
+                self._click_first_available_house()
+            except AssertionError:
+                raise
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось указать дом (вариант 2) в форме 'Проверить адрес'. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Checkaddress.PHONE).fill("99999999999")
-            time.sleep(1)
-            self.page.locator(Checkaddress.BUTTON_SEND).click()
+            try:
+                self.page.locator(Checkaddress.PHONE).fill("99999999999")
+                time.sleep(1)
+                self.page.locator(Checkaddress.BUTTON_SEND).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось отправить форму 'Проверить адрес' (вариант 2). Детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Отправить заявку в блоке 'Проверить адрес' по индексу (1-based)")
     def send_popup_checkaddress_block(self, index: int):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Checkaddress.STREET).nth(index - 1).type("Лен", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            try:
+                self.page.locator(Checkaddress.STREET).nth(index - 1).type("Лен", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось выбрать улицу/подсказку в блоке 'Проверить адрес' (индекс {index}). Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Checkaddress.HOUSE).nth(index - 1).fill("1")
-            self._click_first_available_house()
+            try:
+                self.page.locator(Checkaddress.HOUSE).nth(index - 1).fill("1")
+                self._click_first_available_house()
+            except AssertionError:
+                raise
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось указать дом в блоке 'Проверить адрес' (индекс {index}). Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Checkaddress.PHONE).nth(index - 1).fill("99999999999")
-            time.sleep(1)
-            self.page.locator(Checkaddress.BUTTON_SEND).nth(index - 1).click()
+            try:
+                self.page.locator(Checkaddress.PHONE).nth(index - 1).fill("99999999999")
+                time.sleep(1)
+                self.page.locator(Checkaddress.BUTTON_SEND).nth(index - 1).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось отправить форму в блоке 'Проверить адрес' (индекс {index}). Детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Отправить заявку в блоке 'Проверить адрес' по индексу (1-based)")
     def send_popup_checkaddress_block_second(self, index: int):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Checkaddress.STREET).nth(index - 1).type("Лен", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            try:
+                self.page.locator(Checkaddress.STREET).nth(index - 1).type("Лен", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось выбрать улицу/подсказку в блоке 'Проверить адрес' (индекс {index}). Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Checkaddress.HOUSE).nth(index - 1).fill("2")
-            self._click_first_available_house()
+            try:
+                self.page.locator(Checkaddress.HOUSE).nth(index - 1).fill("2")
+                self._click_first_available_house()
+            except AssertionError:
+                raise
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось указать дом (вариант 2) в блоке 'Проверить адрес' (индекс {index}). Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Checkaddress.PHONE).nth(index - 1).fill("99999999999")
-            time.sleep(1)
-            self.page.locator(Checkaddress.BUTTON_SEND).nth(index - 1).click()
+            try:
+                self.page.locator(Checkaddress.PHONE).nth(index - 1).fill("99999999999")
+                time.sleep(1)
+                self.page.locator(Checkaddress.BUTTON_SEND).nth(index - 1).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось отправить форму в блоке 'Проверить адрес' (индекс {index}, вариант 2). Детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Отправить заявку в форму 'Не определились с тарифом?'")
     def send_form_undecided(self, index: int):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Undecided.STREET).nth(index - 1).type("Лен", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            try:
+                self.page.locator(Undecided.STREET).nth(index - 1).type("Лен", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось выбрать улицу/подсказку в форме 'Не определились с тарифом?' (индекс {index}). Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Undecided.HOUSE).nth(index - 1).fill("1")
-            self._click_first_available_house()
+            try:
+                self.page.locator(Undecided.HOUSE).nth(index - 1).fill("1")
+                self._click_first_available_house()
+            except AssertionError:
+                raise
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось указать дом в форме 'Не определились с тарифом?' (индекс {index}). Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Undecided.PHONE).nth(index - 1).fill("99999999999")
-            time.sleep(1)
-            self.page.locator(Undecided.BUTTON_SEND).nth(index - 1).click()
+            try:
+                self.page.locator(Undecided.PHONE).nth(index - 1).fill("99999999999")
+                time.sleep(1)
+                self.page.locator(Undecided.BUTTON_SEND).nth(index - 1).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось отправить форму 'Не определились с тарифом?' (индекс {index}). Детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Отправить заявку в форму 'Не определились с тарифом?'")
     def send_form_undecided_second(self, index: int):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Undecided.STREET).nth(index - 1).type("Лен", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            try:
+                self.page.locator(Undecided.STREET).nth(index - 1).type("Лен", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось выбрать улицу/подсказку в форме 'Не определились с тарифом?' (индекс {index}). Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Undecided.HOUSE).nth(index - 1).fill("2")
-            self._click_first_available_house()
+            try:
+                self.page.locator(Undecided.HOUSE).nth(index - 1).fill("2")
+                self._click_first_available_house()
+            except AssertionError:
+                raise
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось указать дом (вариант 2) в форме 'Не определились с тарифом?' (индекс {index}). Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Undecided.PHONE).nth(index - 1).fill("99999999999")
-            time.sleep(1)
-            self.page.locator(Undecided.BUTTON_SEND).nth(index - 1).click()
+            try:
+                self.page.locator(Undecided.PHONE).nth(index - 1).fill("99999999999")
+                time.sleep(1)
+                self.page.locator(Undecided.BUTTON_SEND).nth(index - 1).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось отправить форму 'Не определились с тарифом?' (индекс {index}, вариант 2). Детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Отправить заявку в форму 'Не определились с тарифом?'")
     def send_form_undecided_third(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Undecided.PHONE).fill("99999999999")
-            time.sleep(1)
-            self.page.locator(Undecided.BUTTON_SEND).click()
+            try:
+                self.page.locator(Undecided.PHONE).fill("99999999999")
+                time.sleep(1)
+                self.page.locator(Undecided.BUTTON_SEND).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось отправить форму 'Не определились с тарифом?' (короткая версия). Детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап 'Заявка на подключение для Бизнеса'")
     def send_popup_business(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Business.FULL_ADDRESS).last.type("Тестадрес", delay=100)
+            try:
+                self.page.locator(Business.FULL_ADDRESS).last.type("Тестадрес", delay=100)
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось ввести адрес в форме Бизнес. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Business.PHONE).last.fill("99999999999")
+            try:
+                self.page.locator(Business.PHONE).last.fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось ввести телефон в форме Бизнес. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Business.BUTTON_SEND).last.click()
+            try:
+                self.page.locator(Business.BUTTON_SEND).last.click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось отправить форму Бизнес. Кнопка недоступна или не найдена. Детали: {e}"
+                )
             time.sleep(1)
 
     @allure.title("Отправить заявку в попап 'Заявка на подключение для Услуги переезд'")
     def send_popup_moving(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Moving.STREET).type("Лен", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            try:
+                self.page.locator(Moving.STREET).type("Лен", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось выбрать улицу/подсказку в форме 'Переезд'. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Moving.HOUSE).fill("1")
-            self._click_first_available_house()
+            try:
+                self.page.locator(Moving.HOUSE).fill("1")
+                self._click_first_available_house()
+            except AssertionError:
+                raise
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось указать дом в форме 'Переезд'. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Moving.PHONE).fill("99999999999")
-            time.sleep(1)
-            self.page.locator(Moving.BUTTON_SEND).click()
+            try:
+                self.page.locator(Moving.PHONE).fill("99999999999")
+                time.sleep(1)
+                self.page.locator(Moving.BUTTON_SEND).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось отправить форму 'Переезд'. Детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап 'Заявка на подключение для Услуги переезд'")
     def send_popup_moving_second(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(Moving.STREET).type("Лен", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            try:
+                self.page.locator(Moving.STREET).type("Лен", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось выбрать улицу/подсказку в форме 'Переезд' (вариант 2). Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Moving.HOUSE).fill("2")
-            self._click_first_available_house()
+            try:
+                self.page.locator(Moving.HOUSE).fill("2")
+                self._click_first_available_house()
+            except AssertionError:
+                raise
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось указать дом (вариант 2) в форме 'Переезд'. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(Moving.PHONE).fill("99999999999")
-            time.sleep(1)
-            self.page.locator(Moving.BUTTON_SEND).click()
+            try:
+                self.page.locator(Moving.PHONE).fill("99999999999")
+                time.sleep(1)
+                self.page.locator(Moving.BUTTON_SEND).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось отправить форму 'Переезд' (вариант 2). Детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап 'Заявка на экспресс подключение'")
     def send_popup_express_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(ExpressConnection.STREET).type("Лен", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            try:
+                self.page.locator(ExpressConnection.STREET).type("Лен", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось выбрать улицу/подсказку в форме 'Экспресс подключение'. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(ExpressConnection.HOUSE).fill("1")
-            self._click_first_available_house()
+            try:
+                self.page.locator(ExpressConnection.HOUSE).fill("1")
+                self._click_first_available_house()
+            except AssertionError:
+                raise
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось указать дом в форме 'Экспресс подключение'. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(ExpressConnection.PHONE).fill("99999999999")
-            time.sleep(1)
-            self.page.locator(ExpressConnection.BUTTON_SEND).click()
+            try:
+                self.page.locator(ExpressConnection.PHONE).fill("99999999999")
+                time.sleep(1)
+                self.page.locator(ExpressConnection.BUTTON_SEND).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось отправить форму 'Экспресс подключение'. Детали: {e}"
+                )
             time.sleep(2)
 
     @allure.title("Отправить заявку в попап 'Заявка на экспресс подключение'")
     def send_popup_express_connection_second(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(ExpressConnection.STREET).type("Лен", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            try:
+                self.page.locator(ExpressConnection.STREET).type("Лен", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось выбрать улицу/подсказку в форме 'Экспресс подключение' (вариант 2). Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(ExpressConnection.HOUSE).fill("2")
-            self._click_first_available_house()
+            try:
+                self.page.locator(ExpressConnection.HOUSE).fill("2")
+                self._click_first_available_house()
+            except AssertionError:
+                raise
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось указать дом (вариант 2) в форме 'Экспресс подключение'. Детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(ExpressConnection.PHONE).fill("99999999999")
-            time.sleep(1)
-            self.page.locator(ExpressConnection.BUTTON_SEND).click()
+            try:
+                self.page.locator(ExpressConnection.PHONE).fill("99999999999")
+                time.sleep(1)
+                self.page.locator(ExpressConnection.BUTTON_SEND).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось отправить форму 'Экспресс подключение' (вариант 2). Детали: {e}"
+                )
             time.sleep(2)
 
     @allure.title("Перейти по случайным ссылкам городов из попапа выбора города и проверить")
@@ -466,7 +749,10 @@ class MainSteps(BasePage):
             # Получаем список всех доступных городов
             total = self.page.locator(RegionChoice.RANSOM_CITY_BUTTON).count()
             if total == 0:
-                raise AssertionError("Список городов пуст")
+                raise AssertionError(
+                    "Список городов пуст. Не найден ни один элемент по локатору RegionChoice.RANSOM_CITY_BUTTON.\n"
+                    "Возможные причины: попап не открыт, список городов не подгрузился, разметка изменилась."
+                )
 
             target = min(desired_count, total)
             visited_cities = set()
@@ -498,25 +784,53 @@ class MainSteps(BasePage):
                         except Exception:
                             pass
                     # Подстраховка: ждём появления любых известных контролов выбора региона
+                    found_region_ui = False
                     try:
                         new_page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=5000)
+                        found_region_ui = True
                     except Exception:
                         try:
                             new_page.locator(RegionChoice.TELE_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                            found_region_ui = True
                         except Exception:
                             try:
                                 new_page.locator(RegionChoice.REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                                found_region_ui = True
                             except Exception:
                                 pass
-                    expect(new_page).not_to_have_url("**/404")
+                    try:
+                        expect(new_page).not_to_have_url("**/404")
+                    except AssertionError:
+                        raise AssertionError(
+                            f"Открылась страница 404 при переходе в город '{city_name}' (idx {rand_index}).\n"
+                            f"Переходили по ссылке: {city_href or '—'}, текущий URL: {new_page.url or '—'}.\n"
+                            "Похоже, что ссылка на город ведёт на несуществующую страницу."
+                        )
+                    if not found_region_ui:
+                        raise AssertionError(
+                            f"Не удалось обнаружить элементы выбора региона на странице города '{city_name}' (idx {rand_index}).\n"
+                            "Ожидались элементы из набора: NEW_REGION_CHOICE_BUTTON / TELE_REGION_CHOICE_BUTTON / REGION_CHOICE_BUTTON.\n"
+                            "Возможные причины: страница не успела инициализировать UI, изменилась разметка или открыт неверный экран."
+                        )
 
                     # Если это сабдомен (например, abakan.mts-home.online), проверяем домен URL
                     if href_host and href_host.endswith(".mts-home.online") and href_host != "mts-home.online":
-                        assert href_host in (new_page.url or ""), f"Открыт неверный домен для города {city_name}: {new_page.url}"
+                        assert href_host in (new_page.url or ""), (
+                            f"Открыт неверный домен для города '{city_name}'.\n"
+                            f"Ожидали домен: {href_host}, получили: {new_page.url or '—'}.\n"
+                            "Ссылка на город ведёт на другой домен."
+                        )
                     else:
                         # Иначе проверяем текст города в хедере
                         region_page = ChoiceRegionPage(page=new_page)
-                        region_page.verify_region_button_text_new(expected_city)
+                        try:
+                            region_page.verify_region_button_text_new(expected_city)
+                        except AssertionError as e:
+                            raise AssertionError(
+                                f"Выбранный город не отобразился в хедере.\n"
+                                f"Ожидали город: '{expected_city}', текущий URL: {new_page.url or '—'}.\n"
+                                f"Подробности: {str(e)}"
+                            )
 
                     new_page.close()
 
@@ -529,7 +843,10 @@ class MainSteps(BasePage):
         self.page.locator(RegionChoice.RANSOM_CITY_BUTTON).first.wait_for(state="visible", timeout=10000)
         total_now = self.page.locator(RegionChoice.RANSOM_CITY_BUTTON).count()
         if total_now == 0:
-            raise AssertionError("Список городов пуст")
+            raise AssertionError(
+                "Список городов пуст. Не найден ни один элемент по локатору RegionChoice.RANSOM_CITY_BUTTON.\n"
+                "Возможные причины: попап не открыт, список городов не подгрузился, разметка изменилась."
+            )
 
         rand_index = random.randint(1, total_now)
         indexed_city_selector = f"{RegionChoice.RANSOM_CITY_BUTTON}[{rand_index}]"
@@ -550,23 +867,51 @@ class MainSteps(BasePage):
                     new_page.wait_for_load_state("load", timeout=10000)
                 except Exception:
                     pass
+            found_region_ui = False
             try:
                 new_page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=5000)
+                found_region_ui = True
             except Exception:
                 try:
                     new_page.locator(RegionChoice.TELE_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                    found_region_ui = True
                 except Exception:
                     try:
                         new_page.locator(RegionChoice.REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                        found_region_ui = True
                     except Exception:
                         pass
-            expect(new_page).not_to_have_url("**/404")
+            try:
+                expect(new_page).not_to_have_url("**/404")
+            except AssertionError:
+                raise AssertionError(
+                    f"Открылась страница 404 при переходе в город '{city_name}' (idx {rand_index}).\n"
+                    f"Переходили по ссылке: {city_href or '—'}, текущий URL: {new_page.url or '—'}.\n"
+                    "Похоже, что ссылка на город ведёт на несуществующую страницу."
+                )
+            if not found_region_ui:
+                raise AssertionError(
+                    f"Не удалось обнаружить элементы выбора региона на странице города '{city_name}' (idx {rand_index}).\n"
+                    "Ожидались элементы из набора: NEW_REGION_CHOICE_BUTTON / TELE_REGION_CHOICE_BUTTON / REGION_CHOICE_BUTTON.\n"
+                    "Возможные причины: страница не успела инициализировать UI, изменилась разметка или открыт неверный экран."
+                )
 
             if href_host and href_host.endswith(".mts-home.online") and href_host != "mts-home.online":
-                assert href_host in (new_page.url or ""), f"Открыт неверный домен для города {city_name}: {new_page.url}"
+                assert href_host in (new_page.url or ""), (
+                    f"Открыт неверный домен для города '{city_name}'.\n"
+                    f"Ожидали домен: {href_host}, получили: {new_page.url or '—'}.\n"
+                    "Ссылка на город ведёт на другой домен."
+                )
             else:
                 region_page = ChoiceRegionPage(page=new_page)
-                region_page.verify_region_button_text_new(expected_city)
+                try:
+                    region_page.verify_region_button_text_new(expected_city)
+                except AssertionError as e:
+                    raise AssertionError(
+                        f"Выбранный город не отобразился в хедере.\n"
+                        f"Ожидали город: '{expected_city}', текущий URL: {new_page.url or '—'}.\n"
+                        f"Подробности: {str(e)}"
+                    )
 
             new_page.close()
 
@@ -580,7 +925,10 @@ class MainSteps(BasePage):
 
         total_now = self.page.locator(RegionChoice.RANSOM_CITY_BUTTON).count()
         if total_now == 0:
-            raise AssertionError("Список городов пуст")
+            raise AssertionError(
+                "Список городов пуст. Не найден ни один элемент по локатору RegionChoice.RANSOM_CITY_BUTTON.\n"
+                "Возможные причины: попап не открыт, список городов не подгрузился, разметка изменилась."
+            )
 
         rand_index = random.randint(1, total_now)
         city_item = self.page.locator(RegionChoice.RANSOM_CITY_BUTTON).nth(rand_index - 1)
@@ -601,24 +949,50 @@ class MainSteps(BasePage):
                 self.page.wait_for_load_state("load", timeout=10000)
             except Exception:
                 pass
+        found_region_ui = False
         try:
             self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=5000)
+            found_region_ui = True
         except Exception:
             try:
                 self.page.locator(RegionChoice.TELE_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                found_region_ui = True
             except Exception:
                 try:
                     self.page.locator(RegionChoice.REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                    found_region_ui = True
                 except Exception:
                     pass
-        expect(self.page).not_to_have_url("**/404")
+        try:
+            expect(self.page).not_to_have_url("**/404")
+        except AssertionError:
+            raise AssertionError(
+                f"Открылась страница 404 при переходе в город '{city_name}' (idx {rand_index}).\n"
+                f"Переходили по ссылке: {city_href or '—'}, текущий URL: {self.page.url or '—'}.\n"
+                "Похоже, что ссылка на город ведёт на несуществующую страницу."
+            )
+        if not found_region_ui:
+            raise AssertionError(
+                f"Не удалось обнаружить элементы выбора региона на странице города '{city_name}' (idx {rand_index}).\n"
+                "Ожидались элементы из набора: NEW_REGION_CHOICE_BUTTON / TELE_REGION_CHOICE_BUTTON / REGION_CHOICE_BUTTON.\n"
+                "Возможные причины: страница не успела инициализировать UI, изменилась разметка или открыт неверный экран."
+            )
 
         if href_host and href_host.endswith(".mts-home.online") and href_host != "mts-home.online":
             assert href_host in (self.page.url or ""), (
-                f"Открыт неверный домен для города {city_name}: {self.page.url} (ожидали {href_host})"
+                f"Открыт неверный домен для города '{city_name}'.\n"
+                f"Ожидали домен: {href_host}, получили: {self.page.url or '—'}.\n"
+                "Ссылка на город ведёт на другой домен."
             )
         else:
-            self._verify_city_label_accepts_variants(expected_city)
+            try:
+                self._verify_city_label_accepts_variants(expected_city)
+            except AssertionError as e:
+                raise AssertionError(
+                    f"Выбранный город не отобразился в хедере.\n"
+                    f"Ожидали город: '{expected_city}', текущий URL: {self.page.url or '—'}.\n"
+                    f"Подробности: {str(e)}"
+                )
 
     @allure.title("Перейти по одному случайному городу (в той же вкладке) из уже открытого попапа и проверить")
     def click_random_city_and_verify_same_tab_popup(self):
@@ -630,7 +1004,10 @@ class MainSteps(BasePage):
 
         total_now = self.page.locator(RegionChoice.RANSOM_CITY_BUTTON).count()
         if total_now == 0:
-            raise AssertionError("Список городов пуст")
+            raise AssertionError(
+                "Список городов пуст. Не найден ни один элемент по локатору RegionChoice.RANSOM_CITY_BUTTON.\n"
+                "Возможные причины: попап не открыт, список городов не подгрузился, разметка изменилась."
+            )
 
         rand_index = random.randint(1, total_now)
         city_item = self.page.locator(RegionChoice.RANSOM_CITY_BUTTON).nth(rand_index - 1)
@@ -651,26 +1028,52 @@ class MainSteps(BasePage):
                 self.page.wait_for_load_state("load", timeout=10000)
             except Exception:
                 pass
+        found_region_ui = False
         try:
             self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=5000)
+            found_region_ui = True
         except Exception:
             try:
                 self.page.locator(RegionChoice.TELE_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                found_region_ui = True
             except Exception:
                 try:
                     self.page.locator(RegionChoice.REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                    found_region_ui = True
                 except Exception:
                     pass
-        expect(self.page).not_to_have_url("**/404")
+        try:
+            expect(self.page).not_to_have_url("**/404")
+        except AssertionError:
+            raise AssertionError(
+                f"Открылась страница 404 при переходе в город '{city_name}' (idx {rand_index}).\n"
+                f"Переходили по ссылке: {city_href or '—'}, текущий URL: {self.page.url or '—'}.\n"
+                "Похоже, что ссылка на город ведёт на несуществующую страницу."
+            )
+        if not found_region_ui:
+            raise AssertionError(
+                f"Не удалось обнаружить элементы выбора региона на странице города '{city_name}' (idx {rand_index}).\n"
+                "Ожидались элементы из набора: NEW_REGION_CHOICE_BUTTON / TELE_REGION_CHOICE_BUTTON / REGION_CHOICE_BUTTON.\n"
+                "Возможные причины: страница не успела инициализировать UI, изменилась разметка или открыт неверный экран."
+            )
         region_page = ChoiceRegionPage(page=self.page)
         region_page.close_popup_super_offer_new()
 
         if href_host and href_host.endswith(".mts-home.online") and href_host != "mts-home.online":
             assert href_host in (self.page.url or ""), (
-                f"Открыт неверный домен для города {city_name}: {self.page.url} (ожидали {href_host})"
+                f"Открыт неверный домен для города '{city_name}'.\n"
+                f"Ожидали домен: {href_host}, получили: {self.page.url or '—'}.\n"
+                "Ссылка на город ведёт на другой домен."
             )
         else:
-            self._verify_city_label_accepts_variants(expected_city)
+            try:
+                self._verify_city_label_accepts_variants(expected_city)
+            except AssertionError as e:
+                raise AssertionError(
+                    f"Выбранный город не отобразился в хедере.\n"
+                    f"Ожидали город: '{expected_city}', текущий URL: {self.page.url or '—'}.\n"
+                    f"Подробности: {str(e)}"
+                )
 
     @allure.title("Перейти по одному случайному городу (в той же вкладке) из уже открытого попапа и проверить")
     def click_random_city_and_verify_same_tab_new(self):
@@ -682,7 +1085,10 @@ class MainSteps(BasePage):
 
         total_now = self.page.locator(RegionChoice.RANSOM_CITY_BUTTON).count()
         if total_now == 0:
-            raise AssertionError("Список городов пуст")
+            raise AssertionError(
+                "Список городов пуст. Не найден ни один элемент по локатору RegionChoice.RANSOM_CITY_BUTTON.\n"
+                "Возможные причины: попап не открыт, список городов не подгрузился, разметка изменилась."
+            )
 
         rand_index = random.randint(1, total_now)
         city_item = self.page.locator(RegionChoice.RANSOM_CITY_BUTTON).nth(rand_index - 1)
@@ -703,22 +1109,48 @@ class MainSteps(BasePage):
                 self.page.wait_for_load_state("load", timeout=10000)
             except Exception:
                 pass
+        found_region_ui = False
         try:
             self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=5000)
+            found_region_ui = True
         except Exception:
             try:
                 self.page.locator(RegionChoice.TELE_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                found_region_ui = True
             except Exception:
                 try:
                     self.page.locator(RegionChoice.REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                    found_region_ui = True
                 except Exception:
                     pass
-        expect(self.page).not_to_have_url("**/404")
+        try:
+            expect(self.page).not_to_have_url("**/404")
+        except AssertionError:
+            raise AssertionError(
+                f"Открылась страница 404 при переходе в город '{city_name}' (idx {rand_index}).\n"
+                f"Переходили по ссылке: {city_href or '—'}, текущий URL: {self.page.url or '—'}.\n"
+                "Похоже, что ссылка на город ведёт на несуществующую страницу."
+            )
+        if not found_region_ui:
+            raise AssertionError(
+                f"Не удалось обнаружить элементы выбора региона на странице города '{city_name}' (idx {rand_index}).\n"
+                "Ожидались элементы из набора: NEW_REGION_CHOICE_BUTTON / TELE_REGION_CHOICE_BUTTON / REGION_CHOICE_BUTTON.\n"
+                "Возможные причины: страница не успела инициализировать UI, изменилась разметка или открыт неверный экран."
+            )
 
         if href_host and href_host.endswith(".mts-home.online") and href_host != "mts-home.online":
             assert href_host in (self.page.url or ""), (
-                f"Открыт неверный домен для города {city_name}: {self.page.url} (ожидали {href_host})"
+                f"Открыт неверный домен для города '{city_name}'.\n"
+                f"Ожидали домен: {href_host}, получили: {self.page.url or '—'}.\n"
+                "Ссылка на город ведёт на другой домен."
             )
         else:
-            self._verify_city_label_accepts_variants(expected_city)
+            try:
+                self._verify_city_label_accepts_variants(expected_city)
+            except AssertionError as e:
+                raise AssertionError(
+                    f"Выбранный город не отобразился в хедере.\n"
+                    f"Ожидали город: '{expected_city}', текущий URL: {self.page.url or '—'}.\n"
+                    f"Подробности: {str(e)}"
+                )
 
