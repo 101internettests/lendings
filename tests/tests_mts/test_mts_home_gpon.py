@@ -11,7 +11,7 @@ from pages.main_steps import MainSteps
 
 @allure.feature("https://mts-home-gpon.ru/")
 class TestGponMtsHomeOnline:
-
+    @pytest.mark.skip("Нет попапа")
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")
     def test_application_popup_super_offer(self, page_fixture, third_url):

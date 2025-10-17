@@ -11,6 +11,7 @@ from pages.main_steps import MainSteps
 
 @allure.feature("https://moskva.rtk-ru.online/")
 class TestMoskvaRTKOnline:
+    @pytest.mark.skip("Нет попапа")
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")
     def test_application_popup_super_offer_third(self, page_fixture, msk_rtk_online):
