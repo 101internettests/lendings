@@ -10,6 +10,7 @@ from pages.main_steps import MainSteps
 
 @allure.feature("https://beeline-internet.online/")
 class TestBeelineInternetOnline:
+    @pytest.mark.skip("Нет попапа")
     @allure.title("1. Выбор региона из всплывающего попапа Вы находитесь в Москве?")
     def test_choose_region_from_popup(self, page_fixture, beeline_internet_online):
         page = page_fixture
