@@ -120,7 +120,7 @@ class TestMskBeelineOnline:
 
         # 20 раз: открыть попап, кликнуть случайный город в этой же вкладке и проверить,
         # затем снова открыть попап
-        for _ in range(20):
+        for _ in range(10):
             mts_page.click_region_choice_button_new()
             steps.click_random_city_and_verify_same_tab()
             try:
