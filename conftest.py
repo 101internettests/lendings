@@ -89,6 +89,9 @@ PAGES_PER_DOMAIN = defaultdict(int)
 DOMAIN_ERROR_COUNTS = defaultdict(int)  # key: (domain, error_key)
 DOMAIN_ERROR_URLS = defaultdict(set)    # key: (domain, error_key) -> urls
 ERROR_DOMAINS = defaultdict(set)        # key: error_key -> domains
+# Отслеживание подсчёта результатов по тестам (чтобы корректно учитывать setup/teardown)
+_COUNTED_NODEIDS: set[str] = set()
+_PASSED_NODEIDS: set[str] = set()
 
 
 # ==== Persistent errors counter (external file) ====
@@ -320,6 +323,29 @@ def _format_run_summary() -> str:
         msg.append(f"📊 Детали: {REPORT_URL}")
     return "\n".join(msg)
 
+def _format_short_run_summary() -> str:
+    """Короткая сводка: Успешно / Неуспешно / Всего / Прогонов."""
+    success = RUN_PASSED
+    errors = RUN_FAILED
+    total = RUN_TOTAL_PAGES
+    runs = success + errors
+    # Заголовок: текущая дата UTC (или локальная, если потребуется — можно расширить)
+    today_ymd = datetime.utcnow().strftime("%Y-%m-%d")
+    last_run_hhmm = datetime.utcnow().strftime("%d.%m.%Y %H:%M")
+    parts = []
+    parts.append(f"📊 Отчёт за {today_ymd}")
+    parts.append("")
+    parts.append(f"Сводка: успешно {success}, неуспешно {errors}")
+    parts.append("")
+    parts.append(f"Всего страниц: {total}")
+    parts.append(f"Прогонов: {runs}")
+    parts.append("")
+    parts.append(f"Последний запуск: {last_run_hhmm}")
+    if REPORT_URL:
+        parts.append("")
+        parts.append(str(REPORT_URL))
+    return "\n".join(parts)
+
 def extract_run_labels(session, stats) -> list:
     """Возвращает список названий папок запуска (например, test_beeline),
     определённых по аргументам запуска pytest и/или по путям тестов из отчётов."""
@@ -521,13 +547,22 @@ def pytest_runtest_makereport(item, call):
 
         if call.when == "call":
             global RUN_TOTAL_PAGES, RUN_PASSED, RUN_FAILED
-            RUN_TOTAL_PAGES += 1
+            if item.nodeid not in _COUNTED_NODEIDS:
+                RUN_TOTAL_PAGES += 1
+                _COUNTED_NODEIDS.add(item.nodeid)
             if domain:
                 RUN_LANDINGS.add(domain)
                 PAGES_PER_DOMAIN[domain] += 1
             if call.excinfo is None:
-                RUN_PASSED += 1
+                if item.nodeid not in _PASSED_NODEIDS:
+                    RUN_PASSED += 1
+                    _PASSED_NODEIDS.add(item.nodeid)
             else:
+                # Если ранее считали как passed на call-этапе, корректируем
+                if item.nodeid in _PASSED_NODEIDS:
+                    RUN_PASSED = max(0, RUN_PASSED - 1)
+                    _PASSED_NODEIDS.discard(item.nodeid)
+                # Учитываем фейл
                 RUN_FAILED += 1
                 step_name = _get_last_step_name() or ""
                 error_key = step_name or type(call.excinfo.value).__name__
@@ -567,6 +602,19 @@ def pytest_runtest_makereport(item, call):
                             )
         elif call.excinfo is not None and call.when in ("setup", "teardown"):
             # Count failures that happen outside the 'call' phase as well
+            # Корректируем счетчики: если тест ранее помечен как passed — переведем в failed,
+            # если еще не считали этот тест — добавим как один проваленный прогон.
+            try:
+                if item.nodeid in _PASSED_NODEIDS:
+                    RUN_PASSED = max(0, RUN_PASSED - 1)
+                    _PASSED_NODEIDS.discard(item.nodeid)
+                    RUN_FAILED += 1
+                elif item.nodeid not in _COUNTED_NODEIDS:
+                    RUN_TOTAL_PAGES += 1
+                    RUN_FAILED += 1
+                    _COUNTED_NODEIDS.add(item.nodeid)
+            except Exception:
+                pass
             step_name = _get_last_step_name() or ""
             error_key = step_name or type(call.excinfo.value).__name__
             new_count = _inc_url_counter(current_url)
@@ -995,6 +1043,7 @@ def pytest_sessionfinish(session, exitstatus):
         # Run summary (optional)
         if RUN_SUMMARY_ENABLED:
             _send_telegram_message(_format_run_summary())
+            _send_telegram_message(_format_short_run_summary())
     finally:
         _save_state()
         return

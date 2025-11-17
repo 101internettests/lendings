@@ -22,7 +22,7 @@ from locators.mts.mts_home_online import RegionChoice
 
 class MainSteps(BasePage):
 
-    @allure.title("Отправить заявку в попап 'Выгодное спецпредложение!' с домом 1")
+    @allure.title("Отправить заявку в попап 'Выгодное спецпредложение!' с домом 1, при недоступности — 2")
     def send_popup_profit(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
@@ -38,14 +38,23 @@ class MainSteps(BasePage):
                     f"Не удалось выбрать первую подсказку улицы. Возможные причины: подсказки не подгрузились или изменился селектор. Детали: {e}"
                 )
             time.sleep(1)
+            # Пытаемся дом 1, при неудаче — дом 2
             try:
-                self.page.locator(Profit.HOUSE).fill("1")
-                self._click_first_available_house()
+                house_selected = False
+                try:
+                    self.page.locator(Profit.HOUSE).fill("1")
+                    self._click_first_available_house()
+                    house_selected = True
+                except Exception:
+                    pass
+                if not house_selected:
+                    self.page.locator(Profit.HOUSE).fill("2")
+                    self._click_first_available_house()
             except AssertionError as e:
                 raise
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось указать дом в форме 'Выгодное спецпредложение!'. Детали: {e}"
+                    f"Не удалось указать дом (1 или 2) в форме 'Выгодное спецпредложение!'. Детали: {e}"
                 )
             time.sleep(1)
             try:
@@ -167,11 +176,38 @@ class MainSteps(BasePage):
 
     @allure.title("Нажать на кнопку Изменить город")
     def button_change_city_profit(self):
-        self.page.locator(Profit.BUTTON_CHANGE_CITY).click()
+        # Пытаемся кликнуть по основному селектору; если его нет/не кликается — пробуем запасной
+        try:
+            self.page.locator(Profit.BUTTON_CHANGE_CITY).click(timeout=3000)
+            return
+        except Exception:
+            pass
+        try:
+            self.page.locator(Profit.BUTTON_CHANGE_CITY_SEC).click(timeout=3000)
+            return
+        except Exception:
+            pass
+        raise AssertionError(
+            "Кнопка 'Изменить город' (Profit) не найдена/не кликабельна.\n"
+            "Пробовали селекторы BUTTON_CHANGE_CITY и BUTTON_CHANGE_CITY_SEC."
+        )
 
     @allure.title("Нажать на кнопку Изменить город")
     def button_change_city_connection(self):
-        self.page.locator(Connection.BUTTON_CHANGE_CITY).click()
+        try:
+            self.page.locator(Connection.BUTTON_CHANGE_CITY).first.click(timeout=3000)
+            return
+        except Exception:
+            pass
+        try:
+            self.page.locator(Connection.BUTTON_CHANGE_CITY_SEC).first.click(timeout=3000)
+            return
+        except Exception:
+            pass
+        raise AssertionError(
+            "Кнопка 'Изменить город' (Connection) не найдена/не кликабельна.\n"
+            "Пробовали селекторы BUTTON_CHANGE_CITY и BUTTON_CHANGE_CITY_SEC."
+        )
 
     @allure.title("Нажать на кнопку Изменить город")
     def button_change_city_checkaddress(self):
@@ -207,7 +243,7 @@ class MainSteps(BasePage):
 
     @allure.title("Кликнуть на кнопку Подключить по индексу (1-based)")
     def click_connect_button_index(self, index: int):
-        selector = f"xpath=(//button[contains(@class,'connection_address_button')])[{index}]"
+        selector = f"(//button[contains(@class,'connection_address_button')])[{index}]"
         self.page.locator(selector).click()
 
     @allure.title("Кликнуть на кнопку Подключить по индексу (1-based)")
@@ -231,7 +267,7 @@ class MainSteps(BasePage):
 
     @allure.title("Посчитать количество кнопок Подключить")
     def count_connect_buttons_cards(self) -> int:
-        return self.page.locator(Connection.CONNECT_BUTTON).count()
+        return self.page.locator(Connection.CARDS_BUTTONS).count()
 
     @allure.title("Посчитать количество кнопок Проверить адрес")
     def count_checkaddress_popup_buttons(self) -> int:
@@ -334,7 +370,7 @@ class MainSteps(BasePage):
     def send_popup_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
-                self.page.locator(Connection.STREET).type("Лен", delay=100)
+                self.page.locator(Connection.STREET).first.type("Лен", delay=100)
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
             except Exception as e:
                 raise AssertionError(
@@ -342,7 +378,7 @@ class MainSteps(BasePage):
                 )
             time.sleep(1)
             try:
-                self.page.locator(Connection.HOUSE).fill("1")
+                self.page.locator(Connection.HOUSE).first.fill("1")
                 self._click_first_available_house()
             except AssertionError as e:
                 raise
@@ -352,9 +388,9 @@ class MainSteps(BasePage):
                 )
             time.sleep(1)
             try:
-                self.page.locator(Connection.PHONE).fill("99999999999")
+                self.page.locator(Connection.PHONE).first.fill("99999999999")
                 time.sleep(1)
-                self.page.locator(Connection.BUTTON_SEND).click()
+                self.page.locator(Connection.BUTTON_SEND).first.click()
             except Exception as e:
                 raise AssertionError(
                     f"Не удалось отправить форму 'Заявка на подключение'. Детали: {e}"
@@ -365,7 +401,7 @@ class MainSteps(BasePage):
     def send_popup_connection_second(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
-                self.page.locator(Connection.STREET).type("Лен", delay=100)
+                self.page.locator(Connection.STREET).last.type("Лен", delay=100)
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
             except Exception as e:
                 raise AssertionError(
@@ -373,7 +409,7 @@ class MainSteps(BasePage):
                 )
             time.sleep(1)
             try:
-                self.page.locator(Connection.HOUSE).fill("2")
+                self.page.locator(Connection.HOUSE).last.fill("2")
                 self._click_first_available_house()
             except AssertionError as e:
                 raise
@@ -383,9 +419,9 @@ class MainSteps(BasePage):
                 )
             time.sleep(1)
             try:
-                self.page.locator(Connection.PHONE).fill("99999999999")
+                self.page.locator(Connection.PHONE).last.fill("99999999999")
                 time.sleep(1)
-                self.page.locator(Connection.BUTTON_SEND).click()
+                self.page.locator(Connection.BUTTON_SEND).last.click()
             except Exception as e:
                 raise AssertionError(
                     f"Не удалось отправить форму 'Заявка на подключение' (вариант 2). Детали: {e}"
