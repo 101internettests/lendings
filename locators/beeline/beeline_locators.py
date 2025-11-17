@@ -92,9 +92,9 @@ class BeelineMain:
     }
 
     OTHER_HEADERS = {
-        "return_bonuses": "xpath=//a[contains(text(),'Вернём бонусы на счёт за покупку бронзового номера')]",
-        "make_meaningful": "xpath=//a[contains(text(),'	Совершайте важные операции в приложениях банков даже при нуле на счёте')]",
-        "beeline_tv": "xpath=//a[contains(text(),'билайн ТВ дарит фильмы, сериалы и телеканалы на 30 дней!')]",
+        "return_bonuses": "xpath=//h3[contains(text(),'Вернём бонусы на счёт за покупку бронзового номера')]",
+        "make_meaningful": "xpath=//h3[contains(text(),'Совершайте важные операции в приложениях банков даже при нуле на счёте')]",
+        "beeline_tv": "xpath=//h3[contains(text(),'билайн ТВ дарит фильмы, сериалы и телеканалы на 30 дней!')]",
 
     }
     FOOTER_LINKS_SEC = {

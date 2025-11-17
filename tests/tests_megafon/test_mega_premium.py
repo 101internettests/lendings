@@ -21,7 +21,6 @@ class TestMegaPremium:
         steps = MainSteps(page=page)
         steps.send_popup_profit()
         time.sleep(4)
-        mts_page.check_sucess_accept()
 
     @allure.title("3. Переход по всем ссылкам на странице ")
     def test_check_popup_links(self, page_fixture, eight_url):

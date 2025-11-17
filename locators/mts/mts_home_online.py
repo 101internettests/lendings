@@ -16,6 +16,7 @@ class MTSHomeOnlineMain:
     SEND_BUTTON_OFFER_POPUP = "xpath=(//form[@aria-label='Контактная форма']//input[@value='Отправить'])[2]"
     THANKYOU_TEXT = "xpath=//div[@class='thanks']"
     THANKYOU_TEXT_SECOND = "xpath=//h1[text()='Заявка принята!']"
+    THANKYOU_TEXT_MORE = "xpath=//p[text()=' Спасибо! Мы скоро с вами свяжемся!']"
     THANKYOU_HEADER = "xpath=//p[@class='thanks__text']"
     MORE_THANKYOU = "xpath=//h1[contains(@class,'thanks')]"
     RED_BUTTON = "xpath=//button[@class='button-lead-catcher']"
