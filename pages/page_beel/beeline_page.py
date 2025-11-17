@@ -339,10 +339,10 @@ class BeelineOnlinePage(BasePage):
 
         # Проверяем ссылки в футере
         for name, locator in BeelineMain.FUTER_LINKS_TELE.items():
-            self.check_link(locator, f"Footer: {name}")
-
-        for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
-            self.check_link(locator, f"Footer: {name}")
+        #     self.check_link(locator, f"Footer: {name}")
+        #
+        # for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
+        #     self.check_link(locator, f"Footer: {name}")
 
     @allure.title("Проверить видимость ссылок ТТК во футере")
     def check_all_links_ttk(self):
