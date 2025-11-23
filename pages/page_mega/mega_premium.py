@@ -9,46 +9,144 @@ from locators.mega.mega_premium_locators import ApplicationConnection
 class MegaPremiumOnline(BasePage):
     @allure.title("Закрыть страницу благодарности")
     def close_thankyou_page(self):
-        self.page.locator(ThankYouPage.CRUSIFIX_CLOSE).click()
+        try:
+            self.page.locator(ThankYouPage.CRUSIFIX_CLOSE).click()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось закрыть страницу благодарности.\n"
+                "Возможно, кнопка закрытия недоступна, перекрыта или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Отправить заявку в форму Проверьте возможность подключения по вашему адресу первый")
     def send_popup_application_check_connection_first(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(CheckConnectApplicationForms.FIRST_CITY).fill("Тестгород")
+            try:
+                self.page.locator(CheckConnectApplicationForms.FIRST_CITY).fill("Тестгород")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести город в форму проверки адреса (первый блок).\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(2)
-            self.page.locator(CheckConnectApplicationForms.FIRST_ADDRESS).fill("Тестулица")
+            try:
+                self.page.locator(CheckConnectApplicationForms.FIRST_ADDRESS).fill("Тестулица")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести адрес в форму проверки адреса (первый блок).\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(2)
-            self.page.locator(CheckConnectApplicationForms.FIRST_PHONE_INPUT).fill("99999999999")
+            try:
+                self.page.locator(CheckConnectApplicationForms.FIRST_PHONE_INPUT).fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести телефон в форму проверки адреса (первый блок).\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(CheckConnectApplicationForms.FIRST_CHECK_ADDRESS_BUTTON).click()
+            try:
+                self.page.locator(CheckConnectApplicationForms.FIRST_CHECK_ADDRESS_BUTTON).click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось нажать кнопку 'Проверить адрес' (первый блок).\n"
+                    "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Отправить заявку в форму Проверьте возможность подключения по вашему адресу второй")
     def send_popup_application_check_connection_second(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(CheckConnectApplicationForms.SECOND_CITY).fill("Тестгород")
+            try:
+                self.page.locator(CheckConnectApplicationForms.SECOND_CITY).fill("Тестгород")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести город в форму проверки адреса (второй блок).\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(2)
-            self.page.locator(CheckConnectApplicationForms.SECOND_ADDRESS).fill("Тестулица")
+            try:
+                self.page.locator(CheckConnectApplicationForms.SECOND_ADDRESS).fill("Тестулица")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести адрес в форму проверки адреса (второй блок).\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(2)
-            self.page.locator(CheckConnectApplicationForms.SECOND_PHONE_INPUT).fill("99999999999")
+            try:
+                self.page.locator(CheckConnectApplicationForms.SECOND_PHONE_INPUT).fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести телефон в форму проверки адреса (второй блок).\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(CheckConnectApplicationForms.SECOND_CHECK_ADDRESS_BUTTON).click()
+            try:
+                self.page.locator(CheckConnectApplicationForms.SECOND_CHECK_ADDRESS_BUTTON).click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось нажать кнопку 'Проверить адрес' (второй блок).\n"
+                    "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Отправить заявку в форму Не определились с тарифом?")
     def send_popup_application_tariff_form(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(CheckConnectApplicationForms.TARIFF_CITY).fill("Тестгород")
+            try:
+                self.page.locator(CheckConnectApplicationForms.TARIFF_CITY).fill("Тестгород")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести город в форму 'Не определились с тарифом?'.\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(2)
-            self.page.locator(CheckConnectApplicationForms.TARIFF_ADDRESS).fill("Тестулица")
+            try:
+                self.page.locator(CheckConnectApplicationForms.TARIFF_ADDRESS).fill("Тестулица")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести адрес в форму 'Не определились с тарифом?'.\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(2)
-            self.page.locator(CheckConnectApplicationForms.TARIFF_PHONE_INPUT).fill("99999999999")
+            try:
+                self.page.locator(CheckConnectApplicationForms.TARIFF_PHONE_INPUT).fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести телефон в форму 'Не определились с тарифом?'.\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(CheckConnectApplicationForms.TARIFF_CHECK_ADDRESS_BUTTON).click()
+            try:
+                self.page.locator(CheckConnectApplicationForms.TARIFF_CHECK_ADDRESS_BUTTON).click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось отправить форму 'Не определились с тарифом?'.\n"
+                    "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
 
     @allure.title("Кликнуть по кнопке Уточнить")
     def click_clarify_button(self):
-        self.page.locator(ClarifyPopUp.CLARIFY_BUTTON).click()
+        try:
+            self.page.locator(ClarifyPopUp.CLARIFY_BUTTON).click()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось нажать кнопку 'Уточнить'.\n"
+                "Возможно, элемент недоступен, перекрыт или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Получить список всех тарифных карточек")
     def get_tariff_cards(self):
@@ -56,7 +154,14 @@ class MegaPremiumOnline(BasePage):
 
     @allure.title("Нажать кнопку Подключить на тарифной карточке")
     def click_tariff_connect_button(self, card_index):
-        self.page.locator(MainPageLocs.TARIFF_CONNECT_BUTTONS).nth(card_index).click()
+        try:
+            self.page.locator(MainPageLocs.TARIFF_CONNECT_BUTTONS).nth(card_index).click()
+        except Exception as e:
+            raise AssertionError(
+                f"Не удалось нажать кнопку 'Подключить' на карточке тарифа #{card_index}.\n"
+                "Возможно, элемент недоступен, перекрыт или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Проверить ссылку и убедиться, что страница существует")
     def check_link(self, locator, link_name):
@@ -156,21 +261,63 @@ class MegaHomeInternet(BasePage):
     @allure.title("Отправить заявку в форму Проверьте возможность подключения по вашему адресу первый")
     def send_popup_application_check_connection_first(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(CheckConnectApplicationForms.HOME_MEGA_CITY).fill("Тестулица")
+            try:
+                self.page.locator(CheckConnectApplicationForms.HOME_MEGA_CITY).fill("Тестулица")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести адрес/город в форму проверки адреса (домашний интернет, первый блок).\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(2)
-            self.page.locator(CheckConnectApplicationForms.FIRST_PHONE_INPUT).fill("99999999999")
+            try:
+                self.page.locator(CheckConnectApplicationForms.FIRST_PHONE_INPUT).fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести телефон в форму проверки адреса (домашний интернет, первый блок).\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(CheckConnectApplicationForms.FIRST_CHECK_ADDRESS_BUTTON).click()
+            try:
+                self.page.locator(CheckConnectApplicationForms.FIRST_CHECK_ADDRESS_BUTTON).click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось нажать кнопку 'Проверить адрес' (домашний интернет, первый блок).\n"
+                    "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап с названием Заявка на подключение")
     def send_popup_application_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(ApplicationConnection.NAME_INPUT).fill("Тестимя")
+            try:
+                self.page.locator(ApplicationConnection.NAME_INPUT).fill("Тестимя")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести имя в попапе 'Заявка на подключение' (домашний интернет).\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(CheckConnectApplicationForms.TARIFF_PHONE_INPUT).fill("99999999999")
+            try:
+                self.page.locator(CheckConnectApplicationForms.TARIFF_PHONE_INPUT).fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести телефон в попапе 'Заявка на подключение' (домашний интернет).\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(ApplicationConnection.POPUP_SEND_BUTTON).click()
+            try:
+                self.page.locator(ApplicationConnection.POPUP_SEND_BUTTON).click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось нажать кнопку отправки в попапе 'Заявка на подключение' (домашний интернет).\n"
+                    "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Получить список всех тарифных карточек")
@@ -179,12 +326,40 @@ class MegaHomeInternet(BasePage):
 
     @allure.title("Нажать кнопку Подключить на тарифной карточке")
     def click_tariff_connect_button(self, card_index):
-        self.page.locator(MainPageLocs.TARIFF_CONNECT_BUTTONS_TWO).nth(card_index).click()
+        try:
+            self.page.locator(MainPageLocs.TARIFF_CONNECT_BUTTONS_TWO).nth(card_index).click()
+        except Exception as e:
+            raise AssertionError(
+                f"Не удалось нажать кнопку 'Подключить' на карточке тарифа #{card_index} (домашний интернет).\n"
+                "Возможно, элемент недоступен, перекрыт или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Отправить заявку на подключение тарифа")
     def send_tariff_connection_request(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(ApplicationConnection.NAME_INPUT).fill("Тестимя")
-            self.page.locator(CheckConnectApplicationForms.TARIFF_PHONE_INPUT).fill("99999999999")
-            self.page.locator(ApplicationConnection.POPUP_SEND_BUTTON).click()
+            try:
+                self.page.locator(ApplicationConnection.NAME_INPUT).fill("Тестимя")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести имя в попапе подключения тарифа (домашний интернет).\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
+            try:
+                self.page.locator(CheckConnectApplicationForms.TARIFF_PHONE_INPUT).fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести телефон в попапе подключения тарифа (домашний интернет).\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
+            try:
+                self.page.locator(ApplicationConnection.POPUP_SEND_BUTTON).click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось отправить попап подключения тарифа (домашний интернет).\n"
+                    "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(4)

@@ -22,7 +22,7 @@ from locators.mts.mts_home_online import RegionChoice
 
 class MainSteps(BasePage):
 
-    @allure.title("Отправить заявку в попап 'Выгодное спецпредложение!' с домом 1, при недоступности — 2")
+    @allure.title("Отправить заявку в попап 'Выгодное спецпредложение!' с домом 1, при недоступности — 2 или 3")
     def send_popup_profit(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
@@ -38,24 +38,18 @@ class MainSteps(BasePage):
                     f"Не удалось выбрать первую подсказку улицы. Возможные причины: подсказки не подгрузились или изменился селектор. Детали: {e}"
                 )
             time.sleep(1)
-            # Пытаемся дом 1, при неудаче — дом 2
-            try:
-                house_selected = False
+            # Пытаемся дом 1, при неудаче — 2, затем 3
+            tried_any = False
+            for num in ("1", "2", "3"):
                 try:
-                    self.page.locator(Profit.HOUSE).fill("1")
+                    self.page.locator(Profit.HOUSE).fill(num)
                     self._click_first_available_house()
-                    house_selected = True
+                    tried_any = True
+                    break
                 except Exception:
-                    pass
-                if not house_selected:
-                    self.page.locator(Profit.HOUSE).fill("2")
-                    self._click_first_available_house()
-            except AssertionError as e:
-                raise
-            except Exception as e:
-                raise AssertionError(
-                    f"Не удалось указать дом (1 или 2) в форме 'Выгодное спецпредложение!'. Детали: {e}"
-                )
+                    continue
+            if not tried_any:
+                raise AssertionError("Не удалось указать дом (1, 2 или 3) в форме 'Выгодное спецпредложение!'.")
             time.sleep(1)
             try:
                 self.page.locator(Profit.PHONE).fill("99999999999")
@@ -211,79 +205,205 @@ class MainSteps(BasePage):
 
     @allure.title("Нажать на кнопку Изменить город")
     def button_change_city_checkaddress(self):
-        self.page.locator(Checkaddress.BUTTON_CHANGE_CITY).click()
+        try:
+            self.page.locator(Checkaddress.BUTTON_CHANGE_CITY).click()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось нажать кнопку 'Изменить город' в блоке 'Проверить адрес'.\n"
+                "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Нажать на кнопку Изменить город")
     def button_change_city_moving(self):
-        self.page.locator(Moving.BUTTON_CHANGE_CITY).click()
+        try:
+            self.page.locator(Moving.BUTTON_CHANGE_CITY).click()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось нажать кнопку 'Изменить город' в блоке 'Переезд'.\n"
+                "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Нажать на кнопку Изменить город")
     def button_change_city_express_connection(self):
-        self.page.locator(ExpressConnection.BUTTON_CHANGE_CITY).click()
+        try:
+            self.page.locator(ExpressConnection.BUTTON_CHANGE_CITY).click()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось нажать кнопку 'Изменить город' в форме 'Экспресс подключение'.\n"
+                "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Нажать на кнопку Изменить город в блоке 'Остались вопросы?' по индексу (1-based)")
     def button_change_city_undecideds(self, index: int):
-        self.page.locator(Undecided.BUTTON_CHANGE_CITY).nth(index - 1).click()
+        try:
+            self.page.locator(Undecided.BUTTON_CHANGE_CITY).nth(index - 1).click()
+        except Exception as e:
+            raise AssertionError(
+                f"Не удалось нажать кнопку 'Изменить город' в блоке 'Остались вопросы?' (индекс {index}).\n"
+                "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Нажать на кнопку Изменить город в блоке 'Проверить адрес' по индексу (1-based)")
     def button_change_city_checkaddress_block(self, index: int):
-        self.page.locator(Checkaddress.BUTTON_CHANGE_CITY_BLOCK).nth(index - 1).click()
+        try:
+            self.page.locator(Checkaddress.BUTTON_CHANGE_CITY_BLOCK).nth(index - 1).click()
+        except Exception as e:
+            raise AssertionError(
+                f"Не удалось нажать кнопку 'Изменить город' в блоке 'Проверить адрес' (индекс {index}).\n"
+                "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Закрыть попап")
     def close_popup(self):
-        self.page.locator(Main.CLOSE).click()
+        try:
+            self.page.locator(Main.CLOSE).click()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось закрыть попап.\n"
+                "Возможно попап перекрыл экран, кнопка закрытия пропала или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def open_popup_for_colorful_button(self):
-        self.page.locator(Profit.COLORFUL_BUTTON).click()
+        try:
+            self.page.locator(Profit.COLORFUL_BUTTON).click()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось нажать на плавающую красную кнопку (телефон) в правом нижнем углу.\n"
+                "Возможно элемент перекрыт попапом, скрыт или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Нажать на кнопку Подключиться в хедере")
     def open_popup_express_connection_button(self):
-        self.page.locator(ExpressConnection.FORM_BUTTON).click()
+        try:
+            self.page.locator(ExpressConnection.FORM_BUTTON).click()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось нажать кнопку 'Подключиться' в хедере.\n"
+                "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Кликнуть на кнопку Подключить по индексу (1-based)")
     def click_connect_button_index(self, index: int):
         selector = f"(//button[contains(@class,'connection_address_button')])[{index}]"
-        self.page.locator(selector).click()
+        try:
+            self.page.locator(selector).click()
+        except Exception as e:
+            raise AssertionError(
+                f"Не удалось кликнуть по кнопке 'Подключить' №{index}.\n"
+                "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Кликнуть на кнопку Подключить по индексу (1-based)")
     def click_connect_button_index_cards(self, index: int):
         selector = f"xpath=(//button[contains(@class,'connection_address_card_button')])[{index}]"
-        self.page.locator(selector).click()
+        try:
+            self.page.locator(selector).click()
+        except Exception as e:
+            raise AssertionError(
+                f"Не удалось кликнуть по кнопке 'Подключить' (карточка) №{index}.\n"
+                "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Кликнуть на кнопку Проверить адрес по индексу (1-based)")
     def click_checkaddress_popup_index(self, index: int):
         selector = f"xpath=(//button[contains(@class,'checkaddress_address_button')])[{index}]"
-        self.page.locator(selector).click()
+        try:
+            self.page.locator(selector).click()
+        except Exception as e:
+            raise AssertionError(
+                f"Не удалось кликнуть по кнопке 'Проверить адрес' №{index}.\n"
+                "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Кликнуть на кнопку Переехать по индексу (1-based)")
     def click_moving_popup_index(self, index: int):
         selector = f"xpath=(//button[contains(@class,'moving_address_button')])[{index}]"
-        self.page.locator(selector).click()
+        try:
+            self.page.locator(selector).click()
+        except Exception as e:
+            raise AssertionError(
+                f"Не удалось кликнуть по кнопке 'Переехать' №{index}.\n"
+                "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Посчитать количество кнопок Подключить")
     def count_connect_buttons(self) -> int:
-        return self.page.locator(Connection.CONNECT_BUTTON).count()
+        try:
+            return self.page.locator(Connection.CONNECT_BUTTON).count()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось посчитать кнопки 'Подключить'.\n"
+                "Возможно элементы отсутствуют на странице или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Посчитать количество кнопок Подключить")
     def count_connect_buttons_cards(self) -> int:
-        return self.page.locator(Connection.CARDS_BUTTONS).count()
+        try:
+            return self.page.locator(Connection.CARDS_BUTTONS).count()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось посчитать кнопки 'Подключить' в карточках.\n"
+                "Возможно элементы отсутствуют на странице или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Посчитать количество кнопок Проверить адрес")
     def count_checkaddress_popup_buttons(self) -> int:
-        return self.page.locator(Checkaddress.CHECKADDRESS_BUTTON_POPUP).count()
+        try:
+            return self.page.locator(Checkaddress.CHECKADDRESS_BUTTON_POPUP).count()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось посчитать кнопки 'Проверить адрес' (попап).\n"
+                "Возможно элементы отсутствуют на странице или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Посчитать количество блоков Проверить адрес")
     def count_checkaddress_blocks(self) -> int:
-        return self.page.locator(Checkaddress.CHECKADDRESS_BLOCK).count()
+        try:
+            return self.page.locator(Checkaddress.CHECKADDRESS_BLOCK).count()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось посчитать блоки 'Проверить адрес'.\n"
+                "Возможно элементы отсутствуют на странице или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Посчитать количество блоков формы Остались вопросы?")
     def count_undecided_blocks(self) -> int:
-        return self.page.locator(Undecided.UNDECIDED_BLOCK).count()
+        try:
+            return self.page.locator(Undecided.UNDECIDED_BLOCK).count()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось посчитать блоки формы 'Остались вопросы?'.\n"
+                "Возможно элементы отсутствуют на странице или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Посчитать количество кнопок Переехать")
     def count_moving_popup_buttons(self) -> int:
-        return self.page.locator(Moving.MOVING_BUTTON).count()
+        try:
+            return self.page.locator(Moving.MOVING_BUTTON).count()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось посчитать кнопки 'Переехать'.\n"
+                "Возможно элементы отсутствуют на странице или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Посчитать количество кнопок Подробнее на странице бизнеса")
     def count_business_buttons(self) -> int:
@@ -300,6 +420,21 @@ class MainSteps(BasePage):
         # index <= 0: клик по кнопке в хэдере (первой доступной)
         # index >= 1: клик по кнопке 'Подробнее' на странице бизнеса по индексу (1-based)
         if index <= 0:
+            # Особый случай: для https://mts-home-online.ru/business используем только BUSINESS_BUTTON_THIRD
+            try:
+                current_url = (self.page.url or "").rstrip("/")
+            except Exception:
+                current_url = ""
+            if current_url.startswith("https://mts-home-online.ru/business"):
+                try:
+                    self.page.locator(Business.BUSINESS_BUTTON_THIRD).click(timeout=3000)
+                    return
+                except Exception as e:
+                    raise AssertionError(
+                        "Не удалось нажать кнопку раздела 'Бизнес' в хедере на странице /business.\n"
+                        "Использовался селектор BUSINESS_BUTTON_THIRD (xpath=(//a[text()='Бизнесу'])[2]).\n"
+                        f"Технические детали: {e}"
+                    )
             header_candidates = [
                 getattr(Business, "BUSINESS_BUTTON", None),
                 getattr(Business, "BUSINESS_BUTTON_SECOND", None),
@@ -1190,3 +1325,81 @@ class MainSteps(BasePage):
                     f"Подробности: {str(e)}"
                 )
 
+    @allure.title("Перейти по одному случайному городу (в той же вкладке) из уже открытого попапа и проверить")
+    def click_random_city_and_verify_new_cutyloc(self):
+        # Попап должен быть уже открыт извне
+        try:
+            self.page.locator("xpath=//table[@class='city_list']").wait_for(state="visible", timeout=7000)
+        except Exception:
+            self.page.locator(RegionChoice.CITY_LOC).first.wait_for(state="attached", timeout=7000)
+
+        total_now = self.page.locator(RegionChoice.CITY_LOC).count()
+        if total_now == 0:
+            raise AssertionError(
+                "Список городов пуст. Не найден ни один элемент по локатору RegionChoice.RANSOM_CITY_BUTTON.\n"
+                "Возможные причины: попап не открыт, список городов не подгрузился, разметка изменилась."
+            )
+
+        rand_index = random.randint(1, total_now)
+        city_item = self.page.locator(RegionChoice.CITY_LOC).nth(rand_index - 1)
+        city_name = (city_item.text_content() or "").strip()
+        expected_city = re.sub(r"\s*\(.*?\)\s*$", "", city_name).strip()
+        city_href = city_item.get_attribute("href") or ""
+        href_host = urlparse(city_href).netloc
+
+        with allure.step(f"Открыть город: {city_name} (idx {rand_index}) в той же вкладке"):
+            city_item.scroll_into_view_if_needed()
+            city_item.click(force=True)
+
+        # Ожидаем навигацию и выполняем строгую проверку: при несоответствии тест падает
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=15000)
+        except Exception:
+            try:
+                self.page.wait_for_load_state("load", timeout=10000)
+            except Exception:
+                pass
+        found_region_ui = False
+        try:
+            self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=5000)
+            found_region_ui = True
+        except Exception:
+            try:
+                self.page.locator(RegionChoice.TELE_REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                found_region_ui = True
+            except Exception:
+                try:
+                    self.page.locator(RegionChoice.REGION_CHOICE_BUTTON).first.wait_for(state="attached", timeout=3000)
+                    found_region_ui = True
+                except Exception:
+                    pass
+        try:
+            expect(self.page).not_to_have_url("**/404")
+        except AssertionError:
+            raise AssertionError(
+                f"Открылась страница 404 при переходе в город '{city_name}' (idx {rand_index}).\n"
+                f"Переходили по ссылке: {city_href or '—'}, текущий URL: {self.page.url or '—'}.\n"
+                "Похоже, что ссылка на город ведёт на несуществующую страницу."
+            )
+        if not found_region_ui:
+            raise AssertionError(
+                f"Не удалось обнаружить элементы выбора региона на странице города '{city_name}' (idx {rand_index}).\n"
+                "Ожидались элементы из набора: NEW_REGION_CHOICE_BUTTON / TELE_REGION_CHOICE_BUTTON / REGION_CHOICE_BUTTON.\n"
+                "Возможные причины: страница не успела инициализировать UI, изменилась разметка или открыт неверный экран."
+            )
+
+        if href_host and href_host.endswith(".mts-home.online") and href_host != "mts-home.online":
+            assert href_host in (self.page.url or ""), (
+                f"Открыт неверный домен для города '{city_name}'.\n"
+                f"Ожидали домен: {href_host}, получили: {self.page.url or '—'}.\n"
+                "Ссылка на город ведёт на другой домен."
+            )
+        else:
+            try:
+                self._verify_city_label_accepts_variants(expected_city)
+            except AssertionError as e:
+                raise AssertionError(
+                    f"Выбранный город не отобразился в хедере.\n"
+                    f"Ожидали город: '{expected_city}', текущий URL: {self.page.url or '—'}.\n"
+                    f"Подробности: {str(e)}"
+                )

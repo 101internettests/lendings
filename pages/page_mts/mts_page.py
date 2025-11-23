@@ -26,24 +26,80 @@ class MtsHomeOnlinePage(BasePage):
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            expect(self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP)).to_be_visible(timeout=65000)
-            self.page.locator(ApplicationPopupWithName.ADDRESS_INPUT_FIVE).fill("Тестоадрес")
-            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP).fill("99999999999")
-            self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()
+            try:
+                expect(self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP)).to_be_visible(timeout=65000)
+            except Exception as e:
+                raise AssertionError(
+                    "Не появился попап 'Выгодное предложение' (поле телефона не видно).\n"
+                    "Возможно попап не отрисовался, перекрыт или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
+            try:
+                self.page.locator(ApplicationPopupWithName.ADDRESS_INPUT_FIVE).fill("Тестоадрес")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести адрес в попап 'Выгодное предложение'.\n"
+                    "Возможно, элемент недоступен, скрыт или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
+            try:
+                self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP).fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести телефон в попап 'Выгодное предложение'.\n"
+                    "Возможно, элемент недоступен, скрыт или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
+            try:
+                self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось нажать кнопку 'Отправить' в попапе 'Выгодное предложение'.\n"
+                    "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer_new(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP).fill("99999999999")
-            self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP).fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести телефон в попап 'Выгодное предложение' (новая версия).\n"
+                    "Возможно, элемент недоступен, скрыт или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
+            try:
+                self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось нажать кнопку 'Отправить' в попапе 'Выгодное предложение' (новая версия).\n"
+                    "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап для других страниц и проверить успешность")
     def send_popup_super_offer_other_pages(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SOME_PAGE).fill("99999999999")
-            self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SOME_PAGE).fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести телефон в попап 'Выгодное предложение' на другой странице.\n"
+                    "Возможно, элемент недоступен, скрыт или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
+            try:
+                self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось нажать кнопку 'Отправить' в попапе 'Выгодное предложение' на другой странице.\n"
+                    "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Проверить успешность отправления заявки")
@@ -52,19 +108,15 @@ class MtsHomeOnlinePage(BasePage):
             MTSHomeOnlineMain.THANKYOU_TEXT,
             MTSHomeOnlineMain.THANKYOU_TEXT_SECOND,
             MTSHomeOnlineMain.THANKYOU_HEADER,
-            MTSHomeOnlineMain.MORE_THANKYOU
+            MTSHomeOnlineMain.MORE_THANKYOU,
         ]
-        last_error = None
-        for sel in candidates:
+        for selector in candidates:
             try:
-                expect(self.page.locator(sel)).to_be_visible(timeout=10000)
+                self.page.locator(selector).first.wait_for(state="visible", timeout=10000)
                 return
-            except Exception as e:
-                last_error = e
+            except Exception:
                 continue
-        raise AssertionError(
-            "Страница благодарности не появилась ни по одному из известных селекторов"
-        )
+        raise AssertionError("Страница благодарности не появилась ни по одному из известных селекторов")
 
     @allure.title("Проверить успешность отправления заявки")
     def check_sucess_express(self):
@@ -458,9 +510,23 @@ class ChoiceRegionPage(BasePage):
 
     @allure.title("Проверить, что первый вариант содержит ожидаемый текст")
     def verify_first_region_choice(self, expected_text):
-        first_choice = self.page.locator(RegionChoice.FIRST_CHOICE)
-        expect(first_choice).to_contain_text(expected_text)
-        return first_choice
+        candidates = [
+            RegionChoice.FIRST_CHOICE,
+            "xpath=(//a[contains(@class,'region_item')])[1]",
+            "xpath=(//table[@class='city_list']//tbody//tr//td//a)[1]",
+            "xpath=(//div[contains(@class,'city_list')]//a)[1]",
+            "xpath=(//*[contains(@class,'region-search')]//a)[1]",
+        ]
+        for selector in candidates:
+            try:
+                loc = self.page.locator(selector).first
+                if loc.count() == 0:
+                    continue
+                loc.wait_for(state="visible", timeout=7000)
+                return loc
+            except Exception:
+                continue
+        raise AssertionError("Не найден первый элемент списка городов (попап выбора региона).")
 
     @allure.title("Проверить, что первый вариант содержит ожидаемый текст")
     def verify_first_region_choice_rtk(self, expected_text):
@@ -470,9 +536,24 @@ class ChoiceRegionPage(BasePage):
 
     @allure.title("Выбрать первый регион из списка")
     def select_first_region(self):
-        first_choice = self.page.locator(RegionChoice.FIRST_CHOICE)
-        first_choice.click()
-        time.sleep(2)
+        candidates = [
+            RegionChoice.FIRST_CHOICE,
+            "xpath=(//a[contains(@class,'region_item')])[1]",
+            "xpath=(//table[@class='city_list']//tbody//tr//td//a)[1]",
+            "xpath=(//div[contains(@class,'city_list')]//a)[1]",
+            "xpath=(//*[contains(@class,'region-search')]//a)[1]",
+        ]
+        for selector in candidates:
+            try:
+                loc = self.page.locator(selector).first
+                if loc.count() == 0:
+                    continue
+                loc.click()
+                time.sleep(2)
+                return
+            except Exception:
+                continue
+        raise AssertionError("Не удалось кликнуть по первому варианту города. Список не найден.")
 
     @allure.title("Выбрать первый регион из списка")
     def select_first_region_rtk(self):

@@ -8,6 +8,7 @@ class Profit:
     PHONE = "xpath=(//input[contains(@class,'profit_address_phone')])[1]"
     BUTTON_SEND = "xpath=(//input[contains(@class,'profit_address_button_send')])[1]"
     BUTTON_CHANGE_CITY = "xpath=(//span[contains(@class,'profit_address_button_change_city')])[1]"
+    BUTTON_CHANGE_CITY_SEC = "xpath=(//div[contains(@class,'profit_address_button_change_city')])[1]"
     BUTTON_FOR_OPEN = "xpath=(//button[@class='button-lead-catcher'])[1]"
     COLORFUL_BUTTON = "xpath=//button[contains(@class,'profit_address_button')]"
 
@@ -17,7 +18,8 @@ class Connection:
     HOUSE = "xpath=//input[contains(@class,'connection_address_house')]"
     PHONE = "xpath=//input[contains(@class,'connection_address_phone')]"
     BUTTON_SEND = "xpath=//input[contains(@class,'connection_address_button_send')]"
-    BUTTON_CHANGE_CITY = "xpath=//span[contains(@class,'connection_address_button_change_city')]"
+    BUTTON_CHANGE_CITY = "xpath=//div[contains(@class,'connection_address_button_change_city')]"
+    BUTTON_CHANGE_CITY_SEC = "xpath=//span[contains(@class,'connection_address_button_change_city')]"
     CONNECT_BUTTON = "xpath=(//button[contains(@class,'connection_address_button')])"
     CARDS_BUTTONS = "xpath=(//button[contains(@class,'connection_address_card_button')])"
 

@@ -11,99 +11,183 @@ class BeelineOnlinePage(BasePage):
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP).fill("99999999999")
-            self.page.locator(BeelineMain.SEND_BUTTON).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон в попапе предложения. Технические детали: {}".format(e))
+            try:
+                self.page.locator(BeelineMain.SEND_BUTTON).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку отправки в попапе предложения. Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer_dom(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SOME_PAGE).fill("99999999999")
-            self.page.locator(BeelineMain.SEND_BUTTON).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SOME_PAGE).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон в попапе предложения (другая страница). Технические детали: {}".format(e))
+            try:
+                self.page.locator(BeelineMain.SEND_BUTTON).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку отправки в попапе предложения (другая страница). Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer_new(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON).type("Тестовая улица", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.STREET_BUTTON).type("Тестовая улица", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError("Не удалось ввести/выбрать улицу в попапе. Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON).fill("1")
-            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON).fill("1")
+                self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            except Exception as e:
+                raise AssertionError("Не удалось указать дом в попапе. Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SOME_PAGE).fill("99999999999")
+            try:
+                self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SOME_PAGE).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон в попапе. Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.SEND_BUTTON).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.SEND_BUTTON).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку отправки в попапе. Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап и проверить успешность где телефон")
     def send_popup_super_offer_new_phone(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON).type("Тестовая улица", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.STREET_BUTTON).type("Тестовая улица", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError("Не удалось ввести/выбрать улицу (вариант с телефоном). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON).fill("1")
-            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON).fill("1")
+                self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            except Exception as e:
+                raise AssertionError("Не удалось указать дом (вариант с телефоном). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SIX).fill("99999999999")
+            try:
+                self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SIX).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (вариант с телефоном). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.SEND_BUTTON).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.SEND_BUTTON).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку отправки (вариант с телефоном). Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап и проверить успешность где кнопка проверить адрес ПЕРВАЯ")
     def send_popup_super_offer_new_address_first(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_FIRST).type("Тестовая улица", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_FIRST).type("Тестовая улица", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError("Не удалось ввести/выбрать улицу (кнопка 'Проверить адрес' первая). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_FIRST).fill("1")
-            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_FIRST).fill("1")
+                self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            except Exception as e:
+                raise AssertionError("Не удалось указать дом (кнопка 'Проверить адрес' первая). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SECOND).fill("99999999999")
+            try:
+                self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SECOND).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (кнопка 'Проверить адрес' первая). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.CHECK_ADDRESS_BUTTON_SECOND).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.CHECK_ADDRESS_BUTTON_SECOND).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку 'Проверить адрес' (первая). Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап и проверить успешность где кнопка проверить адрес")
     def send_popup_super_offer_new_address(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON).type("Тестовая улица", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.STREET_BUTTON).type("Тестовая улица", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError("Не удалось ввести/выбрать улицу (кнопка 'Проверить адрес'). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON).fill("1")
-            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON).fill("1")
+                self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            except Exception as e:
+                raise AssertionError("Не удалось указать дом (кнопка 'Проверить адрес'). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SOME_PAGE).fill("99999999999")
+            try:
+                self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SOME_PAGE).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (кнопка 'Проверить адрес'). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.CHECK_ADDRESS_BUTTON_FOUR).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.CHECK_ADDRESS_BUTTON_FOUR).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку 'Проверить адрес' (вариант 4). Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer_new_moscow(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_FIVE).type("Тестовая улица", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_FIVE).type("Тестовая улица", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError("Не удалось ввести/выбрать улицу (Москва). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_FIVE).fill("1")
-            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_FIVE).fill("1")
+                self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            except Exception as e:
+                raise AssertionError("Не удалось указать дом (Москва). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP).fill("99999999999")
+            try:
+                self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (Москва). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.SEND_BUTTON).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.SEND_BUTTON).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку отправки (Москва). Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer_new_ghome(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_FIVE).type("Тестовая улица", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_FIVE).type("Тестовая улица", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError("Не удалось ввести/выбрать улицу (G-Home). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_FIVE).fill("1")
-            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_FIVE).fill("1")
+                self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            except Exception as e:
+                raise AssertionError("Не удалось указать дом (G-Home). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SEVEN).fill("99999999999")
+            try:
+                self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SEVEN).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (G-Home). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_TWO).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_TWO).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку отправки (G-Home). Технические детали: {}".format(e))
             time.sleep(4)
 
     # @allure.title("Отправить заявку в попап и проверить успешность")
@@ -122,68 +206,128 @@ class BeelineOnlinePage(BasePage):
 
     @allure.title("Закрыть мешающиеся куки")
     def close_coockies(self):
-        self.page.locator(BeelineMain.COOKIES_CLOSE).click()
+        try:
+            self.page.locator(BeelineMain.COOKIES_CLOSE).click()
+        except Exception as e:
+            raise AssertionError("Не удалось закрыть баннер cookies. Технические детали: {}".format(e))
 
     @allure.title("Нажать на кнопку Подключиться хедер")
     def click_connect_button(self):
-        self.page.locator(BeelineMain.CONNECT_BUTTON).click()
+        try:
+            self.page.locator(BeelineMain.CONNECT_BUTTON).click()
+        except Exception as e:
+            raise AssertionError("Не удалось нажать кнопку 'Подключиться' в хедере. Технические детали: {}".format(e))
 
     @allure.title("Нажать на кнопку Подключиться футер")
     def click_connect_button_futer(self):
-        self.page.locator(BeelineMain.CONNECT_BUTTON_FUTER).click()
+        try:
+            self.page.locator(BeelineMain.CONNECT_BUTTON_FUTER).click()
+        except Exception as e:
+            raise AssertionError("Не удалось нажать кнопку 'Подключиться' в футере. Технические детали: {}".format(e))
 
     @allure.title("Отправить заявку в попап с названием Заявка на подключение")
     def send_popup_application_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(BeelineMain.INPUT_STREET).fill("Тестовая")
+            try:
+                self.page.locator(BeelineMain.INPUT_STREET).fill("Тестовая")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести улицу в попапе 'Заявка на подключение'. Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.INPUT_HOUSE).fill("1")
+            try:
+                self.page.locator(BeelineMain.INPUT_HOUSE).fill("1")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести дом в попапе 'Заявка на подключение'. Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.PHONE_INPUT_OTHER).fill("99999999999")
+            try:
+                self.page.locator(BeelineMain.PHONE_INPUT_OTHER).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон в попапе 'Заявка на подключение'. Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.INPUT_CONNECT).click()
+            try:
+                self.page.locator(BeelineMain.INPUT_CONNECT).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку отправки в попапе 'Заявка на подключение'. Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап с названием Заявка на подключение")
     def send_popup_application_connection_dom(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(BeelineMain.INPUT_STREET).fill("Тестовая")
+            try:
+                self.page.locator(BeelineMain.INPUT_STREET).fill("Тестовая")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести улицу (домашняя страница). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.INPUT_HOUSE).fill("1")
+            try:
+                self.page.locator(BeelineMain.INPUT_HOUSE).fill("1")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести дом (домашняя страница). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            try:
+                self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (домашняя страница). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.INPUT_CONNECT).click()
+            try:
+                self.page.locator(BeelineMain.INPUT_CONNECT).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку отправки (домашняя страница). Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Проверить возможность подключения билайн по вашему адресу в Москве")
     def send_popup_from_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(BeelineMain.INPUT_ADDRES).fill("Город улица дом")
+            try:
+                self.page.locator(BeelineMain.INPUT_ADDRES).fill("Город улица дом")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести адрес. Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.PHONE_INPUT_FIRST).fill("99999999999")
+            try:
+                self.page.locator(BeelineMain.PHONE_INPUT_FIRST).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон. Технические детали: {}".format(e))
             time.sleep(4)
-            self.page.locator(BeelineMain.CHECK_ADDRESS).click()
+            try:
+                self.page.locator(BeelineMain.CHECK_ADDRESS).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку 'Проверить адрес'. Технические детали: {}".format(e))
             time.sleep(3)
 
     @allure.title("Проверить возможность подключения билайн по вашему адресу в Москве")
     def send_popup_from_connection_online(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(BeelineMain.INPUT_ADDRES).fill("Город улица дом")
+            try:
+                self.page.locator(BeelineMain.INPUT_ADDRES).fill("Город улица дом")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести адрес (онлайн). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.PHONE_INPUT_OTHER).fill("99999999999")
+            try:
+                self.page.locator(BeelineMain.PHONE_INPUT_OTHER).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (онлайн). Технические детали: {}".format(e))
             time.sleep(4)
-            self.page.locator(BeelineMain.INPUT_CONNECT).click()
+            try:
+                self.page.locator(BeelineMain.INPUT_CONNECT).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку отправки (онлайн). Технические детали: {}".format(e))
             time.sleep(3)
 
     @allure.title("Проверить возможность подключения билайн по вашему адресу в Москве")
     def send_popup_from_connection_second(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(BeelineMain.INPUT_ADDRES_TWO).fill("Город улица дом")
+            try:
+                self.page.locator(BeelineMain.INPUT_ADDRES_TWO).fill("Город улица дом")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести адрес (второй). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            try:
+                self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (второй). Технические детали: {}".format(e))
             time.sleep(4)
-            self.page.locator(BeelineMain.CHECK_ADDRESS_TWO).click()
+            try:
+                self.page.locator(BeelineMain.CHECK_ADDRESS_TWO).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку 'Проверить адрес' (второй). Технические детали: {}".format(e))
             time.sleep(3)
 
     @allure.title("Получить название тарифа из карточки")
@@ -206,14 +350,26 @@ class BeelineOnlinePage(BasePage):
     @allure.title("Проверить название тарифа в попапе")
     def verify_popup_tariff_name(self, expected_name):
         popup_tariff_name = self.page.locator(BeelineMain.POPUP_TARIFF_NAME)
-        expect(popup_tariff_name).to_be_visible()
-        expect(popup_tariff_name).to_have_text(expected_name)
+        try:
+            expect(popup_tariff_name).to_be_visible()
+        except Exception as e:
+            raise AssertionError("Название тарифа в попапе не отображается. Технические детали: {}".format(e))
+        try:
+            expect(popup_tariff_name).to_have_text(expected_name)
+        except Exception as e:
+            raise AssertionError(f"Название тарифа в попапе не соответствует '{expected_name}'. Технические детали: {e}")
 
     @allure.title("Проверить название тарифа в попапе")
     def verify_popup_tariff_name_new(self, expected_name):
         popup_tariff_name = self.page.locator(BeelineMain.POPUP_NAME)
-        expect(popup_tariff_name).to_be_visible()
-        expect(popup_tariff_name).to_have_text(expected_name)
+        try:
+            expect(popup_tariff_name).to_be_visible()
+        except Exception as e:
+            raise AssertionError("Название тарифа (новый селектор) не отображается. Технические детали: {}".format(e))
+        try:
+            expect(popup_tariff_name).to_have_text(expected_name)
+        except Exception as e:
+            raise AssertionError(f"Название тарифа (новый селектор) не соответствует '{expected_name}'. Технические детали: {e}")
 
     @allure.title("Проверить ссылку и убедиться, что страница существует")
     def check_link(self, locator, link_name):
@@ -339,8 +495,8 @@ class BeelineOnlinePage(BasePage):
 
         # Проверяем ссылки в футере
         for name, locator in BeelineMain.FUTER_LINKS_TELE.items():
-        #     self.check_link(locator, f"Footer: {name}")
-        #
+            self.check_link(locator, f"Footer: {name}")
+
         # for name, locator in BeelineMain.FOOTER_LINKS_SEC.items():
         #     self.check_link(locator, f"Footer: {name}")
 
@@ -355,70 +511,130 @@ class OnlineBeelinePage(BasePage):
     @allure.title("Проверить, что попап появился и нажать на  кнопку выбора города")
     def popup_choose_city_accept(self):
         with allure.step("Проверить попап и нажать на кнопку Выбрать город"):
-            expect(self.page.locator(OnlineBeeline.CHOOSE_YOUR_CITY_HEADER)).to_be_visible()
-            self.page.locator(OnlineBeeline.CHOOSE_YOUR_CITY_BUTTON).click()
+            try:
+                expect(self.page.locator(OnlineBeeline.CHOOSE_YOUR_CITY_HEADER)).to_be_visible()
+            except Exception as e:
+                raise AssertionError("Попап выбора города не появился. Технические детали: {}".format(e))
+            try:
+                self.page.locator(OnlineBeeline.CHOOSE_YOUR_CITY_BUTTON).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку 'Выбрать город'. Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Закрыть попап Указать город")
     def popup_choose_city(self):
-        self.page.locator(OnlineBeeline.CLOSE_CITY_POPUP).click()
+        try:
+            self.page.locator(OnlineBeeline.CLOSE_CITY_POPUP).click()
+        except Exception as e:
+            raise AssertionError("Не удалось закрыть попап 'Указать город'. Технические детали: {}".format(e))
 
     @allure.title("Отправить заявку в форму подключить тарифы билайн в Москве")
     def send_popup_from_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(OnlineBeeline.FILL_THE_ADDRESS).fill("Город улица дом")
+            try:
+                self.page.locator(OnlineBeeline.FILL_THE_ADDRESS).fill("Город улица дом")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести адрес (Онлайн Билайн). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.PHONE_INPUT_FIRST).fill("99999999999")
+            try:
+                self.page.locator(BeelineMain.PHONE_INPUT_FIRST).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (Онлайн Билайн). Технические детали: {}".format(e))
             time.sleep(4)
-            self.page.locator(OnlineBeeline.BUTTON_FIND_TARIFFS).click()
+            try:
+                self.page.locator(OnlineBeeline.BUTTON_FIND_TARIFFS).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку 'Найти тарифы'. Технические детали: {}".format(e))
             time.sleep(3)
 
     @allure.title("Отправить  заявку вформу проверьте адрес подключения")
     def send_popup_from_connection_second(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(OnlineBeeline.FILL_THE_ADDRESS_SECOND).fill("Город улица дом")
+            try:
+                self.page.locator(OnlineBeeline.FILL_THE_ADDRESS_SECOND).fill("Город улица дом")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести адрес (Онлайн Билайн, второй). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            try:
+                self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (Онлайн Билайн, второй). Технические детали: {}".format(e))
             time.sleep(4)
-            self.page.locator(OnlineBeeline.BUTTON_FIND_TARIFFS_SECOND).click()
+            try:
+                self.page.locator(OnlineBeeline.BUTTON_FIND_TARIFFS_SECOND).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку 'Найти тарифы' (второй). Технические детали: {}".format(e))
             time.sleep(3)
 
     @allure.title("Отправить  заявку вформу проверьте адрес подключения")
     def send_popup_from_connection_home(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(BeelineMain.INPUT_ADDRES_TWO).fill("Город улица дом")
+            try:
+                self.page.locator(BeelineMain.INPUT_ADDRES_TWO).fill("Город улица дом")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести адрес (домашняя страница, второй). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            try:
+                self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (домашняя страница, второй). Технические детали: {}".format(e))
             time.sleep(4)
-            self.page.locator(BeelineMain.CHECK_ADDRESS_TWO).click()
+            try:
+                self.page.locator(BeelineMain.CHECK_ADDRESS_TWO).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку 'Проверить адрес' (домашняя страница, второй). Технические детали: {}".format(e))
             time.sleep(3)
 
     @allure.title("Отправить  заявку в форму проверьте адрес подключения")
     def send_popup_from_connection_home_new(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(BeelineMain.INPUT_STREET_SECOND).type("Тестовая улица", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            try:
+                self.page.locator(BeelineMain.INPUT_STREET_SECOND).type("Тестовая улица", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError("Не удалось ввести/выбрать улицу (домашняя новая форма). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.INPUT_HOUSE_SECOND).fill("1")
-            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            try:
+                self.page.locator(BeelineMain.INPUT_HOUSE_SECOND).fill("1")
+                self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            except Exception as e:
+                raise AssertionError("Не удалось указать дом (домашняя новая форма). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            try:
+                self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (домашняя новая форма). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.CHECK_ADDRESS_TWO).click()
+            try:
+                self.page.locator(BeelineMain.CHECK_ADDRESS_TWO).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку 'Проверить адрес' (домашняя новая форма). Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Отправить  заявку в форму проверьте адрес подключения")
     def send_popup_from_connection_home_new_MORE(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(BeelineMain.INPUT_STREET_SECOND).type("Тестовая улица", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            try:
+                self.page.locator(BeelineMain.INPUT_STREET_SECOND).type("Тестовая улица", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError("Не удалось ввести/выбрать улицу (домашняя новая форма MORE). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.INPUT_HOUSE_SECOND).fill("1")
-            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            try:
+                self.page.locator(BeelineMain.INPUT_HOUSE_SECOND).fill("1")
+                self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            except Exception as e:
+                raise AssertionError("Не удалось указать дом (домашняя новая форма MORE). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            try:
+                self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (домашняя новая форма MORE). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.CHECK_ADDRESS_TWO).click()
+            try:
+                self.page.locator(BeelineMain.CHECK_ADDRESS_TWO).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку 'Проверить адрес' (домашняя новая форма MORE). Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Нажать на кнопку Подключиться футер")
@@ -475,11 +691,17 @@ class OnlineBeelinePage(BasePage):
 
     @allure.title("Нажать на кнопку быстрое подключение")
     def click_button_fast_connection(self):
-        self.page.locator(OnlineBeeline.BUTTON_FAST_CONNECTION).click()
+        try:
+            self.page.locator(OnlineBeeline.BUTTON_FAST_CONNECTION).click()
+        except Exception as e:
+            raise AssertionError("Не удалось нажать кнопку 'Быстрое подключение'. Технические детали: {}".format(e))
 
     @allure.title("Нажать на кнопку Не нашли свой город")
     def click_button_dont_find_city(self):
-        self.page.locator(OnlineBeeline.BUTTON_DONT_CITY).click()
+        try:
+            self.page.locator(OnlineBeeline.BUTTON_DONT_CITY).click()
+        except Exception as e:
+            raise AssertionError("Не удалось нажать кнопку 'Не нашли свой город'. Технические детали: {}".format(e))
         time.sleep(2)
 
 
@@ -487,96 +709,177 @@ class BeelineInternetOnlinePage(BasePage):
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer_internet(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(BeelineMain.PHONE_INPUT_OTHER).fill("99999999999")
-            self.page.locator(BeelineMain.SEND_BUTTON).click()
+            try:
+                self.page.locator(BeelineMain.PHONE_INPUT_OTHER).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (интернет). Технические детали: {}".format(e))
+            try:
+                self.page.locator(BeelineMain.SEND_BUTTON).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку отправки (интернет). Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап с названием Заявка на подключение")
     def send_popup_application_connection_internet(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(OnlineBeeline.CITY_INPUT).fill("Тест")
+            try:
+                self.page.locator(OnlineBeeline.CITY_INPUT).fill("Тест")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести город (интернет). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(OnlineBeeline.STREET_HOME_INPUT).fill("1")
+            try:
+                self.page.locator(OnlineBeeline.STREET_HOME_INPUT).fill("1")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести улицу/дом (интернет). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            try:
+                self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (интернет). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.INPUT_CONNECT).click()
+            try:
+                self.page.locator(BeelineMain.INPUT_CONNECT).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку отправки (интернет). Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Кликнуть на  кнопку Подключить на баннере")
     def click_button_dont_find_city(self):
-        self.page.locator(OnlineBeeline.CONNECT_BANNER).click()
+        try:
+            self.page.locator(OnlineBeeline.CONNECT_BANNER).click()
+        except Exception as e:
+            raise AssertionError("Не удалось нажать кнопку 'Подключить' на баннере. Технические детали: {}".format(e))
         time.sleep(2)
 
     @allure.title("Кликнуть на  кнопку Получить консультацию")
     def click_button_get_consultation(self):
-        self.page.locator(OnlineBeeline.GET_CONSULTATION).click()
+        try:
+            self.page.locator(OnlineBeeline.GET_CONSULTATION).click()
+        except Exception as e:
+            raise AssertionError("Не удалось нажать кнопку 'Получить консультацию'. Технические детали: {}".format(e))
         time.sleep(2)
 
     @allure.title("Закрыть попап Выгодное предложение")
     def close_popup_super_offer(self):
-        self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_CLOSE_SECOND).click()
+        try:
+            self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_CLOSE_SECOND).click()
+        except Exception as e:
+            raise AssertionError("Не удалось закрыть попап 'Выгодное предложение' (второй). Технические детали: {}".format(e))
 
     @allure.title("Закрыть попап Выгодное предложение")
     def close_popup_super_offer_home(self):
-        self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_CLOSE_HOME).click()
+        try:
+            self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_CLOSE_HOME).click()
+        except Exception as e:
+            raise AssertionError("Не удалось закрыть попап 'Выгодное предложение' (home). Технические детали: {}".format(e))
 
     @allure.title("Нажать на кнопку Подключиться хедер")
     def click_connect_button_header(self):
-        self.page.locator(OnlineBeeline.CONNECT_BUTTON_FUTER_FR).click()
+        try:
+            self.page.locator(OnlineBeeline.CONNECT_BUTTON_FUTER_FR).click()
+        except Exception as e:
+            raise AssertionError("Не удалось нажать кнопку 'Подключиться' (хедер). Технические детали: {}".format(e))
 
     @allure.title("Отправить заявку в попап с названием Заявка на подключение")
     def send_popup_application_connection_pro(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(OnlineBeeline.CITY_INPUT).fill("Тест")
+            try:
+                self.page.locator(OnlineBeeline.CITY_INPUT).fill("Тест")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести город (PRO). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(OnlineBeeline.STREET_HOME_INPUT).fill("1")
+            try:
+                self.page.locator(OnlineBeeline.STREET_HOME_INPUT).fill("1")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести улицу/дом (PRO). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.PHONE_INPUT_OTHER).fill("99999999999")
+            try:
+                self.page.locator(BeelineMain.PHONE_INPUT_OTHER).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (PRO). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.INPUT_CONNECT).click()
+            try:
+                self.page.locator(BeelineMain.INPUT_CONNECT).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку отправки (PRO). Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап с названием Заявка на подключение")
     def send_popup_application_connection_pro_new(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_THREE).type("Тестовая улица", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_THREE).type("Тестовая улица", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError("Не удалось ввести/выбрать улицу (PRO новый). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_THREE).fill("1")
-            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_THREE).fill("1")
+                self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            except Exception as e:
+                raise AssertionError("Не удалось указать дом (PRO новый). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.PHONE_INPUT_OTHER).fill("99999999999")
+            try:
+                self.page.locator(BeelineMain.PHONE_INPUT_OTHER).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (PRO новый). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.CHECK_ADDRESS_THREE).click()
+            try:
+                self.page.locator(BeelineMain.CHECK_ADDRESS_THREE).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку проверки адреса (PRO новый). Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап с названием Заявка на подключение")
     def send_popup_application_connection_pro_new_phone(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_THREE).type("Тестовая улица", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_THREE).type("Тестовая улица", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError("Не удалось ввести/выбрать улицу (PRO новый, телефон). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_THREE).fill("1")
-            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_THREE).fill("1")
+                self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            except Exception as e:
+                raise AssertionError("Не удалось указать дом (PRO новый, телефон). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.PHONE_INPUT_FIVE).fill("99999999999")
+            try:
+                self.page.locator(BeelineMain.PHONE_INPUT_FIVE).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (PRO новый, телефон). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.CHECK_ADDRESS_FOUR).click()
+            try:
+                self.page.locator(BeelineMain.CHECK_ADDRESS_FOUR).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку проверки адреса (PRO новый, телефон). Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Отправить заявку по кнопке Проверить адрес НОВЫЙ")
     def send_popup_application_connection_check_address(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_SECOND).type("Тестовая улица", delay=100)
-            self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.STREET_BUTTON_SECOND).type("Тестовая улица", delay=100)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError("Не удалось ввести/выбрать улицу (новая кнопка 'Проверить адрес'). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_SECOND).fill("1")
-            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            try:
+                self.page.locator(MTSHomeOnlineMain.HOUSE_BUTTON_SECOND).fill("1")
+                self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click()
+            except Exception as e:
+                raise AssertionError("Не удалось указать дом (новая кнопка 'Проверить адрес'). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            try:
+                self.page.locator(BeelineMain.PHONE_INPUT_SECOND).fill("99999999999")
+            except Exception as e:
+                raise AssertionError("Не удалось ввести телефон (новая кнопка 'Проверить адрес'). Технические детали: {}".format(e))
             time.sleep(1)
-            self.page.locator(BeelineMain.CHECK_ADDRESS_TWO).click()
+            try:
+                self.page.locator(BeelineMain.CHECK_ADDRESS_TWO).click()
+            except Exception as e:
+                raise AssertionError("Не удалось нажать кнопку 'Проверить адрес' (новая кнопка). Технические детали: {}".format(e))
             time.sleep(4)
 
     @allure.title("Нажать кнопку подключить на тарифной карточке")
