@@ -40,6 +40,7 @@ class TestMtsMskHomeOnlineThird:
         mts_second_page = MtsHomeOnlineSecondPage(page=page)
         with allure.step("Выбрать Азнакаево"):
             mts_second_page.click_region_choice_button_futer_new()
+            time.sleep(2)
             region_page.fill_region_search_new("Азнак")
             region_page.verify_first_region_choice("Азнакаево")
             region_page.select_first_region()

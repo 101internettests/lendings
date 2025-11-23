@@ -62,6 +62,59 @@ def example_url(request):
     return request.param
 
 
+def _load_connection_urls():
+    raw = os.getenv("CONNECTION", "").strip()
+    if not raw:
+        pytest.skip("No URLs provided via CONNECTION for connection tests")
+
+    urls: list[str] = []
+
+    if os.path.exists(raw):
+        _, ext = os.path.splitext(raw)
+        ext = ext.lower()
+        try:
+            if ext in (".xlsx", ".xls"):
+                wb = load_workbook(raw, read_only=True, data_only=True)
+                try:
+                    ws = wb.active
+                    for row in ws.iter_rows(values_only=True):
+                        for cell in row:
+                            if isinstance(cell, str):
+                                val = cell.strip()
+                                if val.startswith("http://") or val.startswith("https://"):
+                                    urls.append(val)
+                finally:
+                    wb.close()
+            elif ext == ".csv":
+                with open(raw, newline="", encoding="utf-8") as f:
+                    reader = csv.reader(f)
+                    for row in reader:
+                        for cell in row:
+                            val = (cell or "").strip()
+                            if val.startswith("http://") or val.startswith("https://"):
+                                urls.append(val)
+            else:
+                with open(raw, encoding="utf-8") as f:
+                    content = f.read()
+                for token in re.split(r"[\s,]+", content):
+                    val = token.strip()
+                    if val and (val.startswith("http://") or val.startswith("https://")):
+                        urls.append(val)
+        except Exception as e:
+            raise pytest.UsageError(f"Failed to read URLs from file {raw}: {e}")
+    else:
+        urls = [u.strip() for u in raw.split(",") if u.strip()]
+
+    if not urls:
+        pytest.skip("No valid http/https URLs found in CONNECTION source")
+    return urls
+
+
+@pytest.fixture(params=_load_connection_urls())
+def connection_url(request):
+    return request.param
+
+
 
 def _load_business_urls():
     raw = os.getenv("PBUSINESS_URLS", "").strip()

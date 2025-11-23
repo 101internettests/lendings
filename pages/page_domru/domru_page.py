@@ -8,69 +8,202 @@ from locators.domru.domru_locators import LocationPopup, PopUps, CardsPopup
 class DomRuClass(BasePage):
     @allure.title("Проверить, что появилась всплывашка Вы находитесь в городе")
     def check_location_popup(self):
-        self.page.locator(LocationPopup.CHECK_LOCATION_POPUP).click()
+        try:
+            self.page.locator(LocationPopup.CHECK_LOCATION_POPUP).click()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось взаимодействовать с всплывающим окном 'Вы находитесь в городе'.\n"
+                "Возможно, элемент недоступен, перекрыт или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Ответить в всплывашке, что нахожусь в Москве")
     def close_popup_location(self):
-        self.page.locator(LocationPopup.YES_BUTTON).click()
+        try:
+            self.page.locator(LocationPopup.YES_BUTTON).click()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось нажать кнопку 'Да' во всплывающем окне определения города.\n"
+                "Возможно, элемент недоступен, перекрыт или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Ответить в всплывашке, что нахожусь не в Москве")
     def choose_msk_location(self):
-        self.page.locator(LocationPopup.NO_BUTTON).click()
+        try:
+            self.page.locator(LocationPopup.NO_BUTTON).click()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось нажать кнопку 'Нет' во всплывающем окне определения города.\n"
+                "Возможно, элемент недоступен, перекрыт или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Ответить в всплывашке, что нахожусь не в Москве")
     def choose_msk_location_new(self):
-        self.page.locator(LocationPopup.NEW_BUTTON_NO).click()
+        try:
+            self.page.locator(LocationPopup.NEW_BUTTON_NO).click()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось нажать альтернативную кнопку 'Нет' во всплывающем окне.\n"
+                "Возможно, элемент недоступен, перекрыт или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Ответить в всплывашке, что нахожусь не в Москве третий")
     def choose_msk_location_new_third(self):
-        self.page.locator(LocationPopup.NEW_BUTTON_NO_SECOND).click()
+        try:
+            self.page.locator(LocationPopup.NEW_BUTTON_NO_SECOND).click()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось нажать третий вариант кнопки 'Нет' во всплывающем окне.\n"
+                "Возможно, элемент недоступен, перекрыт или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer_new(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(LocationPopup.INPUT_OFFER_POPUP).fill("99999999999")
-            self.page.locator(LocationPopup.SEND_BUTTON_OFFER_POPUP).click()
+            try:
+                self.page.locator(LocationPopup.INPUT_OFFER_POPUP).fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести телефон в попапе предложения.\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
+            try:
+                self.page.locator(LocationPopup.SEND_BUTTON_OFFER_POPUP).click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось нажать кнопку 'Отправить' в попапе предложения.\n"
+                    "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def close_thankyou_page(self):
-        self.page.locator(LocationPopup.CLOSE_BUTTON).click()
+        try:
+            self.page.locator(LocationPopup.CLOSE_BUTTON).click()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось закрыть страницу благодарности (кнопка внизу справа).\n"
+                "Возможно, элемент недоступен, перекрыт или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Отправить заявку в попап Подключите стабильный интернет в Москве")
     def send_popup_from_banner(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(PopUps.INPUT_NUM_POPUP).fill("99999999999")
-            self.page.locator(PopUps.BUTTON_NEW_INTERNET).click()
+            try:
+                self.page.locator(PopUps.INPUT_NUM_POPUP).fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести телефон в попапе 'Подключите стабильный интернет'.\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
+            try:
+                self.page.locator(PopUps.BUTTON_NEW_INTERNET).click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось нажать кнопку отправки в попапе 'Подключите стабильный интернет'.\n"
+                    "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(3)
 
     @allure.title("Отправить заявку в попап Бесплатный тест-драйв роутера на 14 дней")
     def send_popup_free_tes_drive(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(PopUps.INPUT_NUM_POPUP_THR).fill("99999999999")
-            self.page.locator(PopUps.BUTTON_CONNECT).click()
+            try:
+                self.page.locator(PopUps.INPUT_NUM_POPUP_THR).fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести телефон в попапе 'Бесплатный тест-драйв роутера'.\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
+            try:
+                self.page.locator(PopUps.BUTTON_CONNECT).click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось нажать кнопку отправки в попапе 'Бесплатный тест-драйв роутера'.\n"
+                    "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(3)
 
     @allure.title("Отправить заявку в попап Тест-драйв скорости до 800 Мбит/с на 3 месяца")
     def send_popup_tes_drive_three_months(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(PopUps.INPUT_NUM_POPUP_FOU).fill("99999999999")
-            self.page.locator(PopUps.BUTTON_CONNECT_SEC).click()
+            try:
+                self.page.locator(PopUps.INPUT_NUM_POPUP_FOU).fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести телефон в попапе 'Тест-драйв скорости до 800 Мбит/с'.\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
+            try:
+                self.page.locator(PopUps.BUTTON_CONNECT_SEC).click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось нажать кнопку отправки в попапе 'Тест-драйв скорости до 800 Мбит/с'.\n"
+                    "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(3)
 
     @allure.title("Отправить заявку в попап Попробуйте скоростной безлимитный интернет")
     def send_popup_speed_inter(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(PopUps.INPUT_NUM_POPUP_FIV).fill("99999999999")
-            self.page.locator(PopUps.BUTTON_CONNECT_THI).click()
+            try:
+                self.page.locator(PopUps.INPUT_NUM_POPUP_FIV).fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести телефон в попапе 'Попробуйте скоростной безлимитный интернет'.\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
+            try:
+                self.page.locator(PopUps.BUTTON_CONNECT_THI).click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось нажать кнопку отправки в попапе 'Попробуйте скоростной безлимитный интернет'.\n"
+                    "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(3)
 
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_check_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(PopUps.INPUT_ADDRESS).fill("Тестоадрес")
-            self.page.locator(PopUps.INPUT_NUM_POPUP_SEC).fill("99999999999")
-            self.page.locator(PopUps.BUTTON_CHECK_ADDRESS).click()
+            try:
+                self.page.locator(PopUps.INPUT_ADDRESS).fill("Тестоадрес")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести адрес в форму проверки подключения.\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
+            try:
+                self.page.locator(PopUps.INPUT_NUM_POPUP_SEC).fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести телефон в форму проверки подключения.\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
+            try:
+                self.page.locator(PopUps.BUTTON_CHECK_ADDRESS).click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось нажать кнопку 'Проверить адрес' в форме проверки подключения.\n"
+                    "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Получить список всех тарифных карточек")
@@ -170,22 +303,64 @@ class DomRuClass(BasePage):
 
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def close_popup(self):
-        self.page.locator(LocationPopup.CLOSE_POPUP).click()
+        try:
+            self.page.locator(LocationPopup.CLOSE_POPUP).click()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось закрыть попап (кнопка закрытия).\n"
+                "Возможно, элемент недоступен, перекрыт или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Отправить заявку в попап с названием Заявка на подключение")
     def send_popup_application_connection_new(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(LocationPopup.NAME_INPUT).fill("Тестимя")
+            try:
+                self.page.locator(LocationPopup.NAME_INPUT).fill("Тестимя")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести имя в попапе 'Заявка на подключение'.\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(PopUps.INPUT_NUM_POPUP_SIX).fill("99999999999")
+            try:
+                self.page.locator(PopUps.INPUT_NUM_POPUP_SIX).fill("99999999999")
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось ввести телефон в попапе 'Заявка на подключение'.\n"
+                    "Возможно, поле недоступно, скрыто или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(1)
-            self.page.locator(LocationPopup.BUTTON_SEND).click()
+            try:
+                self.page.locator(LocationPopup.BUTTON_SEND).click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось нажать кнопку отправки в попапе 'Заявка на подключение'.\n"
+                    "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+                    f"\nТехнические детали: {e}"
+                )
             time.sleep(4)
 
     @allure.title("Нажать на лого на главной странице и проверить")
     def click_on_logo(self):
-        self.page.locator(LocationPopup.MAIN_LOGO).click()
+        try:
+            self.page.locator(LocationPopup.MAIN_LOGO).click()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось кликнуть по логотипу на главной странице.\n"
+                "Возможно, элемент недоступен, перекрыт или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Нажать на лого на главной странице и проверить")
     def click_on_logo_beeline(self):
-        self.page.locator(LocationPopup.MAIN_LOGO_BEELINE).click()
+        try:
+            self.page.locator(LocationPopup.MAIN_LOGO_BEELINE).click()
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось кликнуть по логотипу Билайн на главной странице.\n"
+                "Возможно, элемент недоступен, перекрыт или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
