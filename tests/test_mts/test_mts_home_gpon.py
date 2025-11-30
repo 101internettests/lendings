@@ -27,7 +27,7 @@ class TestGponMtsHomeOnline:
         mts_page.close_thankyou_page()
 
     @allure.title("3. Переход по всем ссылкам на странице")
-    def test_gpon_check_all_pages(self, page_fixture, third_url):
+    def test_check_all_pages(self, page_fixture, third_url):
         page = page_fixture
         page.goto(third_url)
         gpon_page = MtsGponHomeOnlinePage(page=page)

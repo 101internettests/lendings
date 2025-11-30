@@ -14,7 +14,7 @@ class TestskMegaHomeInternet:
     @allure.title(
         "2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, попапа Выгодное "
         "спецпредложение!")
-    def test_application_popup(self, page_fixture, mega_home_internet):
+    def test_application_popup_super_offer(self, page_fixture, mega_home_internet):
         page = page_fixture
         page.goto(mega_home_internet)
         mts_page = MtsHomeOnlinePage(page=page)
@@ -26,7 +26,7 @@ class TestskMegaHomeInternet:
         mts_page.check_sucess()
 
     @allure.title("3. Переход по всем ссылкам на странице ")
-    def test_check_popup_links(self, page_fixture, mega_home_internet):
+    def test_check_all_pages(self, page_fixture, mega_home_internet):
         page = page_fixture
         page.goto(mega_home_internet)
         rostelecom_page = RostelecomPage(page=page)

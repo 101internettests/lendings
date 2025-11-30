@@ -10,7 +10,7 @@ from pages.main_steps import MainSteps
 @allure.feature("https://dom-provider.online/")
 class TestDomruProviderOnline:
     @allure.title("1. Выбор региона из всплывающего попапа Вы находитесь в Москве?")
-    def test_moscow_location(self, page_fixture, dom_provider_online_url):
+    def test_choose_region_from_popup(self, page_fixture, dom_provider_online_url):
         page = page_fixture
         page.goto(dom_provider_online_url)
         domru_page = DomRuClass(page=page)
