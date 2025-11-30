@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 from pathlib import Path
 from collections import defaultdict
 from dotenv import load_dotenv
+import gspread
 from slugify import slugify
 from playwright.sync_api import sync_playwright, Error as PlaywrightError
 from config import bot, chat_id
@@ -92,6 +93,16 @@ ERROR_DOMAINS = defaultdict(set)        # key: error_key -> domains
 # Отслеживание подсчёта результатов по тестам (чтобы корректно учитывать setup/teardown)
 _COUNTED_NODEIDS: set[str] = set()
 _PASSED_NODEIDS: set[str] = set()
+
+# Группировка по названиям тестов (для "массовых" ошибок по конкретному кейсу)
+TEST_FAIL_COUNTS = defaultdict(int)          # key: test_name -> total failed occurrences
+TEST_FAIL_DOMAINS = defaultdict(set)         # key: test_name -> set(domains)
+TEST_FAIL_LAST_STEP = {}                     # key: test_name -> last seen step name
+TEST_FAIL_URLS = defaultdict(set)            # key: test_name -> set(urls)
+
+# ==== Persistent run log for daily summaries ====
+RUN_LOG_PATH_ENV = os.getenv("RUN_LOG_PATH", ".run_summaries.jsonl").strip()
+_RUN_LOG_PATH = Path(RUN_LOG_PATH_ENV)
 
 
 # ==== Persistent errors counter (external file) ====
@@ -182,6 +193,56 @@ def _claim_flag(domain: str, error_key: str, kind: str = "single") -> bool:
 
 def _now_str():
     return f"{datetime.utcnow().strftime('%Y-%m-%d %H:%M')} ({TIMEZONE_LABEL})"
+
+# ==== Google Sheets error logging (optional) ====
+_GS_CLIENT = None
+_GS_WORKSHEET = None
+ERROR_LOGGED_NODEIDS: set[str] = set()
+
+def _ensure_gsheets():
+    """Initialize gspread client and worksheet if env config present."""
+    global _GS_CLIENT, _GS_WORKSHEET
+    if _GS_WORKSHEET is not None:
+        return True
+    try:
+        sa_path = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
+        spreadsheet_id = os.getenv("SPREADSHEET_ID")
+        ws_title = os.getenv("GOOGLE_SHEETS_WORKSHEET", "Sheet1")
+        if not sa_path or not spreadsheet_id:
+            return False
+        client = gspread.service_account(filename=sa_path)
+        sh = client.open_by_key(spreadsheet_id)
+        ws = sh.worksheet(ws_title)
+        _GS_CLIENT = client
+        _GS_WORKSHEET = ws
+        return True
+    except Exception:
+        _GS_CLIENT = None
+        _GS_WORKSHEET = None
+        return False
+
+def _now_msk_str() -> str:
+    # Russia (Moscow) is UTC+3 year-round
+    try:
+        from datetime import timedelta
+        utc = datetime.utcnow()
+        msk = utc + timedelta(hours=3)
+        return msk.strftime("%Y-%m-%d %H:%M") + " (MSK)"
+    except Exception:
+        return datetime.utcnow().strftime("%Y-%m-%d %H:%M") + " (MSK)"
+
+def _append_error_row(url: str | None, test_name: str, error_text: str, repeat_count: int | None = None):
+    """Append a single error row to the configured Google Sheet."""
+    try:
+        if not _ensure_gsheets():
+            return
+        ts = _now_msk_str()
+        repeat_str = "" if repeat_count is None else str(repeat_count)
+        row = [ts, url or "", test_name or "", (error_text or "").strip(), repeat_str]
+        _GS_WORKSHEET.append_row(row, value_input_option="RAW")
+    except Exception:
+        # Do not let Sheets errors break test run
+        pass
 
 
 def _should_notify_persistent(count: int) -> bool:
@@ -306,6 +367,31 @@ def _format_systemic_message(form_title: str | None, error_key: str, total_pages
         msg.append(f"🔎 Детали: {REPORT_URL}")
     return "\n".join(msg)
 
+def _format_systemic_test_message(form_title: str | None, test_name: str, landings_count: int, failed_occurrences: int, step_name: str | None, sample_urls: list[str] | None = None, sample_limit: int = 10) -> str:
+    form_part = form_title or ""
+    msg = []
+    msg.append(f"🚨 Массовая ошибка автотеста формы {f'[{form_part}]' if form_part else ''}")
+    msg.append("")
+    msg.append(f"🕒 Время: {_now_str()}")
+    msg.append(f"🌐 Затронуто: {landings_count} лендингов")
+    if step_name:
+        msg.append(f"❌ Ошибка: Не выполнен шаг \"{step_name}\"")
+    else:
+        msg.append(f"❌ Ошибка: Падает тест \"{test_name}\"")
+    msg.append(f"📊 Масштаб: {failed_occurrences} страниц ")
+    # Добавим примеры URL упавших лендингов (ограничим по количеству)
+    try:
+        urls = (sample_urls or [])[:sample_limit]
+        if urls:
+            msg.append("🔗 Примеры URL (до 10):")
+            for u in urls:
+                msg.append(u)
+    except Exception:
+        pass
+    if REPORT_URL:
+        msg.append(f"🔎 Детали: {REPORT_URL}")
+    return "\n".join(msg)
+
 
 def _format_run_summary() -> str:
     success = RUN_PASSED
@@ -342,9 +428,8 @@ def _format_short_run_summary() -> str:
     parts.append("")
     parts.append(f"Последний запуск: {last_run_hhmm}")
     if REPORT_URL:
-        parts.append("")
-        parts.append(str(REPORT_URL))
-    return "\n".join(parts)
+        parts.append(f"📊 Детали: {REPORT_URL}")
+    return "\n\n".join(parts)
 
 def extract_run_labels(session, stats) -> list:
     """Возвращает список названий папок запуска (например, test_beeline),
@@ -572,9 +657,42 @@ def pytest_runtest_makereport(item, call):
                     DOMAIN_ERROR_URLS[dom_key].add(current_url)
                 ERROR_DOMAINS[error_key].add(domain or "—")
 
+                # Агрегация по названию теста
+                try:
+                    test_display_name = None
+                    try:
+                        meta = TEST_META.get(item.nodeid) or {}
+                        test_display_name = meta.get("title") or getattr(item, "name", None) or item.nodeid
+                    except Exception:
+                        test_display_name = getattr(item, "name", None) or item.nodeid
+                    if test_display_name:
+                        TEST_FAIL_COUNTS[test_display_name] += 1
+                        if domain:
+                            TEST_FAIL_DOMAINS[test_display_name].add(domain)
+                        if step_name:
+                            TEST_FAIL_LAST_STEP[test_display_name] = step_name
+                        if current_url:
+                            TEST_FAIL_URLS[test_display_name].add(current_url)
+                except Exception:
+                    pass
+
                 # Persist URL-based counter (independent of step) and notify on persistent schedule
                 new_count = _inc_url_counter(current_url)
 
+                # Запись в Google Sheets (одна строка на тестовый пример / nodeid), с указанием номера повтора
+                try:
+                    if item.nodeid not in ERROR_LOGGED_NODEIDS:
+                        test_name_for_log = None
+                        try:
+                            meta = TEST_META.get(item.nodeid) or {}
+                            test_name_for_log = meta.get("title") or getattr(item, "name", None) or item.nodeid
+                        except Exception:
+                            test_name_for_log = getattr(item, "name", None) or item.nodeid
+                        repeat_val = new_count if current_url else None
+                        _append_error_row(current_url, test_name_for_log or item.nodeid, str(call.excinfo.value) if call.excinfo else "", repeat_val)
+                        ERROR_LOGGED_NODEIDS.add(item.nodeid)
+                except Exception:
+                    pass
                 already_active = False
                 try:
                     already_active = bool(_STATE.get("domain_errors", {}).get(domain or "—", {}).get(error_key, {}).get("active"))
@@ -618,6 +736,19 @@ def pytest_runtest_makereport(item, call):
             step_name = _get_last_step_name() or ""
             error_key = step_name or type(call.excinfo.value).__name__
             new_count = _inc_url_counter(current_url)
+            # Log to Google Sheets once per nodeid on setup/teardown failure too, include repeat count
+            try:
+                if item.nodeid not in ERROR_LOGGED_NODEIDS:
+                    test_name_for_log = None
+                    try:
+                        meta = TEST_META.get(item.nodeid) or {}
+                        test_name_for_log = meta.get("title") or getattr(item, "name", None) or item.nodeid
+                    except Exception:
+                        test_name_for_log = getattr(item, "name", None) or item.nodeid
+                    _append_error_row(current_url, test_name_for_log or item.nodeid, str(call.excinfo.value) if call.excinfo else "", new_count if current_url else None)
+                    ERROR_LOGGED_NODEIDS.add(item.nodeid)
+            except Exception:
+                pass
             if not SUPPRESS_PERSISTENT_ALERTS and _should_notify_persistent(new_count):
                 if _claim_flag(domain or "—", f"url-{current_url}-{new_count}", kind="persist"):
                     test_display_name = None
@@ -1019,6 +1150,34 @@ def pytest_sessionfinish(session, exitstatus):
                         msg.append(f"🔎 Детали: {REPORT_URL}")
                     _send_telegram_message("\n".join(msg))
                     _STATE["systemic_errors"][error_key]["active"] = False
+        # Systemic failures by test name (e.g., один кейс падает на многих лендингах)
+        for test_name, domains in list(TEST_FAIL_DOMAINS.items()):
+            landings_count = len({d for d in domains if d and d != '—'})
+            if landings_count >= SYSTEMIC_LANDINGS_THRESHOLD:
+                prev = bool(_STATE.get("systemic_tests", {}).get(test_name, {}).get("active"))
+                if not (SUPPRESS_PERSISTENT_ALERTS and prev):
+                    failed_occurrences = int(TEST_FAIL_COUNTS.get(test_name, 0))
+                    step_name = TEST_FAIL_LAST_STEP.get(test_name)
+                    # Подготовим список примеров URL
+                    examples = []
+                    try:
+                        examples = sorted(list(TEST_FAIL_URLS.get(test_name, [])))
+                    except Exception:
+                        examples = []
+                    _send_telegram_message(_format_systemic_test_message(None, test_name, landings_count, failed_occurrences, step_name, examples))
+                _STATE.setdefault("systemic_tests", {}).setdefault(test_name, {})["active"] = True
+            else:
+                if _STATE.get("systemic_tests", {}).get(test_name, {}).get("active"):
+                    msg = [
+                        f"✅ Массовая ошибка теста \"{test_name}\" исправлена",
+                        "",
+                        f"🕒 Время: {_now_str()}",
+                        f"🌐 Затронуто: {landings_count} лендингов",
+                    ]
+                    if REPORT_URL:
+                        msg.append(f"🔎 Детали: {REPORT_URL}")
+                    _send_telegram_message("\n".join(msg))
+                    _STATE["systemic_tests"][test_name]["active"] = False
 
         # Mark active per-domain errors seen this run
         seen_pairs = {(d, ek) for (d, ek) in DOMAIN_ERROR_COUNTS.keys()}
@@ -1046,6 +1205,24 @@ def pytest_sessionfinish(session, exitstatus):
             _send_telegram_message(_format_short_run_summary())
     finally:
         _save_state()
+        # Append per-run summary line for daily aggregation
+        try:
+            record = {
+                "ts": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "pages": RUN_TOTAL_PAGES,
+                "passed": RUN_PASSED,
+                "failed": RUN_FAILED,
+                "landings": sorted(list(RUN_LANDINGS)),
+            }
+            try:
+                _RUN_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+            except Exception:
+                pass
+            with _RUN_LOG_PATH.open("a", encoding="utf-8") as f:
+                f.write(json.dumps(record, ensure_ascii=False) + "\n")
+        except Exception:
+            # do not break the session finish on logging errors
+            pass
         return
 
 
