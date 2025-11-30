@@ -12,7 +12,7 @@ from pages.main_steps import MainSteps
 class TestMegaPremium:
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")
-    def test_application_popup(self, page_fixture, eight_url):
+    def test_application_popup_super_offer(self, page_fixture, eight_url):
         page = page_fixture
         page.goto(eight_url)
         mts_page = MtsHomeOnlinePage(page=page)

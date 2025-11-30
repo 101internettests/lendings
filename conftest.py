@@ -194,6 +194,18 @@ def _claim_flag(domain: str, error_key: str, kind: str = "single") -> bool:
 def _now_str():
     return f"{datetime.utcnow().strftime('%Y-%m-%d %H:%M')} ({TIMEZONE_LABEL})"
 
+# ==== Error text sanitization ====
+def _sanitize_error_text(text: str | None) -> str | None:
+    """Remove internal technical suffixes from human-facing error messages."""
+    if not text:
+        return text
+    try:
+        # Cut off everything starting from the technical-details marker
+        cleaned = str(text).split("Технические детали:", 1)[0].rstrip()
+        return cleaned
+    except Exception:
+        return text
+
 # ==== Google Sheets error logging (optional) ====
 _GS_CLIENT = None
 _GS_WORKSHEET = None
@@ -238,7 +250,7 @@ def _append_error_row(url: str | None, test_name: str, error_text: str, repeat_c
             return
         ts = _now_msk_str()
         repeat_str = "" if repeat_count is None else str(repeat_count)
-        row = [ts, url or "", test_name or "", (error_text or "").strip(), repeat_str]
+        row = [ts, url or "", test_name or "", (_sanitize_error_text(error_text) or "").strip(), repeat_str]
         _GS_WORKSHEET.append_row(row, value_input_option="RAW")
     except Exception:
         # Do not let Sheets errors break test run
@@ -689,7 +701,7 @@ def pytest_runtest_makereport(item, call):
                         except Exception:
                             test_name_for_log = getattr(item, "name", None) or item.nodeid
                         repeat_val = new_count if current_url else None
-                        _append_error_row(current_url, test_name_for_log or item.nodeid, str(call.excinfo.value) if call.excinfo else "", repeat_val)
+                        _append_error_row(current_url, test_name_for_log or item.nodeid, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", repeat_val)
                         ERROR_LOGGED_NODEIDS.add(item.nodeid)
                 except Exception:
                     pass
@@ -708,7 +720,7 @@ def pytest_runtest_makereport(item, call):
                     if _should_notify_persistent(new_count):
                         # Cross-worker dedup per URL-specific occurrence count
                         if _claim_flag(domain or "—", f"url-{current_url}-{new_count}", kind="persist"):
-                            details = str(call.excinfo.value) if call.excinfo else None
+                            details = _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else None
                             _send_telegram_message(
                                 _format_persistent_url_message(
                                     form_title,
@@ -745,7 +757,7 @@ def pytest_runtest_makereport(item, call):
                         test_name_for_log = meta.get("title") or getattr(item, "name", None) or item.nodeid
                     except Exception:
                         test_name_for_log = getattr(item, "name", None) or item.nodeid
-                    _append_error_row(current_url, test_name_for_log or item.nodeid, str(call.excinfo.value) if call.excinfo else "", new_count if current_url else None)
+                    _append_error_row(current_url, test_name_for_log or item.nodeid, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", new_count if current_url else None)
                     ERROR_LOGGED_NODEIDS.add(item.nodeid)
             except Exception:
                 pass
@@ -756,7 +768,7 @@ def pytest_runtest_makereport(item, call):
                         test_display_name = form_title or getattr(item, "name", None) or item.nodeid
                     except Exception:
                         test_display_name = form_title
-                    details = str(call.excinfo.value) if call.excinfo else None
+                    details = _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else None
                     _send_telegram_message(
                         _format_persistent_url_message(
                             None,

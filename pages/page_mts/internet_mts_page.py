@@ -11,62 +11,133 @@ class MtsInternetHomeOnlinePage(BasePage):
     @allure.title("Проверить, что попап Выгодное приложение появился")
     def check_popup_super_offer(self):
         # expect(self.page.locator(InternetMTSHomeOnlineMain.SUPER_OFFER_HEADER)).to_be_visible()
-        expect(self.page.locator(InternetMTSHomeOnlineMain.SUPER_OFFER_TEXT)).to_be_visible(timeout=65000)
+        try:
+            expect(self.page.locator(InternetMTSHomeOnlineMain.SUPER_OFFER_TEXT)).to_be_visible(timeout=65000)
+        except Exception:
+            raise AssertionError(
+                "Попап 'Выгодное предложение' не появился на странице за ожидаемое время.\n"
+                "Возможно, попап не отрисовался или перекрыт другим элементом."
+            )
 
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            expect(self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SOME_PAGE)).to_be_visible(timeout=65000)
-            self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SOME_PAGE).fill("99999999999")
-            self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()
+            try:
+                expect(self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SOME_PAGE)).to_be_visible(timeout=65000)
+            except Exception:
+                raise AssertionError(
+                    "Поле телефона в попапе 'Выгодное предложение' не появилось вовремя."
+                )
+            try:
+                self.page.locator(MTSHomeOnlineMain.INPUT_OFFER_POPUP_SOME_PAGE).fill("99999999999")
+            except Exception:
+                raise AssertionError("Не удалось ввести телефон в попапе 'Выгодное предложение'.")
+            try:
+                self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()
+            except Exception:
+                raise AssertionError("Не удалось нажать кнопку 'Отправить' в попапе 'Выгодное предложение'.")
             time.sleep(4)
 
     @allure.title("Нажать и закрыть куки")
     def click_on_accept(self):
-        self.page.locator(InternetMTSHomeOnlineMain.ACCEPT_COOKIES).click()
+        try:
+            self.page.locator(InternetMTSHomeOnlineMain.ACCEPT_COOKIES).click()
+        except Exception:
+            raise AssertionError("Не удалось нажать кнопку принятия cookies.")
 
     @allure.title("Отправить заявку в попап с названием Заявка на подключение")
     def send_popup_application_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
-            self.page.locator(ApplicationPopupWithName.PHONE_INPUT_OTHER).fill("99999999999")
-            self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            try:
+                self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
+            except Exception:
+                raise AssertionError("Не удалось ввести имя в попапе 'Заявка на подключение'.")
+            try:
+                self.page.locator(ApplicationPopupWithName.PHONE_INPUT_OTHER).fill("99999999999")
+            except Exception:
+                raise AssertionError("Не удалось ввести телефон в попапе 'Заявка на подключение'.")
+            try:
+                self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            except Exception:
+                raise AssertionError("Не удалось нажать кнопку отправки в попапе 'Заявка на подключение'.")
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап с названием Проверьте возможность подключения по вашему адресу")
     def send_popup_application_connection_your_address(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(ApplicationPopupCheckConnection.ADDRESS_INPUT_SECOND).fill("Тестоулица111111")
-            self.page.locator(ApplicationPopupCheckConnection.PHONE_INPUT_SECOND).fill("99999999999")
-            self.page.locator(ApplicationPopupCheckConnection.CHECK_ADDRESS_BUTTON_SECOND).click()
+            try:
+                self.page.locator(ApplicationPopupCheckConnection.ADDRESS_INPUT_SECOND).fill("Тестоулица111111")
+            except Exception:
+                raise AssertionError("Не удалось ввести адрес в проверке подключения.")
+            try:
+                self.page.locator(ApplicationPopupCheckConnection.PHONE_INPUT_SECOND).fill("99999999999")
+            except Exception:
+                raise AssertionError("Не удалось ввести телефон в проверке подключения.")
+            try:
+                self.page.locator(ApplicationPopupCheckConnection.CHECK_ADDRESS_BUTTON_SECOND).click()
+            except Exception:
+                raise AssertionError("Не удалось нажать кнопку 'Проверить адрес' в проверке подключения.")
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап с названием Проверьте возможность подключения по вашему адресу")
     def send_popup_application_connection_your_address_new(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(ApplicationPopupCheckConnection.NAME_INPUT).fill("Тестимя")
-            self.page.locator(ApplicationPopupCheckConnection.PHONE_INPUT).fill("99999999999")
-            self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            try:
+                self.page.locator(ApplicationPopupCheckConnection.NAME_INPUT).fill("Тестимя")
+            except Exception:
+                raise AssertionError("Не удалось ввести имя в проверке подключения.")
+            try:
+                self.page.locator(ApplicationPopupCheckConnection.PHONE_INPUT).fill("99999999999")
+            except Exception:
+                raise AssertionError("Не удалось ввести телефон в проверке подключения.")
+            try:
+                self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            except Exception:
+                raise AssertionError("Не удалось нажать кнопку отправки в проверке подключения.")
             time.sleep(4)
 
     @allure.title("Нажать на баннер на главной стране")
     def click_on_banner(self):
-        self.page.locator(InternetMTSHomeOnlineMain.BANNER).click()
+        try:
+            self.page.locator(InternetMTSHomeOnlineMain.BANNER).click()
+        except Exception:
+            raise AssertionError(
+                "Не удалось нажать на баннер на главной странице.\n"
+                "Возможно, элемент недоступен, перекрыт или изменился селектор."
+            )
 
     @allure.title("Отправить заявку на подключение тарифа")
     def send_tariff_connection_request(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
-            self.page.locator(ApplicationPopupWithName.PHONE_INPUT_OTHER).fill("99999999999")
-            self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            try:
+                self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
+            except Exception:
+                raise AssertionError("Не удалось ввести имя в форме тарифа.")
+            try:
+                self.page.locator(ApplicationPopupWithName.PHONE_INPUT_OTHER).fill("99999999999")
+            except Exception:
+                raise AssertionError("Не удалось ввести телефон в форме тарифа.")
+            try:
+                self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            except Exception:
+                raise AssertionError("Не удалось нажать кнопку отправки в форме тарифа.")
             time.sleep(4)
 
     @allure.title("Отправить заявку на подключение тарифа")
     def send_tariff_connection_internet_online(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
-            self.page.locator(ApplicationPopupWithName.PHONE_INPUT).fill("99999999999")
-            self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            try:
+                self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
+            except Exception:
+                raise AssertionError("Не удалось ввести имя в форме тарифа (интернет онлайн).")
+            try:
+                self.page.locator(ApplicationPopupWithName.PHONE_INPUT).fill("99999999999")
+            except Exception:
+                raise AssertionError("Не удалось ввести телефон в форме тарифа (интернет онлайн).")
+            try:
+                self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            except Exception:
+                raise AssertionError("Не удалось нажать кнопку отправки в форме тарифа (интернет онлайн).")
             time.sleep(4)
 
     @allure.title("Проверить ссылку и убедиться, что страница существует")
@@ -109,35 +180,71 @@ class MtsInternetHomeOnlinePage(BasePage):
     @allure.title("Нажать на кнопку выбора региона в хедере")
     def click_region_choice_button(self):
         region_button = self.page.locator(RegionChoice.REGION_CHOICE_BUTTON_FUTER)
-        region_button.click()
+        try:
+            region_button.click()
+        except Exception:
+            raise AssertionError(
+                "Не удалось нажать кнопку выбора региона (футер).\n"
+                "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+            )
         time.sleep(2)
 
     @allure.title("Нажать на кнопку выбора региона в хедере")
     def click_region_choice_button_new(self):
         region_button = self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON)
-        region_button.click()
+        try:
+            region_button.click()
+        except Exception:
+            raise AssertionError(
+                "Не удалось нажать кнопку выбора региона (новая версия).\n"
+                "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+            )
         time.sleep(2)
 
     @allure.title("Нажать на кнопку выбора региона в футере")
     def click_region_choice_button_futer(self):
         region_button = self.page.locator(RegionChoice.REGION_CHOICE_BUTTON_THREE)
-        region_button.click()
+        try:
+            region_button.click()
+        except Exception:
+            raise AssertionError(
+                "Не удалось нажать кнопку выбора региона (кнопка три).\n"
+                "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+            )
         time.sleep(2)
 
     @allure.title("Нажать на кнопку выбора региона в хедере")
     def click_region_choice_button_header_new(self):
         region_button = self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON_HEADER)
-        region_button.click()
+        try:
+            region_button.click()
+        except Exception:
+            raise AssertionError(
+                "Не удалось нажать кнопку выбора региона (HEADER).\n"
+                "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+            )
         time.sleep(2)
 
     @allure.title("Нажать на кнопку выбора региона в футере")
     def click_region_choice_button_futer_new(self):
         region_button = self.page.locator(RegionChoice.NEW_REGION_CHOICE_BUTTON_FUTER)
-        region_button.click()
+        try:
+            region_button.click()
+        except Exception:
+            raise AssertionError(
+                "Не удалось нажать кнопку выбора региона (футер, новая версия).\n"
+                "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+            )
         time.sleep(2)
 
     @allure.title("Нажать на кнопку выбора региона в футере МТС")
     def click_region_choice_button_futer_msk_new(self):
         region_button = self.page.locator(RegionChoice.FUTER_MTS_NEW)
-        region_button.click()
+        try:
+            region_button.click()
+        except Exception:
+            raise AssertionError(
+                "Не удалось нажать кнопку выбора региона (ФУТЕР МТС NEW).\n"
+                "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+            )
         time.sleep(2)

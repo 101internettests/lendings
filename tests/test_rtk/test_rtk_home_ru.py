@@ -14,7 +14,7 @@ class TestRTKHomeRUSecond:
     @pytest.mark.skip("Нет попапа")
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")
-    def test_application_popup_super_offer_third(self, page_fixture, rtk_home_ru_second):
+    def test_application_popup_super_offer(self, page_fixture, rtk_home_ru_second):
         page = page_fixture
         page.goto(rtk_home_ru_second)
         mts_page = MtsHomeOnlinePage(page=page)

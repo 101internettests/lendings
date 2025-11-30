@@ -25,7 +25,7 @@ class TestMolMainRegionPage:
         mts_page.close_thankyou_page()
 
     @allure.title("3. Переход по всем ссылкам на странице домашнего интернета")
-    def test_check_links_home_internet_page(self, page_fixture, base_url):
+    def test_check_all_pages(self, page_fixture, base_url):
         page = page_fixture
         page.goto(base_url)
         mts_page = MtsHomeOnlinePage(page=page)

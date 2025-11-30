@@ -14,7 +14,7 @@ class TestMoskvaMtsHomeOnline:
 
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")
-    def test_msk_application_popup_super_offer(self, page_fixture, second_url):
+    def test_application_popup_super_offer(self, page_fixture, second_url):
         page = page_fixture
         page.goto(second_url)
         mts_page = MtsHomeOnlinePage(page=page)
@@ -27,7 +27,7 @@ class TestMoskvaMtsHomeOnline:
         mts_page.close_thankyou_page()
 
     @allure.title("3. Переход по всем ссылкам на странице")
-    def test_msk_check_all_pages(self, page_fixture, second_url):
+    def test_check_all_pages(self, page_fixture, second_url):
         page = page_fixture
         page.goto(second_url)
         msk_page = MtsMSKHomeOnlinePage(page=page)

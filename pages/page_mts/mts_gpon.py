@@ -9,72 +9,164 @@ from locators.mts.mts_home_online import FormApplicationCheckConnection, RegionC
 class MtsGponHomeOnlinePage(BasePage):
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def close_thankyou_page(self):
-        self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_SECOND).click()
+        try:
+            self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_SECOND).click()
+        except Exception:
+            raise AssertionError(
+                "Не удалось закрыть страницу благодарности (кнопка 'Закрыть').\n"
+                "Возможно, элемент недоступен, перекрыт или изменился селектор."
+            )
 
     @allure.title("Проверить, что попап Выгодное приложение появился")
     def check_popup_super_offer(self):
-        expect(self.page.locator(MskMtsMainWeb.SUPER_OFFER_HEADER)).to_be_visible(timeout=65000)
-        expect(self.page.locator(MskMtsMainWeb.SUPER_OFFER_TEXT)).to_be_visible(timeout=65000)
+        try:
+            expect(self.page.locator(MskMtsMainWeb.SUPER_OFFER_HEADER)).to_be_visible(timeout=65000)
+            expect(self.page.locator(MskMtsMainWeb.SUPER_OFFER_TEXT)).to_be_visible(timeout=65000)
+        except Exception:
+            raise AssertionError(
+                "Попап 'Выгодное предложение' не появился за ожидаемое время.\n"
+                "Возможно, попап не отрисовался или перекрыт другим элементом."
+            )
 
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            expect(self.page.locator(MskMtsMainWeb.INPUT_OFFER_POPUP)).to_be_visible(timeout=65000)
-            self.page.locator(MskMtsMainWeb.ADDRESS_FIVE).fill("Тестадрес")
-            self.page.locator(MskMtsMainWeb.INPUT_OFFER_POPUP).fill("99999999999")
-            self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()
+            try:
+                expect(self.page.locator(MskMtsMainWeb.INPUT_OFFER_POPUP)).to_be_visible(timeout=65000)
+            except Exception:
+                raise AssertionError(
+                    "Поле телефона в попапе 'Выгодное предложение' не появилось вовремя."
+                )
+            try:
+                self.page.locator(MskMtsMainWeb.ADDRESS_FIVE).fill("Тестадрес")
+            except Exception:
+                raise AssertionError(
+                    "Не удалось ввести адрес в попапе 'Выгодное предложение'."
+                )
+            try:
+                self.page.locator(MskMtsMainWeb.INPUT_OFFER_POPUP).fill("99999999999")
+            except Exception:
+                raise AssertionError(
+                    "Не удалось ввести телефон в попапе 'Выгодное предложение'."
+                )
+            try:
+                self.page.locator(MTSHomeOnlineMain.SEND_BUTTON_OFFER_POPUP).click()
+            except Exception:
+                raise AssertionError(
+                    "Не удалось нажать кнопку 'Отправить' в попапе 'Выгодное предложение'."
+                )
             time.sleep(4)
 
     @allure.title("Нажать на кнопку Подключить")
     def click_connect_button(self):
-        self.page.locator(MskMtsMainWeb.CONNECT_BUTTON).click()
+        try:
+            self.page.locator(MskMtsMainWeb.CONNECT_BUTTON).click()
+        except Exception:
+            raise AssertionError(
+                "Не удалось нажать кнопку 'Подключить'.\n"
+                "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+            )
 
     @allure.title("Отправить заявку в попап с названием Заявка на подключение")
     def send_popup_application_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(ApplicationPopupWithName.ADDRESS_INPUT).fill("Тестадрес")
-            self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
-            self.page.locator(MskMtsMainWeb.PHONE_INPUT_OTHER).fill("99999999999")
-            self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            try:
+                self.page.locator(ApplicationPopupWithName.ADDRESS_INPUT).fill("Тестадрес")
+            except Exception:
+                raise AssertionError("Не удалось ввести адрес в попапе 'Заявка на подключение'.")
+            try:
+                self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
+            except Exception:
+                raise AssertionError("Не удалось ввести имя в попапе 'Заявка на подключение'.")
+            try:
+                self.page.locator(MskMtsMainWeb.PHONE_INPUT_OTHER).fill("99999999999")
+            except Exception:
+                raise AssertionError("Не удалось ввести телефон в попапе 'Заявка на подключение'.")
+            try:
+                self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            except Exception:
+                raise AssertionError("Не удалось нажать кнопку отправки в попапе 'Заявка на подключение'.")
             time.sleep(4)
 
     @allure.title("Нажать на кнопку Проверить адрес")
     def click_check_address_button(self):
-        self.page.locator(MskMtsMainWeb.CHECK_ADDRESS_BUTTON).click()
+        try:
+            self.page.locator(MskMtsMainWeb.CHECK_ADDRESS_BUTTON).click()
+        except Exception:
+            raise AssertionError(
+                "Не удалось нажать кнопку 'Проверить адрес'.\n"
+                "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+            )
 
     @allure.title("Нажать на кнопку Проверить адрес из футера")
     def click_check_address_button_futer(self):
-        self.page.locator(MskMtsMainWeb.CHECK_ADDRESS_BUTTON_FUTER).click()
+        try:
+            self.page.locator(MskMtsMainWeb.CHECK_ADDRESS_BUTTON_FUTER).click()
+        except Exception:
+            raise AssertionError(
+                "Не удалось нажать кнопку 'Проверить адрес' в футере.\n"
+                "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+            )
 
     @allure.title(
         "Отправить заявку в форму Проверьте возможность подключения по вашему адресу в Москве в конце страницы")
     def send_popup_application_check_connection_near_futer(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(FormApplicationCheckConnection.ADDRESS_SECOND).fill("Тестимя")
+            try:
+                self.page.locator(FormApplicationCheckConnection.ADDRESS_SECOND).fill("Тестимя")
+            except Exception:
+                raise AssertionError("Не удалось ввести адрес в форму у футера.")
             time.sleep(3)
-            self.page.locator(ApplicationPopupCheckConnection.PHONE_INPUT).fill("99999999999")
+            try:
+                self.page.locator(ApplicationPopupCheckConnection.PHONE_INPUT).fill("99999999999")
+            except Exception:
+                raise AssertionError("Не удалось ввести телефон в форму у футера.")
             time.sleep(3)
-            self.page.locator(FormApplicationCheckConnection.CHECK_ADDRESS_BUTTON_SECOND).click()
+            try:
+                self.page.locator(FormApplicationCheckConnection.CHECK_ADDRESS_BUTTON_SECOND).click()
+            except Exception:
+                raise AssertionError("Не удалось нажать кнопку 'Проверить адрес' в форме у футера.")
             time.sleep(4)
 
     @allure.title("Отправить заявку на подключение тарифа")
     def send_tariff_connection_request(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(ApplicationPopupWithName.ADDRESS_INPUT).fill("Тестадрес")
-            self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
-            self.page.locator(MskMtsMainWeb.PHONE_INPUT_OTHER).fill("99999999999")
-            self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            try:
+                self.page.locator(ApplicationPopupWithName.ADDRESS_INPUT).fill("Тестадрес")
+            except Exception:
+                raise AssertionError("Не удалось ввести адрес в форме тарифа.")
+            try:
+                self.page.locator(ApplicationPopupWithName.NAME_INPUT).fill("Тестимя")
+            except Exception:
+                raise AssertionError("Не удалось ввести имя в форме тарифа.")
+            try:
+                self.page.locator(MskMtsMainWeb.PHONE_INPUT_OTHER).fill("99999999999")
+            except Exception:
+                raise AssertionError("Не удалось ввести телефон в форме тарифа.")
+            try:
+                self.page.locator(ApplicationPopupWithName.SEND_BUTTON).click()
+            except Exception:
+                raise AssertionError("Не удалось нажать кнопку отправки в форме тарифа.")
             time.sleep(4)
 
     @allure.title(
         "Отправить заявку в форму Проверьте возможность подключения по вашему адресу в Москве в конце страницы")
     def send_popup_application_check_connection_near_futer_another(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(MskMtsMainWeb.ADDRESS_SECOND).fill("Тестимя")
+            try:
+                self.page.locator(MskMtsMainWeb.ADDRESS_SECOND).fill("Тестимя")
+            except Exception:
+                raise AssertionError("Не удалось ввести адрес (вариант другой формы у футера).")
             time.sleep(3)
-            self.page.locator(MskMtsMainWeb.PHONE_INPUT).fill("99999999999")
+            try:
+                self.page.locator(MskMtsMainWeb.PHONE_INPUT).fill("99999999999")
+            except Exception:
+                raise AssertionError("Не удалось ввести телефон (вариант другой формы у футера).")
             time.sleep(3)
-            self.page.locator(MskMtsMainWeb.CHECK_ADDRESS_BUTTON_SECOND).click()
+            try:
+                self.page.locator(MskMtsMainWeb.CHECK_ADDRESS_BUTTON_SECOND).click()
+            except Exception:
+                raise AssertionError("Не удалось нажать кнопку 'Проверить адрес' (вариант другой формы у футера).")
             time.sleep(4)
 
     @allure.title("Проверить ссылку и убедиться, что страница существует")
@@ -117,21 +209,42 @@ class MtsGponHomeOnlinePage(BasePage):
     @allure.title("Нажать на кнопку выбора региона в хедере")
     def click_region_choice_button_gpon(self):
         region_button = self.page.locator(MskMtsMainWeb.REGION_CHOICE_BUTTON_SECOND)
-        region_button.click()
+        try:
+            region_button.click()
+        except Exception:
+            raise AssertionError(
+                "Не удалось нажать кнопку выбора региона (GPON, хедер).\n"
+                "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+            )
         time.sleep(2)
 
     @allure.title("Нажать на кнопку выбора региона в футере")
     def click_region_choice_button_futer_gpon(self):
         region_button = self.page.locator(MskMtsMainWeb.REGION_CHOICE_BUTTON_FUTER)
-        region_button.click()
+        try:
+            region_button.click()
+        except Exception:
+            raise AssertionError(
+                "Не удалось нажать кнопку выбора региона (GPON, футер).\n"
+                "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+            )
         time.sleep(2)
 
     @allure.title("Нажать на кнопку выбора региона в футере новый")
     def click_region_choice_button_futer_gpon_new(self):
         region_button = self.page.locator(MskMtsMainWeb.REGION_CHOICE_GPON)
-        region_button.click()
+        try:
+            region_button.click()
+        except Exception:
+            raise AssertionError(
+                "Не удалось нажать кнопку выбора региона (GPON, новый вариант).\n"
+                "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+            )
         time.sleep(2)
 
     @allure.title("Закрыть попап Выгодное предложение")
     def close_popup_super_offer(self):
-        self.page.locator(MskMtsMainWeb.SUPER_OFFER_CLOSE_NEW).click()
+        try:
+            self.page.locator(MskMtsMainWeb.SUPER_OFFER_CLOSE_NEW).click()
+        except Exception:
+            raise AssertionError("Не удалось закрыть попап 'Выгодное предложение'.")

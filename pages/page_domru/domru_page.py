@@ -208,47 +208,104 @@ class DomRuClass(BasePage):
 
     @allure.title("Получить список всех тарифных карточек")
     def get_tariff_cards(self):
-        return self.page.locator(LocationPopup.TARIFF_CARDS).all()
+        try:
+            return self.page.locator(LocationPopup.TARIFF_CARDS).all()
+        except Exception:
+            raise AssertionError(
+                "Не удалось получить список тарифных карточек.\n"
+                "Возможно, карточки не отрисовались или изменился селектор."
+            )
 
     @allure.title("Нажать кнопку Подключить на тарифной карточке")
     def click_tariff_connect_button(self, card_index):
-        self.page.locator(LocationPopup.TARIFF_CONNECT_BUTTONS).nth(card_index).click()
+        try:
+            self.page.locator(LocationPopup.TARIFF_CONNECT_BUTTONS).nth(card_index).click()
+        except Exception:
+            raise AssertionError(
+                f"Не удалось нажать кнопку 'Подключить' на карточке тарифа #{card_index}.\n"
+                "Возможно, элемент недоступен, перекрыт или изменился селектор."
+            )
 
     @allure.title("Отправить заявку на подключение тарифа")
     def send_tariff_connection_request(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(CardsPopup.INPUT_NAME).fill("Тестимя")
-            self.page.locator(CardsPopup.INPUT_NUM).fill("99999999999")
-            self.page.locator(CardsPopup.SEND_BUTTON).click()
+            try:
+                self.page.locator(CardsPopup.INPUT_NAME).fill("Тестимя")
+            except Exception:
+                raise AssertionError("Не удалось ввести имя в форме тарифа.")
+            try:
+                self.page.locator(CardsPopup.INPUT_NUM).fill("99999999999")
+            except Exception:
+                raise AssertionError("Не удалось ввести телефон в форме тарифа.")
+            try:
+                self.page.locator(CardsPopup.SEND_BUTTON).click()
+            except Exception:
+                raise AssertionError("Не удалось нажать кнопку отправки в форме тарифа.")
             time.sleep(4)
 
     @allure.title("Отправить заявку на подключение тарифа")
     def send_tariff_connection_request_second(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(CardsPopup.INPUT_NAME).fill("Тестимя")
-            self.page.locator(PopUps.INPUT_NUM_POPUP_FOU).fill("99999999999")
-            self.page.locator(CardsPopup.SEND_BUTTON).click()
+            try:
+                self.page.locator(CardsPopup.INPUT_NAME).fill("Тестимя")
+            except Exception:
+                raise AssertionError("Не удалось ввести имя в форме тарифа.")
+            try:
+                self.page.locator(PopUps.INPUT_NUM_POPUP_FOU).fill("99999999999")
+            except Exception:
+                raise AssertionError("Не удалось ввести телефон в форме тарифа.")
+            try:
+                self.page.locator(CardsPopup.SEND_BUTTON).click()
+            except Exception:
+                raise AssertionError("Не удалось нажать кнопку отправки в форме тарифа.")
             time.sleep(4)
 
     @allure.title("Отправить заявку на подключение тарифа")
     def send_tariff_connection_request_second(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            self.page.locator(CardsPopup.INPUT_NAME).fill("Тестимя")
-            self.page.locator(PopUps.INPUT_NUM_POPUP_FOU).fill("99999999999")
-            self.page.locator(CardsPopup.SEND_BUTTON).click()
+            try:
+                self.page.locator(CardsPopup.INPUT_NAME).fill("Тестимя")
+            except Exception:
+                raise AssertionError("Не удалось ввести имя в форме тарифа.")
+            try:
+                self.page.locator(PopUps.INPUT_NUM_POPUP_FOU).fill("99999999999")
+            except Exception:
+                raise AssertionError("Не удалось ввести телефон в форме тарифа.")
+            try:
+                self.page.locator(CardsPopup.SEND_BUTTON).click()
+            except Exception:
+                raise AssertionError("Не удалось нажать кнопку отправки в форме тарифа.")
             time.sleep(4)
 
     @allure.title("Нажать на кнопку Подключить интернет первую")
     def open_popup_connection(self):
-        self.page.locator(PopUps.BUTTON_CONNECT_INTERNET).click()
+        try:
+            self.page.locator(PopUps.BUTTON_CONNECT_INTERNET).click()
+        except Exception:
+            raise AssertionError(
+                "Не удалось нажать первую кнопку 'Подключить интернет'.\n"
+                "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+            )
 
     @allure.title("Нажать на кнопку Подключить интернет вторую")
     def open_popup_connection_second(self):
-        self.page.locator(PopUps.BUTTON_CONNECT_INTERNET_SECOND).click()
+        try:
+            self.page.locator(PopUps.BUTTON_CONNECT_INTERNET_SECOND).click()
+        except Exception:
+            raise AssertionError(
+                "Не удалось нажать вторую кнопку 'Подключить интернет'.\n"
+                "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+            )
 
     @allure.title("Нажать на кнопку Подключить интернет третью")
     def open_popup_connection_third(self):
-        self.page.locator(PopUps.BUTTON_CONNECT_INTERNET_THIRD).click()
+        try:
+            self.page.locator(PopUps.BUTTON_CONNECT_INTERNET_THIRD).click()
+        except Exception:
+            raise AssertionError(
+                "Не удалось нажать третью кнопку 'Подключить интернет'.\n"
+                "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+            )
 
     @allure.title("Проверить ссылку и убедиться, что страница существует")
     def check_link(self, locator, link_name):
