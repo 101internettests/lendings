@@ -46,7 +46,7 @@ def _format_daily_summary(landings_count: int, pages: int, passed: int, failed: 
     pct = int(round((success / total) * 100)) if total else 0
     now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M")
     lines = []
-    lines.append(f"✅ Автотест проверки лендингов завершён ({now_str}) ")
+    lines.append(f"✅ Автотест форм заявок с лендингов завершён ({now_str})")
     lines.append("")
     lines.append(f"🌐 Лендингов проверено: {landings_count}")
     lines.append("")
@@ -66,8 +66,8 @@ def _format_daily_summary(landings_count: int, pages: int, passed: int, failed: 
 def main():
     load_dotenv()
     run_log_path = Path(os.getenv("RUN_LOG_PATH", ".run_summaries.jsonl").strip())
-    # Prefer DAILY_REPORT_URL for daily summaries; fallback to REPORT_URL if provided
-    details_url = os.getenv("DAILY_REPORT_URL") or os.getenv("REPORT_URL")
+    # Use only REPORT_URL for details link per user requirement
+    details_url = os.getenv("REPORT_URL")
 
     now = _now_utc()
     since = now - timedelta(days=1)
