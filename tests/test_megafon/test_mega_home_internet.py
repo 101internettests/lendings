@@ -62,7 +62,7 @@ class TestMegaHomeInternet:
         mega_page.check_footer_links()
 
     @allure.title("6. Выбор региона СПб из хедера")
-    def test_choose_region_header_spb(self, page_fixture, nine_url):
+    def test_choose_region_header(self, page_fixture, nine_url):
         page = page_fixture
         page.goto(nine_url)
         time.sleep(7)

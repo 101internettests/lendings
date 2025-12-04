@@ -34,7 +34,7 @@ class TestGponMtsHomeOnline:
         gpon_page.check_all_links()
 
     @allure.title("4. Выбор региона Азнакаево из хедера")
-    def test_gpon_choose_region_header_azn(self, page_fixture, third_url):
+    def test_choose_region_header(self, page_fixture, third_url):
         page = page_fixture
         page.goto(third_url)
         gpon_page = MtsGponHomeOnlinePage(page=page)
@@ -47,7 +47,7 @@ class TestGponMtsHomeOnline:
             region_page.verify_region_button_text_new_gpon("Азнакаево")
 
     @allure.title("5. Выбор региона Азнакаево из футера")
-    def test_gpon_choose_region_futer_azn(self, page_fixture, third_url):
+    def test_choose_region_futer(self, page_fixture, third_url):
         page = page_fixture
         page.goto(third_url)
         gpon_page = MtsGponHomeOnlinePage(page=page)

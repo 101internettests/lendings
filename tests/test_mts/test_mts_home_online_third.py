@@ -33,7 +33,7 @@ class TestMtsMskHomeOnlineThird:
         mts_second_page.check_all_links()
 
     @allure.title("4. Выбор региона Азнакаево из хедера")
-    def test_choose_region_header_azn(self, page_fixture, six_url):
+    def test_choose_region_header(self, page_fixture, six_url):
         page = page_fixture
         page.goto(six_url)
         region_page = ChoiceRegionPage(page=page)
@@ -47,7 +47,7 @@ class TestMtsMskHomeOnlineThird:
             region_page.verify_region_button_text_new("Азнакаево")
 
     @allure.title("5. Выбор региона Азнакаево из футера")
-    def test_choose_region_futer_azn(self, page_fixture, six_url):
+    def test_choose_region_futer(self, page_fixture, six_url):
         page = page_fixture
         page.goto(six_url)
         mts_second_page = MtsHomeOnlineSecondPage(page=page)

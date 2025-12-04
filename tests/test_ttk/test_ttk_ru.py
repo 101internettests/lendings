@@ -18,7 +18,7 @@ class TestTTKInternet:
         beeline_page.check_all_links_ttk()
 
     @allure.title("2. Выбор региона из хедера")
-    def test_choose_region_header_spb(self, page_fixture, ttk_internet):
+    def test_choose_region_header(self, page_fixture, ttk_internet):
         page = page_fixture
         page.goto(ttk_internet)
         mts_page = MtsHomeOnlinePage(page=page)
@@ -37,8 +37,8 @@ class TestTTKInternet:
             region_page.select_first_region()
             region_page.verify_region_button_text_new("Барнаул")
 
-    @allure.title("3. Выбор региона из хедера")
-    def test_choose_region_foot_spb(self, page_fixture, ttk_internet):
+    @allure.title("3. Выбор региона из футера")
+    def test_choose_region_footer(self, page_fixture, ttk_internet):
         page = page_fixture
         page.goto(ttk_internet)
         mts_page = MtsHomeOnlinePage(page=page)
@@ -81,7 +81,7 @@ class TestTTKRyOnline:
         beeline_page.check_all_links_ttk()
 
     @allure.title("2. Выбор региона из хедера")
-    def test_choose_region_header_spb(self, page_fixture, ttk_online):
+    def test_choose_region_header(self, page_fixture, ttk_online):
         page = page_fixture
         page.goto(ttk_online)
         mts_page = MtsHomeOnlinePage(page=page)
@@ -100,8 +100,8 @@ class TestTTKRyOnline:
             region_page.select_first_region()
             region_page.verify_region_button_text_new("Барнаул")
 
-    @allure.title("3. Выбор региона из хедера")
-    def test_choose_region_foot_spb(self, page_fixture, ttk_online):
+    @allure.title("3. Выбор региона из футера")
+    def test_choose_region_footer(self, page_fixture, ttk_online):
         page = page_fixture
         page.goto(ttk_online)
         mts_page = MtsHomeOnlinePage(page=page)

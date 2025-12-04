@@ -48,7 +48,7 @@ class TestDomruProviderDom:
         domru_page.check_all_links()
 
     @allure.title("4. Выбор региона Ангарск из хедера")
-    def test_choose_region_header_spb(self, page_fixture, providerdom_url):
+    def test_choose_region_header(self, page_fixture, providerdom_url):
         page = page_fixture
         page.goto(providerdom_url)
         mts_page = MtsHomeOnlinePage(page=page)
