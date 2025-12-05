@@ -53,7 +53,7 @@ class TestBeelineInternetRu:
         beeline_page.check_all_links_online_pro()
 
     @allure.title("4. Выбор региона из хедера")
-    def test_choose_region_header_spb(self, page_fixture, beeline_internet):
+    def test_choose_region_header(self, page_fixture, beeline_internet):
         page = page_fixture
         page.goto(beeline_internet)
         domru_page = DomRuClass(page=page)

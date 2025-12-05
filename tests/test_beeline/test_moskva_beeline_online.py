@@ -66,7 +66,7 @@ class TestMskBeelineOnline:
         beeline_page.check_all_links_msk()
 
     @allure.title("4. Выбор региона из хедера")
-    def test_choose_region_header_spb(self, page_fixture, msk_beeline_online):
+    def test_choose_region_header(self, page_fixture, msk_beeline_online):
         page = page_fixture
         page.goto(msk_beeline_online)
         mts_page = MtsHomeOnlinePage(page=page)
@@ -88,7 +88,7 @@ class TestMskBeelineOnline:
             region_page.verify_region_button_text_new("Аксай")
 
     @allure.title("5. Выбор региона из футера")
-    def test_choose_region_futer_spb(self, page_fixture, msk_beeline_online):
+    def test_choose_region_futer(self, page_fixture, msk_beeline_online):
         page = page_fixture
         page.goto(msk_beeline_online)
         mts_page = MtsHomeOnlinePage(page=page)

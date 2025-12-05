@@ -36,7 +36,7 @@ class TestskMegaHomeInternet:
         mega_page.check_popup_links_moskva()
 
     @allure.title("4. Выбор региона СПб из хедера")
-    def test_choose_region_header_spb(self, page_fixture, mega_home_internet):
+    def test_choose_region_header(self, page_fixture, mega_home_internet):
         page = page_fixture
         page.goto(mega_home_internet)
         time.sleep(7)

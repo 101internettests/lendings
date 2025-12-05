@@ -51,7 +51,7 @@ class TestBeelinePro:
         beeline_page.check_all_links_online_pro()
 
     @allure.title("4. Выбор региона из хедера")
-    def test_choose_region_header_spb(self, page_fixture, beeline_pro):
+    def test_choose_region_header(self, page_fixture, beeline_pro):
         page = page_fixture
         page.goto(beeline_pro)
         one_more_page = MTSSecondOnlinePage(page=page)
