@@ -96,26 +96,13 @@ class MtsHomeOnlinePage(BasePage):
 
     @allure.title("Проверить успешность отправления заявки")
     def check_sucess(self):
-        candidates = [
-            MTSHomeOnlineMain.THANKYOU_TEXT,
-            MTSHomeOnlineMain.THANKYOU_TEXT_SECOND,
-            MTSHomeOnlineMain.THANKYOU_HEADER,
-            MTSHomeOnlineMain.MORE_THANKYOU,
-        ]
-        for selector in candidates:
-            try:
-                self.page.locator(selector).first.wait_for(state="visible", timeout=10000)
-                return
-            except Exception:
-                continue
-        # Фолбэк: если элементов нет, попробуем определить успешность по URL
         try:
             current_url = self.page.url or ""
-            if "/thanks" in current_url or "/tilda/form1/submitted" in current_url:
-                return
         except Exception:
-            pass
-        raise AssertionError("Страница благодарности не появилась ни по одному из известных селекторов и URL не содержит признаков успешной отправки")
+            current_url = ""
+        if "/thanks" in current_url or "/tilda/form1/submitted" in current_url:
+            return
+        raise AssertionError("Страница благодарности не появилась: URL не содержит признаков успешной отправки")
 
     @allure.title("Проверить успешность отправления заявки")
     def check_sucess_express(self):
