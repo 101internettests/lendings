@@ -90,6 +90,9 @@ PAGES_PER_DOMAIN = defaultdict(int)
 DOMAIN_ERROR_COUNTS = defaultdict(int)  # key: (domain, error_key)
 DOMAIN_ERROR_URLS = defaultdict(set)    # key: (domain, error_key) -> urls
 ERROR_DOMAINS = defaultdict(set)        # key: error_key -> domains
+# Трекинг тестов по парам (домен, шаг) и по URL для более информативных fixed-уведомлений
+DOMAIN_ERROR_TESTS = defaultdict(set)   # key: (domain, error_key) -> set(test_names)
+URL_ERROR_TESTS = defaultdict(set)      # key: url -> set(test_names)
 # Отслеживание подсчёта результатов по тестам (чтобы корректно учитывать setup/teardown)
 _COUNTED_NODEIDS: set[str] = set()
 _PASSED_NODEIDS: set[str] = set()
@@ -638,10 +641,56 @@ def pytest_runtest_makereport(item, call):
     # Update counters and possibly send immediate alerts on failure
     try:
         current_url = None
-        for param_name, param_value in (item.funcargs or {}).items():
-            if isinstance(param_value, str) and param_value.startswith("http"):
-                current_url = param_value
-                break
+        funcargs = (item.funcargs or {})
+        # 1) Prefer live page URL if available
+        try:
+            for _, v in funcargs.items():
+                u = getattr(v, "url", None)
+                if isinstance(u, str) and u.startswith("http"):
+                    current_url = u
+                    break
+        except Exception:
+            pass
+        # 2) Prefer specifically named URL params (business_url, etc.)
+        if not current_url:
+            try:
+                named_prefs = [
+                    "business_url",
+                    "business_url_second",
+                    "example_url",
+                    "connection_url",
+                    "connect_cards_url",
+                    "checkaddress_url",
+                    "checkaddress_button_url",
+                    "checkaddress_urls",
+                    "undecided_url",
+                    "moving_url",
+                ]
+                for name in named_prefs:
+                    val = funcargs.get(name)
+                    if isinstance(val, str) and val.startswith("http"):
+                        current_url = val
+                        break
+            except Exception:
+                pass
+        # 3) Otherwise, any param with 'url' in its name
+        if not current_url:
+            try:
+                for k, v in funcargs.items():
+                    if "url" in str(k).lower() and isinstance(v, str) and v.startswith("http"):
+                        current_url = v
+                        break
+            except Exception:
+                pass
+        # 4) Fallback: any http-like string param
+        if not current_url:
+            try:
+                for _, v in funcargs.items():
+                    if isinstance(v, str) and v.startswith("http"):
+                        current_url = v
+                        break
+            except Exception:
+                pass
         domain = _get_domain(current_url)
 
         form_title = None
@@ -652,7 +701,7 @@ def pytest_runtest_makereport(item, call):
             feature_url_meta = meta.get("feature_url")
         except Exception:
             pass
-        # Prefer param URL; if absent, fall back to feature_url captured from markers
+        # Prefer live/param URL; if absent, fall back to feature_url captured from markers
         url_for_log = current_url or feature_url_meta
 
         # Handle skipped tests separately: log to Google Sheets with status=skipped and do not touch counters
@@ -710,6 +759,20 @@ def pytest_runtest_makereport(item, call):
                 if current_url:
                     DOMAIN_ERROR_URLS[dom_key].add(current_url)
                 ERROR_DOMAINS[error_key].add(domain or "—")
+                # Привяжем тест к паре (домен, шаг) и к URL
+                try:
+                    test_display_name = None
+                    try:
+                        meta = TEST_META.get(item.nodeid) or {}
+                        test_display_name = meta.get("title") or getattr(item, "name", None) or item.nodeid
+                    except Exception:
+                        test_display_name = getattr(item, "name", None) or item.nodeid
+                    if test_display_name:
+                        DOMAIN_ERROR_TESTS[dom_key].add(test_display_name)
+                        if current_url:
+                            URL_ERROR_TESTS[current_url].add(test_display_name)
+                except Exception:
+                    pass
 
                 # Агрегация по названию теста
                 try:
@@ -790,6 +853,21 @@ def pytest_runtest_makereport(item, call):
             step_name = _get_last_step_name() or ""
             error_key = step_name or type(call.excinfo.value).__name__
             new_count = _inc_url_counter(current_url)
+            # Привязка тестов к паре (домен, шаг) и к URL для setup/teardown падений
+            try:
+                dom_key = (domain or "—", error_key)
+                test_display_name = None
+                try:
+                    meta = TEST_META.get(item.nodeid) or {}
+                    test_display_name = meta.get("title") or getattr(item, "name", None) or item.nodeid
+                except Exception:
+                    test_display_name = getattr(item, "name", None) or item.nodeid
+                if test_display_name:
+                    DOMAIN_ERROR_TESTS[dom_key].add(test_display_name)
+                    if current_url:
+                        URL_ERROR_TESTS[current_url].add(test_display_name)
+            except Exception:
+                pass
             # Log to Google Sheets once per nodeid on setup/teardown failure too, include repeat count
             try:
                 if item.nodeid not in ERROR_LOGGED_NODEIDS:
@@ -1236,7 +1314,15 @@ def pytest_sessionfinish(session, exitstatus):
         # Mark active per-domain errors seen this run
         seen_pairs = {(d, ek) for (d, ek) in DOMAIN_ERROR_COUNTS.keys()}
         for (domain, error_key), cnt in list(DOMAIN_ERROR_COUNTS.items()):
-            _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(error_key, {})["active"] = True
+            entry = _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(error_key, {})
+            entry["active"] = True
+            # Сохраняем список тестов для пары (домен, шаг) для последующего "исправлена"
+            try:
+                tests = sorted(list(DOMAIN_ERROR_TESTS.get((domain, error_key), set())))[:5]
+                if tests:
+                    entry["tests"] = tests
+            except Exception:
+                pass
 
         # Send fixed alerts for pairs that were active but did not occur now
         for domain, errors in list(_STATE.get("domain_errors", {}).items()):
@@ -1248,10 +1334,56 @@ def pytest_sessionfinish(session, exitstatus):
                         f"🕒 Время: {_now_str()}",
                         f"🌐 Лендинг: {domain}",
                     ]
+                    try:
+                        tests = info.get("tests") or []
+                        if tests:
+                            # Укажем первый наиболее характерный тест
+                            msg.append(f"🧪 Тест: {tests[0]}")
+                    except Exception:
+                        pass
                     if REPORT_URL:
                         msg.append(f"🔎 Детали: {REPORT_URL}")
                     _send_telegram_message("\n".join(msg))
                     _STATE["domain_errors"][domain][error_key]["active"] = False
+
+        # URL-level fixed notifications: mark active for URLs seen this run,
+        # and send "fixed" for URLs that were active before but not seen now
+        seen_urls = set()
+        try:
+            for (_dom, _ek), urls in list(DOMAIN_ERROR_URLS.items()):
+                for u in list(urls):
+                    if u:
+                        seen_urls.add(u)
+        except Exception:
+            seen_urls = set()
+        for u in seen_urls:
+            entry = _STATE.setdefault("url_errors", {}).setdefault(u, {})
+            entry["active"] = True
+            # Сохраним связанные тесты (до 5)
+            try:
+                tests = sorted(list(URL_ERROR_TESTS.get(u, set())))[:5]
+                if tests:
+                    entry["tests"] = tests
+            except Exception:
+                pass
+        for u, info in list(_STATE.get("url_errors", {}).items()):
+            if info.get("active") and u not in seen_urls:
+                msg = [
+                    "✅ Ошибка по URL автотеста формы исправлена",
+                    "",
+                    f"🕒 Время: {_now_str()}",
+                    f"🔗 URL: {u}",
+                ]
+                try:
+                    tests = info.get("tests") or []
+                    if tests:
+                        msg.append(f"🧪 Тест: {tests[0]}")
+                except Exception:
+                    pass
+                if REPORT_URL:
+                    msg.append(f"🔎 Детали: {REPORT_URL}")
+                _send_telegram_message("\n".join(msg))
+                _STATE["url_errors"][u]["active"] = False
 
         # Run summary (optional)
         if RUN_SUMMARY_ENABLED:
