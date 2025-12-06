@@ -118,6 +118,7 @@ class FormApplicationCheckConnection:
 class RegionChoice:
     CITY_LOC = "xpath=(//a[@class='region_item region_link'])"
     RANSOM_CITY_BUTTON = "xpath=(//table[@class='city_list']//tbody//tr//td//a)"
+    UPDATED_REGION_BUTTON = "xpath=//div[@class='header__wrapper-middle']//span[@id='city']"
     NEW_REGION_CHOICE_BUTTON = "xpath=(//span[@id='city'])[1]"
     NEW_REGION_CHOICE_BUTTON_MTS = "xpath=(//span[@id='city'])[2]"
     TELE_REGION_CHOICE_BUTTON = "xpath=(//a[@id='city'])[1]"

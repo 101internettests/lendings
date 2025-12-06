@@ -37,7 +37,6 @@ class TestBeelinePro:
         time.sleep(2)
         steps = MainSteps(page=page)
         steps.send_popup_profit()
-        time.sleep(4)
         mts_page.check_sucess()
 
     @allure.title("3. Проверка всех ссылок")

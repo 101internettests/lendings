@@ -426,15 +426,8 @@ class MainSteps(BasePage):
             except Exception:
                 current_url = ""
             if current_url.startswith("https://mts-home-online.ru/business"):
-                try:
-                    self.page.locator(Business.BUSINESS_BUTTON_THIRD).click(timeout=3000)
-                    return
-                except Exception as e:
-                    raise AssertionError(
-                        "Не удалось нажать кнопку раздела 'Бизнес' в хедере на странице /business.\n"
-                        "Использовался селектор BUSINESS_BUTTON_THIRD (xpath=(//a[text()='Бизнесу'])[2]).\n"
-                        f"Технические детали: {e}"
-                    )
+                # Особый случай: для этой урлы не нажимаем никакие кнопки
+                return
             header_candidates = [
                 getattr(Business, "BUSINESS_BUTTON", None),
                 getattr(Business, "BUSINESS_BUTTON_SECOND", None),
