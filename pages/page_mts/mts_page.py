@@ -96,7 +96,6 @@ class MtsHomeOnlinePage(BasePage):
 
     @allure.title("Проверить успешность отправления заявки")
     def check_sucess(self):
-        # Дождёмся смены URL в разумные сроки, так как редирект на страницу благодарности может занять время
         deadline = time.time() + 15.0
         last_url = ""
         while time.time() < deadline:
