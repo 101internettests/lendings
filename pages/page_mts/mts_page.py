@@ -96,13 +96,26 @@ class MtsHomeOnlinePage(BasePage):
 
     @allure.title("Проверить успешность отправления заявки")
     def check_sucess(self):
+        deadline = time.time() + 15.0
+        last_url = ""
+        while time.time() < deadline:
+            try:
+                current_url = self.page.url or ""
+                last_url = current_url
+                if "/thanks" in current_url or "/tilda/form1/submitted" in current_url:
+                    return
+            except Exception:
+                pass
+            time.sleep(0.5)
+
+        # Последняя попытка через expect/wait_for_url на шаблон "/thanks"
         try:
-            current_url = self.page.url or ""
-        except Exception:
-            current_url = ""
-        if "/thanks" in current_url or "/tilda/form1/submitted" in current_url:
+            self.page.wait_for_url("**/thanks**", timeout=3000)
             return
-        raise AssertionError("Страница благодарности не появилась: URL не содержит признаков успешной отправки")
+        except Exception:
+            pass
+
+        raise AssertionError(f"Страница благодарности не появилась: URL не содержит признаков успешной отправки (last: {last_url})")
 
     @allure.title("Проверить успешность отправления заявки")
     def check_sucess_express(self):
