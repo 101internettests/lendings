@@ -47,7 +47,7 @@ class TestInternetMtsHome:
             region_page.fill_region_search_new("Азнак")
             region_page.verify_first_region_choice("Азнакаево")
             region_page.select_first_region()
-            region_page.verify_region_button_text_new("Азнакаево")
+            region_page.verify_region_button_text_updated("Азнакаево")
 
     @allure.title("5. Выбор региона Азнакаево из футера")
     def test_choose_region_futer(self, page_fixture, five_url):
@@ -60,7 +60,7 @@ class TestInternetMtsHome:
             region_page.fill_region_search_new("Азнак")
             region_page.verify_first_region_choice("Азнакаево")
             region_page.select_first_region()
-            region_page.verify_region_button_text_new("Азнакаево")
+            region_page.verify_region_button_text_updated("Азнакаево")
 
     @allure.title("6. Переход по случайным 20 ссылкам городов на странице выбора города и проверка")
     def test_check_all_city_links(self, page_fixture, five_url):

@@ -21,8 +21,7 @@ class TestMtsMskHomeOnlineThird:
         time.sleep(2)
         steps = MainSteps(page=page)
         steps.send_popup_profit()
-        time.sleep(4)
-        # mts_page.check_sucess()
+        mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
     @allure.title("3. Проверка всех ссылок")
@@ -44,7 +43,7 @@ class TestMtsMskHomeOnlineThird:
             region_page.fill_region_search_new("Азнак")
             region_page.verify_first_region_choice("Азнакаево")
             region_page.select_first_region()
-            region_page.verify_region_button_text_new("Азнакаево")
+            region_page.verify_region_button_text_updated("Азнакаево")
 
     @allure.title("5. Выбор региона Азнакаево из футера")
     def test_choose_region_futer(self, page_fixture, six_url):
@@ -57,7 +56,7 @@ class TestMtsMskHomeOnlineThird:
             region_page.fill_region_search_new("Азнак")
             region_page.verify_first_region_choice("Азнакаево")
             region_page.select_first_region()
-            region_page.verify_region_button_text_new("Азнакаево")
+            region_page.verify_region_button_text_updated("Азнакаево")
 
     @allure.title("6. Переход по случайным 20 ссылкам городов на странице выбора города и проверка")
     def test_check_all_city_links(self, page_fixture, six_url):

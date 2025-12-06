@@ -96,22 +96,41 @@ class MtsHomeOnlinePage(BasePage):
 
     @allure.title("Проверить успешность отправления заявки")
     def check_sucess(self):
-        deadline = time.time() + 15.0
+        # Дождёмся смены URL в разумные сроки, так как редирект на страницу благодарности может занять время
+        deadline = time.time() + 10.0
         last_url = ""
         while time.time() < deadline:
             try:
                 current_url = self.page.url or ""
                 last_url = current_url
-                if "/thanks" in current_url or "/tilda/form1/submitted" in current_url:
+                lu = current_url.lower()
+                if (
+                    "/thanks" in lu
+                    or "/tilda/form1/submitted" in lu
+                    or lu.endswith("/tilda/form1/submitted/")
+                ):
                     return
             except Exception:
                 pass
             time.sleep(0.5)
 
-        # Последняя попытка через expect/wait_for_url на шаблон "/thanks"
+        # Последние попытки через ожидание URL по маскам
         try:
             self.page.wait_for_url("**/thanks**", timeout=3000)
             return
+        except Exception:
+            pass
+        try:
+            self.page.wait_for_url("**/tilda/form1/submitted**", timeout=3000)
+            return
+        except Exception:
+            pass
+        # Финальная попытка: дождаться стабилизации сети и перечитать URL
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=3000)
+            final_url = (self.page.url or "").lower()
+            if "/thanks" in final_url or "/tilda/form1/submitted" in final_url or final_url.endswith("/tilda/form1/submitted/"):
+                return
         except Exception:
             pass
 
@@ -1011,6 +1030,24 @@ class ChoiceRegionPage(BasePage):
         except Exception:
             raise AssertionError(
                 "Не удалось проверить текст кнопки выбора региона (основной).\n"
+                "Возможно, кнопка недоступна или изменился селектор."
+            )
+
+    @allure.title("Проверить текст кнопки выбора региона")
+    def verify_region_button_text_updated(self, expected_text):
+        try:
+            region_button = self.page.locator(RegionChoice.UPDATED_REGION_BUTTON)
+            expect(region_button).to_be_visible()
+            actual_text = (region_button.text_content() or "").strip()
+            if actual_text != expected_text:
+                raise AssertionError(
+                    f"Некорректный город в кнопке выбора региона: '{actual_text}', ожидали '{expected_text}'"
+                )
+        except AssertionError:
+            raise
+        except Exception:
+            raise AssertionError(
+                "Не удалось проверить текст кнопки выбора региона (новая версия).\n"
                 "Возможно, кнопка недоступна или изменился селектор."
             )
 

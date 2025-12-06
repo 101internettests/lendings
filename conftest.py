@@ -657,7 +657,7 @@ def pytest_runtest_makereport(item, call):
 
         # Handle skipped tests separately: log to Google Sheets with status=skipped and do not touch counters
         try:
-            if call.when == "call" and call.excinfo is not None:
+            if call.excinfo is not None:
                 typename = getattr(getattr(call, "excinfo", None), "typename", "") or ""
                 if typename.lower() == "skipped":
                     try:

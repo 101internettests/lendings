@@ -9,7 +9,6 @@ from playwright.sync_api import Error as PlaywrightError
 from locators.mts.mts_home_online import MTSHomeOnlineMain
 from pages.page_beel.beeline_page import BeelineOnlinePage,  BeelineInternetOnlinePage
 
-
 class TestForms:
     # @pytest.mark.skip("Ожидает доработок")
     # @allure.title("1. Отправка заявки из  попапа Выгодное спецпредложение! по нажатию фиксированной красной кнопки звонка в правом нижнем углу")
@@ -41,7 +40,7 @@ class TestForms:
     #             pass
     #     steps.open_popup_for_colorful_button()
     #     steps.send_popup_profit()
-    #     # mts_page.check_sucess()
+    #     mts_page.check_sucess()
     #     # Если стартовый URL уже был страницей /submitted, шаг закрытия thankyou пропускаем
     #     try:
     #         base_url = (example_url or "").split("?", 1)[0].rstrip("/")
@@ -74,7 +73,7 @@ class TestForms:
     #     mts_page.close_thankyou_page()
 
     # @pytest.mark.skip("Ожидает доработок")
-    # @allure.title("2. Отправка заявки из попапа  по кнопке Подключить (все кнопки на странице)")
+    # @allure.title("2.1 Отправка заявки из попапа  по кнопке Подключить (все кнопки на странице)")
     # def test_application_popup_button_connect(self, page_fixture, connection_url):
     #     page = page_fixture
     #     page.goto(connection_url)
@@ -154,10 +153,10 @@ class TestForms:
     #                     pytest.fail(f"Кнопка с индексом {i} не найдена на фронте или шаг по ней завершился ошибкой")
 
     # @pytest.mark.skip("Ожидает доработок")
-    # @allure.title("2.1 Отправка заявок с карточек тарифа")
-    # def test_application_popup_button_connect_cards(self, page_fixture, example_url):
+    # @allure.title("2.2 Отправка заявок с карточек тарифа")
+    # def test_application_popup_button_connect_cards(self, page_fixture, connect_cards_url):
     #     page = page_fixture
-    #     page.goto(example_url)
+    #     page.goto(connect_cards_url)
     #     mts_page = MtsHomeOnlinePage(page=page)
     #     steps = MainSteps(page=page)
     #     region_page = ChoiceRegionPage(page=page)
@@ -220,12 +219,12 @@ class TestForms:
     #                 except Exception:
     #                     # Не блокируем тест на случай неожиданных ошибок при проверке условия
     #                     mts_page.close_thankyou_page_sec()
-    #
+
     # @pytest.mark.skip("Ожидает доработок")
     # @allure.title("3.1 Отправка заявки со ВСЕХ  форм-попапов на странице с названиями Проверить адрес")
-    # def test_application_popup_button_checkaddress(self, page_fixture, example_url):
+    # def test_application_popup_button_checkaddress(self, page_fixture, checkaddress_urls):
     #     page = page_fixture
-    #     page.goto(example_url)
+    #     page.goto(checkaddress_urls)
     #     mts_page = MtsHomeOnlinePage(page=page)
     #     steps = MainSteps(page=page)
     #     region_page = ChoiceRegionPage(page=page)
@@ -283,12 +282,12 @@ class TestForms:
     #                         steps.send_popup_checkaddress_second()
     #                 mts_page.check_sucess()
     #                 mts_page.close_thankyou_page()
-    #
+
     # @pytest.mark.skip("Ожидает доработок")
     # @allure.title("3.2 Отправка заявки со ВСЕХ  форм на странице с названиями Проверить адрес")
-    # def test_application_popup_button_checkaddress(self, page_fixture, example_url):
+    # def test_application_popup_button_checkaddress(self, page_fixture, checkaddress_button_url):
     #     page = page_fixture
-    #     page.goto(example_url)
+    #     page.goto(checkaddress_button_url)
     #     mts_page = MtsHomeOnlinePage(page=page)
     #     steps = MainSteps(page=page)
     #     region_page = ChoiceRegionPage(page=page)
@@ -332,12 +331,12 @@ class TestForms:
     #                     steps.send_popup_checkaddress_block_second(i)
     #                 mts_page.check_sucess()
     #                 mts_page.close_thankyou_page()
-    #
+
     # @pytest.mark.skip("Ожидает доработок")
     # @allure.title("4.1 Отправка заявки с формы Остались вопросы?")
-    # def test_application_undecided(self, page_fixture, example_url):
+    # def test_application_undecided(self, page_fixture, undecided_url):
     #     page = page_fixture
-    #     page.goto(example_url)
+    #     page.goto(undecided_url)
     #     mts_page = MtsHomeOnlinePage(page=page)
     #     steps = MainSteps(page=page)
     #     region_page = ChoiceRegionPage(page=page)
@@ -471,7 +470,7 @@ class TestForms:
                         print(f"Кнопка с индексом {i} не найдена на фронте или шаг по ней завершился ошибкой")
                         pytest.fail(f"Кнопка с индексом {i} не найдена на фронте или шаг по ней завершился ошибкой")
 
-    @allure.title("5.2 Проверка формы Бизнес для др. урлов")
+    @allure.title("5.2. Проверка формы Бизнес для др. урлов")
     def test_application_business_second(self, page_fixture, business_url_second):
         page = page_fixture
         page.goto(business_url_second)
@@ -485,51 +484,51 @@ class TestForms:
                     domru_page.close_popup_location()
             except Exception:
                 pass
-        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
-            try:
-                def strip_xpath(sel: str) -> str:
-                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
+        # with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 40с)"):
+        #     try:
+        #         def strip_xpath(sel: str) -> str:
+        #             return sel[len("xpath="):] if sel.startswith("xpath=") else sel
+        #
+        #         union_xpath = (
+        #             f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
+        #             f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
+        #             f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
+        #         )
+        #         page.wait_for_selector(union_xpath, state="visible", timeout=60000)
+        #         region_page.close_popup_super_offer_all()
+        #     except Exception:
+        #         pass
 
-                union_xpath = (
-                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
-                )
-                page.wait_for_selector(union_xpath, state="visible", timeout=30000)
-                region_page.close_popup_super_offer_all()
-            except Exception:
-                pass
-
-        steps.click_business_button()
-        with allure.step("Посчитать кнопки и пройти по всем"):
-            total = steps.count_business_buttons()
-            print(f"Найдено кнопок Подробнее: {total}")
-        with allure.step(
-                "Нажать на каждую кнопку, перейти на новую страницу, нажать на кнопку подключения, заполнить форму и вернуться"):
-            assert total > 0, "Не найдено кнопок Подробнее"
-            for i in range(1, total + 1):
-                with allure.step(f"Кнопка Подробнее #{i}"):
-                    try:
-                        if i >= 2:
-                            # Для последующих заходов сначала возвращаемся на страницу бизнеса через хедер
-                            steps.click_business_button()
-                        steps.click_business_button(i)
-                        steps.send_popup_business()
-                        mts_page.check_sucess()
-                        mts_page.close_thankyou_page()
-                    except Exception as e:
+            steps.click_business_button()
+            with allure.step("Посчитать кнопки и пройти по всем"):
+                total = steps.count_business_buttons()
+                print(f"Найдено кнопок Подробнее: {total}")
+            with allure.step(
+                    "Нажать на каждую кнопку, перейти на новую страницу, нажать на кнопку подключения, заполнить форму и вернуться"):
+                assert total > 0, "Не найдено кнопок Подробнее"
+                for i in range(1, total + 1):
+                    with allure.step(f"Кнопка Подробнее #{i}"):
                         try:
-                            allure.attach(
-                                f"Индекс: {i}\nURL: {page.url}\nОшибка: {e}",
-                                name=f"Ошибка кнопки Подробнее #{i}",
-                                attachment_type=allure.attachment_type.TEXT
-                            )
-                        except Exception:
-                            pass
-                        print(f"Кнопка с индексом {i} не найдена на фронте или шаг по ней завершился ошибкой")
-                        pytest.fail(f"Кнопка с индексом {i} не найдена на фронте или шаг по ней завершился ошибкой")
+                            if i >= 2:
+                                # Для последующих заходов сначала возвращаемся на страницу бизнеса через хедер
+                                steps.click_business_button()
+                            steps.click_business_button(i)
+                            steps.send_popup_business()
+                            mts_page.check_sucess()
+                            mts_page.close_thankyou_page()
+                        except Exception as e:
+                            try:
+                                allure.attach(
+                                    f"Индекс: {i}\nURL: {page.url}\nОшибка: {e}",
+                                    name=f"Ошибка кнопки Подробнее #{i}",
+                                    attachment_type=allure.attachment_type.TEXT
+                                )
+                            except Exception:
+                                pass
+                            print(f"Кнопка с индексом {i} не найдена на фронте или шаг по ней завершился ошибкой")
+                            pytest.fail(f"Кнопка с индексом {i} не найдена на фронте или шаг по ней завершился ошибкой")
 
-    @allure.title("6 Форма переезд")
+    @allure.title("6. Форма переезд")
     def test_application_moving(self, page_fixture, moving_url):
         page = page_fixture
         page.goto(moving_url)
@@ -543,7 +542,7 @@ class TestForms:
                     domru_page.close_popup_location()
             except Exception:
                 pass
-        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
+        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 40с)"):
             try:
                 def strip_xpath(sel: str) -> str:
                     return sel[len("xpath="):] if sel.startswith("xpath=") else sel
@@ -553,7 +552,7 @@ class TestForms:
                     f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
                     f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
                 )
-                page.wait_for_selector(union_xpath, state="visible", timeout=30000)
+                page.wait_for_selector(union_xpath, state="visible", timeout=40000)
                 region_page.close_popup_super_offer_all()
             except Exception:
                 pass
@@ -590,7 +589,7 @@ class TestForms:
                         print(f"Кнопка с индексом {i} не найдена на фронте или шаг по ней завершился ошибкой")
                         pytest.fail(f"Кнопка с индексом {i} не найдена на фронте или шаг по ней завершился ошибкой")
 
-    @allure.title("7 Попап Заявка на экспресс подключение")
+    @allure.title("7. Попап Заявка на экспресс подключение")
     def test_application_express_connection(self, page_fixture, express_url):
         page = page_fixture
         page.goto(express_url)
