@@ -243,14 +243,23 @@ def _now_msk_str() -> str:
     except Exception:
         return datetime.utcnow().strftime("%Y-%m-%d %H:%M") + " (MSK)"
 
-def _append_error_row(url: str | None, test_name: str, error_text: str, repeat_count: int | None = None):
-    """Append a single error row to the configured Google Sheet."""
+def _append_error_row(url: str | None, test_name: str, error_text: str, repeat_count: int | None = None, status: str = "failed"):
+    """Append a single row to the configured Google Sheet.
+    Columns: URL, Test Name, Error, Repeat, Timestamp, Status
+    """
     try:
         if not _ensure_gsheets():
             return
         ts = _now_msk_str()
         repeat_str = "" if repeat_count is None else str(repeat_count)
-        row = [ts, url or "", test_name or "", (_sanitize_error_text(error_text) or "").strip(), repeat_str]
+        row = [
+            url or "",
+            test_name or "",
+            (_sanitize_error_text(error_text) or "").strip(),
+            repeat_str,
+            ts,
+            (status or "").strip(),
+        ]
         _GS_WORKSHEET.append_row(row, value_input_option="RAW")
     except Exception:
         # Do not let Sheets errors break test run
@@ -636,9 +645,42 @@ def pytest_runtest_makereport(item, call):
         domain = _get_domain(current_url)
 
         form_title = None
+        feature_url_meta = None
         try:
             meta = TEST_META.get(item.nodeid) or {}
             form_title = meta.get("title")
+            feature_url_meta = meta.get("feature_url")
+        except Exception:
+            pass
+        # Prefer param URL; if absent, fall back to feature_url captured from markers
+        url_for_log = current_url or feature_url_meta
+
+        # Handle skipped tests separately: log to Google Sheets with status=skipped and do not touch counters
+        try:
+            if call.when == "call" and call.excinfo is not None:
+                typename = getattr(getattr(call, "excinfo", None), "typename", "") or ""
+                if typename.lower() == "skipped":
+                    try:
+                        if item.nodeid not in ERROR_LOGGED_NODEIDS:
+                            test_name_for_log = None
+                            try:
+                                meta = TEST_META.get(item.nodeid) or {}
+                                test_name_for_log = meta.get("title") or getattr(item, "name", None) or item.nodeid
+                            except Exception:
+                                test_name_for_log = getattr(item, "name", None) or item.nodeid
+                            # Write row with status 'skipped'
+                            _append_error_row(
+                                url_for_log,
+                                test_name_for_log or item.nodeid,
+                                _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "skipped",
+                                None,
+                                status="skipped",
+                            )
+                            ERROR_LOGGED_NODEIDS.add(item.nodeid)
+                    except Exception:
+                        pass
+                    # Do not proceed with failure handling for skipped
+                    return
         except Exception:
             pass
 
@@ -701,7 +743,7 @@ def pytest_runtest_makereport(item, call):
                         except Exception:
                             test_name_for_log = getattr(item, "name", None) or item.nodeid
                         repeat_val = new_count if current_url else None
-                        _append_error_row(current_url, test_name_for_log or item.nodeid, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", repeat_val)
+                        _append_error_row(url_for_log, test_name_for_log or item.nodeid, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", repeat_val)
                         ERROR_LOGGED_NODEIDS.add(item.nodeid)
                 except Exception:
                     pass
@@ -757,7 +799,7 @@ def pytest_runtest_makereport(item, call):
                         test_name_for_log = meta.get("title") or getattr(item, "name", None) or item.nodeid
                     except Exception:
                         test_name_for_log = getattr(item, "name", None) or item.nodeid
-                    _append_error_row(current_url, test_name_for_log or item.nodeid, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", new_count if current_url else None)
+                    _append_error_row(url_for_log, test_name_for_log or item.nodeid, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", new_count if current_url else None)
                     ERROR_LOGGED_NODEIDS.add(item.nodeid)
             except Exception:
                 pass
