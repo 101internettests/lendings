@@ -16,9 +16,8 @@ class TestTeleTwo:
     def test_check_all_pages(self, page_fixture, tele_two):
         page = page_fixture
         page.goto(tele_two)
-        time.sleep(5)
-        beeline_page = BeelineOnlinePage(page=page)
-        beeline_page.check_all_links_online_tele()
+        steps = MainSteps(page=page)
+        steps.check_links_tele()
 
     @allure.title("4. Выбор региона из хедера")
     def test_choose_region_header(self, page_fixture, tele_two):

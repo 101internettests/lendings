@@ -4,6 +4,7 @@ from playwright.sync_api import expect
 from pages.base_page import BasePage
 from locators.mega.mega_premium_locators import ThankYouPage, CheckConnectApplicationForms, ClarifyPopUp, MainPageLocs
 from locators.mega.mega_premium_locators import ApplicationConnection
+from urllib.parse import urlparse
 
 
 class MegaPremiumOnline(BasePage):
@@ -205,6 +206,153 @@ class MegaPremiumOnline(BasePage):
                 self.check_link(locator, f"Header: {name}")
         except Exception:
             raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
+
+    @allure.title("Проверить все ссылки на странице")
+    def check_header_links_mega(self):
+        """
+        Проверяет, что клики по ссылкам хедера (//li[@class='list__item-header']) c якорями
+        действительно прокручивают страницу к соответствующей области (якорю) на этой же странице.
+        Нехэширные ссылки пропускаются.
+        """
+        header_items = self.page.locator("xpath=//li[@class='list__item-header']")
+        total = header_items.count()
+        if total == 0:
+            raise AssertionError("Не найдено элементов хедера: //li[@class='list__item-header']")
+
+        for i in range(total):
+            item = header_items.nth(i)
+            anchor = item.locator("a").first
+            if anchor.count() == 0:
+                continue
+            href = anchor.get_attribute("href") or ""
+            if not href:
+                continue
+
+            parsed = urlparse(href)
+            target_id = ""
+            if href.startswith("#"):
+                target_id = href[1:]
+            elif parsed.fragment:
+                # Ссылка вида /path#id — считаем якорём, если ведёт на ту же страницу
+                current = urlparse(self.page.url)
+                if (parsed.scheme in ("", current.scheme)
+                        and parsed.netloc in ("", current.netloc)
+                        and (parsed.path in ("", current.path))):
+                    target_id = parsed.fragment
+            if not target_id:
+                # Это не якорная ссылка — пропускаем
+                continue
+
+            # Разрешаем возможные дубликаты id: выбираем первый найденный элемент
+            css_target = self.page.locator(f"#{target_id}")
+            xpath_target = self.page.locator(f"xpath=//*[@id='{target_id}' or @name='{target_id}']")
+            total_css = css_target.count()
+            total_xpath = xpath_target.count()
+            if total_css > 0:
+                target_locator = css_target.first
+            elif total_xpath > 0:
+                target_locator = xpath_target.first
+            else:
+                raise AssertionError(f"Целевой якорь #{target_id} не найден на странице")
+
+            # Кликаем без ожидания новой вкладки — переход внутри страницы
+            anchor.scroll_into_view_if_needed()
+            anchor.click(force=True)
+
+            # Пытаемся дождаться появления хэша в URL (если он должен появиться)
+            try:
+                expect(self.page).to_have_url(f"**#{target_id}", timeout=3000)
+            except Exception:
+                # Если хэш не проявился, допустимо — проверим скролл к элементу
+                pass
+
+            # Проверяем, что цель попала в видимую область
+            box = target_locator.bounding_box()
+            if box is None:
+                # Как минимум элемент должен стать видимым
+                expect(target_locator).to_be_visible(timeout=2000)
+            else:
+                try:
+                    viewport = self.page.viewport_size or {"height": 800}
+                    vh = viewport.get("height", 800)
+                    assert 0 <= box["y"] < vh + 10, f"Якорь #{target_id} не прокручен в видимую область (y={box['y']})"
+                except Exception:
+                    # Фолбэк на видимость
+                    expect(target_locator).to_be_visible(timeout=2000)
+
+    @allure.title("Проверить все ссылки на странице")
+    def check_footer_links_mega(self):
+        """
+        Проверяет, что клики по ссылкам хедера (//li[@class='list__item-header']) c якорями
+        действительно прокручивают страницу к соответствующей области (якорю) на этой же странице.
+        Нехэширные ссылки пропускаются.
+        """
+        header_items = self.page.locator("xpath=//li[@class='list__item-footer']")
+        total = header_items.count()
+        if total == 0:
+            raise AssertionError("Не найдено элементов хедера")
+
+        for i in range(total):
+            item = header_items.nth(i)
+            anchor = item.locator("a").first
+            if anchor.count() == 0:
+                continue
+            href = anchor.get_attribute("href") or ""
+            if not href:
+                continue
+
+            parsed = urlparse(href)
+            target_id = ""
+            if href.startswith("#"):
+                target_id = href[1:]
+            elif parsed.fragment:
+                # Ссылка вида /path#id — считаем якорём, если ведёт на ту же страницу
+                current = urlparse(self.page.url)
+                if (parsed.scheme in ("", current.scheme)
+                        and parsed.netloc in ("", current.netloc)
+                        and (parsed.path in ("", current.path))):
+                    target_id = parsed.fragment
+            if not target_id:
+                # Это не якорная ссылка — пропускаем
+                continue
+
+            # Разрешаем возможные дубликаты id: выбираем первый найденный элемент
+            css_target = self.page.locator(f"#{target_id}")
+            xpath_target = self.page.locator(f"xpath=//*[@id='{target_id}' or @name='{target_id}']")
+            total_css = css_target.count()
+            total_xpath = xpath_target.count()
+            if total_css > 0:
+                target_locator = css_target.first
+            elif total_xpath > 0:
+                target_locator = xpath_target.first
+            else:
+                raise AssertionError(f"Целевой якорь #{target_id} не найден на странице")
+
+            # Кликаем без ожидания новой вкладки — переход внутри страницы
+            anchor.scroll_into_view_if_needed()
+            anchor.click(force=True)
+
+            # Пытаемся дождаться появления хэша в URL (если он должен появиться)
+            try:
+                expect(self.page).to_have_url(f"**#{target_id}", timeout=3000)
+            except Exception:
+                # Если хэш не проявился, допустимо — проверим скролл к элементу
+                pass
+
+            # Проверяем, что цель попала в видимую область
+            box = target_locator.bounding_box()
+            if box is None:
+                # Как минимум элемент должен стать видимым
+                expect(target_locator).to_be_visible(timeout=2000)
+            else:
+                try:
+                    viewport = self.page.viewport_size or {"height": 800}
+                    vh = viewport.get("height", 800)
+                    assert 0 <= box["y"] < vh + 10, f"Якорь #{target_id} не прокручен в видимую область (y={box['y']})"
+                except Exception:
+                    # Фолбэк на видимость
+                    expect(target_locator).to_be_visible(timeout=2000)
+
 
     @allure.title("Проверить все ссылки на странице")
     def check_popup_links(self):

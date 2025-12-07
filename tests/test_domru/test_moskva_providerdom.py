@@ -26,8 +26,8 @@ class TestMoskvaDomruProviderDom:
     def test_check_all_pages(self, page_fixture, msk_providerdom_url):
         page = page_fixture
         page.goto(msk_providerdom_url)
-        domru_page = DomRuClass(page=page)
-        domru_page.check_all_links()
+        steps = MainSteps(page=page)
+        steps.def_check_links_without_footer()
 
     @allure.title("3. Выбор региона Ангарск из хедера")
     def test_choose_region_header(self, page_fixture, msk_providerdom_url):

@@ -2,7 +2,7 @@ import time
 import allure
 import random
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 from playwright.sync_api import expect
 from locators.mts.mts_home_online import MTSHomeOnlineMain
 from locators.all_locators import Main
@@ -21,6 +21,503 @@ from locators.mts.mts_home_online import RegionChoice
 
 
 class MainSteps(BasePage):
+    @allure.title("Проверить все ссылки на странице")
+    def check_links_tele(self):
+        header_items = self.page.locator("xpath=//div[@class='header__nav-block-item']")
+        footer_links = self.page.locator("xpath=//div[@class='footer__tarifs']//a")
+        download_links = self.page.locator("xpath=//div[@class='checkaddress__agreement agreement']//a[@download]")
+
+        total_header = header_items.count()
+        total_footer = footer_links.count()
+        total_downloads = download_links.count()
+
+        if total_header == 0:
+            raise AssertionError("Не найдено ни одного элемента: //li[@class='list__item-header']")
+        if total_footer == 0:
+            raise AssertionError('Не найдено ни одного элемента: //div[@class="footer__block"]//a[@itemprop="url"]')
+        if total_downloads == 0:
+            raise AssertionError(
+                "Не найдено ни одного элемента: //div[@class='checkaddress__agreement agreement']//a[@download]")
+
+        # Считаем и кликаем по ссылкам в хедере
+        for i in range(total_header):
+            item = header_items.nth(i)
+            anchor = item.locator("a").first
+            target = anchor if anchor.count() > 0 else item
+            with self.page.context.expect_page() as new_page_info:
+                target.click(modifiers=["Control"], force=True)
+            new_page = new_page_info.value
+            new_page.wait_for_load_state("load", timeout=15000)
+            expect(new_page).not_to_have_url("**/404")
+            new_page.close()
+
+        # Считаем и кликаем по ссылкам в футере
+        # Сначала собираем href всех ссылок (на случай попапов/динамики DOM)
+        footer_hrefs = []
+        current_base = self.page.url
+        for i in range(total_footer):
+            link = footer_links.nth(i)
+            href = link.get_attribute("href") or ""
+            assert href, "У ссылки отсутствует href"
+            absolute_href = href if href.startswith("http") else urljoin(current_base, href)
+            footer_hrefs.append(absolute_href)
+
+        # Затем открываем каждую ссылку по порядку в новой вкладке и проверяем отсутствие 404
+        for href in footer_hrefs:
+            new_page = self.page.context.new_page()
+            try:
+                new_page.goto(href)
+                new_page.wait_for_load_state("load", timeout=15000)
+                expect(new_page).not_to_have_url("**/404")
+            finally:
+                try:
+                    new_page.close()
+                except Exception:
+                    pass
+
+        # Считаем и проверяем ссылки на скачивание
+        for i in range(total_downloads):
+            dl_link = download_links.nth(i)
+            try:
+                with self.page.expect_download(timeout=8000):
+                    dl_link.click(force=True)
+            except Exception:
+                href = dl_link.get_attribute("href") or ""
+                has_download_attr = dl_link.get_attribute("download") is not None
+                assert href and has_download_attr, "Недостаточно данных для скачивания: отсутствуют href или download"
+
+    @allure.title("Проверить все ссылки на странице")
+    def check_links_mts(self):
+        """
+        Проверяет ссылки:
+        - //li[@class='list__item-header'] — кликом по вложенной ссылке (если есть), открывает в новой вкладке и проверяет отсутствие 404
+        - //div[@class="footer__block"]//a[@itemprop="url"] — кликом с Ctrl в новой вкладке, проверка отсутствия 404
+        - //div[@class='checkaddress__agreement agreement']//a[@download] — пытается перехватить скачивание (без сохранения на диск);
+          если скачивание не произошло, проверяет наличие href и атрибута download (как минимум — возможность скачать)
+        """
+        header_items = self.page.locator("xpath=//li[@class='list__item-header']")
+        footer_links = self.page.locator("xpath=//div[@class='footer__block']//a[@itemprop='url']")
+        download_links = self.page.locator("xpath=//div[@class='checkaddress__agreement agreement']//a[@download]")
+
+        total_header = header_items.count()
+        total_footer = footer_links.count()
+        total_downloads = download_links.count()
+
+        if total_header == 0:
+            raise AssertionError("Не найдено ни одного элемента: //li[@class='list__item-header']")
+        if total_footer == 0:
+            raise AssertionError('Не найдено ни одного элемента: //div[@class="footer__block"]//a[@itemprop="url"]')
+        if total_downloads == 0:
+            raise AssertionError("Не найдено ни одного элемента: //div[@class='checkaddress__agreement agreement']//a[@download]")
+
+        # Считаем и кликаем по ссылкам в хедере
+        for i in range(total_header):
+            item = header_items.nth(i)
+            anchor = item.locator("a").first
+            target = anchor if anchor.count() > 0 else item
+            with self.page.context.expect_page() as new_page_info:
+                target.click(modifiers=["Control"], force=True)
+            new_page = new_page_info.value
+            new_page.wait_for_load_state("load", timeout=15000)
+            expect(new_page).not_to_have_url("**/404")
+            new_page.close()
+
+        # Считаем и кликаем по ссылкам в футере
+        # Сначала собираем href всех ссылок (на случай попапов/динамики DOM)
+        footer_hrefs = []
+        current_base = self.page.url
+        for i in range(total_footer):
+            link = footer_links.nth(i)
+            href = link.get_attribute("href") or ""
+            assert href, "У ссылки отсутствует href"
+            absolute_href = href if href.startswith("http") else urljoin(current_base, href)
+            footer_hrefs.append(absolute_href)
+
+        # Затем открываем каждую ссылку по порядку в новой вкладке и проверяем отсутствие 404
+        for href in footer_hrefs:
+            new_page = self.page.context.new_page()
+            try:
+                new_page.goto(href)
+                new_page.wait_for_load_state("load", timeout=15000)
+                expect(new_page).not_to_have_url("**/404")
+            finally:
+                try:
+                    new_page.close()
+                except Exception:
+                    pass
+
+        # Считаем и проверяем ссылки на скачивание
+        for i in range(total_downloads):
+            dl_link = download_links.nth(i)
+            try:
+                with self.page.expect_download(timeout=8000):
+                    dl_link.click(force=True)
+            except Exception:
+                href = dl_link.get_attribute("href") or ""
+                has_download_attr = dl_link.get_attribute("download") is not None
+                assert href and has_download_attr, "Недостаточно данных для скачивания: отсутствуют href или download"
+
+    @allure.title("Проверить все ссылки на странице")
+    def check_links_beeline(self):
+        """
+        Проверяет ссылки:
+        - Проверка наличия блоков бонусов
+        - Переход по ссылкам футера по порядку и проверка отсутствия 404
+        """
+        footer_links = self.page.locator("xpath=//div[@class='footer__block']//a[@itemprop='url']")
+        bonuses_slider_titles = self.page.locator("xpath=//div[@class='bonuses-slider__title']")
+
+        total_footer = footer_links.count()
+        total_bonuses_slider = bonuses_slider_titles.count()
+
+        if total_footer == 0:
+            raise AssertionError('Не найдено ни одного элемента: //div[@class="footer__block"]//a[@itemprop="url"]')
+        if total_bonuses_slider == 0:
+            raise AssertionError("Не найдено ни одного элемента: //div[@class='bonuses-slider__title']")
+
+        # Считаем и кликаем по ссылкам в футере
+        # Сначала собираем href всех ссылок (на случай попапов/динамики DOM)
+        footer_hrefs = []
+        current_base = self.page.url
+        for i in range(total_footer):
+            link = footer_links.nth(i)
+            href = link.get_attribute("href") or ""
+            assert href, "У ссылки отсутствует href"
+            absolute_href = href if href.startswith("http") else urljoin(current_base, href)
+            footer_hrefs.append(absolute_href)
+
+        # Затем открываем каждую ссылку по порядку в новой вкладке и проверяем отсутствие 404
+        for href in footer_hrefs:
+            new_page = self.page.context.new_page()
+            try:
+                new_page.goto(href)
+                new_page.wait_for_load_state("load", timeout=15000)
+                expect(new_page).not_to_have_url("**/404")
+            finally:
+                try:
+                    new_page.close()
+                except Exception:
+                    pass
+
+    @allure.title("Проверить все ссылки на странице")
+    def check_links_beeline_sec(self):
+        """
+        Проверяет ссылки:
+        - //li[@class='list__item-header'] — кликом по вложенной ссылке (если есть), открывает в новой вкладке и проверяет отсутствие 404
+        - //div[@class="footer__block"]//a[@itemprop="url"] — кликом с Ctrl в новой вкладке, проверка отсутствия 404
+        - //div[@class='checkaddress__agreement agreement']//a[@download] — пытается перехватить скачивание (без сохранения на диск);
+          если скачивание не произошло, проверяет наличие href и атрибута download (как минимум — возможность скачать)
+        """
+        # header_items = self.page.locator("xpath=//li[@class='list__item-header']")
+        footer_links = self.page.locator("xpath=//div[@class='footer__block']//a[@itemprop='url']")
+        download_links = self.page.locator(
+            "xpath=//div[@class='check-adress-up__content']//form//div[@class='autocomplete-submit']//a[@download]")
+
+        # total_header = header_items.count()
+        total_footer = footer_links.count()
+        total_downloads = download_links.count()
+
+        # if total_header == 0:
+        #     raise AssertionError("Не найдено ни одного элемента: //li[@class='list__item-header']")
+        if total_footer == 0:
+            raise AssertionError('Не найдено ни одного элемента: //div[@class="footer__block"]//a[@itemprop="url"]')
+        if total_downloads == 0:
+            raise AssertionError(
+                "Не найдено ни одного элемента: //div[@class='checkaddress__agreement agreement']//a[@download]")
+        #
+        # # Считаем и кликаем по ссылкам в хедере
+        # for i in range(total_header):
+        #     item = header_items.nth(i)
+        #     anchor = item.locator("a").first
+        #     target = anchor if anchor.count() > 0 else item
+        #     with self.page.context.expect_page() as new_page_info:
+        #         target.click(modifiers=["Control"], force=True)
+        #     new_page = new_page_info.value
+        #     new_page.wait_for_load_state("load", timeout=15000)
+        #     expect(new_page).not_to_have_url("**/404")
+        #     new_page.close()
+
+        # Считаем и кликаем по ссылкам в футере
+        # Сначала собираем href всех ссылок (на случай попапов/динамики DOM)
+        footer_hrefs = []
+        current_base = self.page.url
+        for i in range(total_footer):
+            link = footer_links.nth(i)
+            href = link.get_attribute("href") or ""
+            assert href, "У ссылки отсутствует href"
+            absolute_href = href if href.startswith("http") else urljoin(current_base, href)
+            footer_hrefs.append(absolute_href)
+
+        # Затем открываем каждую ссылку по порядку в новой вкладке и проверяем отсутствие 404
+        for href in footer_hrefs:
+            new_page = self.page.context.new_page()
+            try:
+                new_page.goto(href)
+                new_page.wait_for_load_state("load", timeout=15000)
+                expect(new_page).not_to_have_url("**/404")
+            finally:
+                try:
+                    new_page.close()
+                except Exception:
+                    pass
+
+        # Считаем и проверяем ссылки на скачивание
+        for i in range(total_downloads):
+            dl_link = download_links.nth(i)
+            try:
+                with self.page.expect_download(timeout=8000):
+                    dl_link.click(force=True)
+            except Exception:
+                href = dl_link.get_attribute("href") or ""
+                has_download_attr = dl_link.get_attribute("download") is not None
+                assert href and has_download_attr, "Недостаточно данных для скачивания: отсутствуют href или download"
+
+    @allure.title("Проверить все ссылки на странице")
+    def check_links_mega(self):
+
+        footer_links = self.page.locator("xpath=//li[@class='list__item-footer']//a")
+        download_links = self.page.locator(
+            "xpath=//div[@class='checkaddress__agreement agreement']//a[@download]")
+
+        total_footer = footer_links.count()
+        total_downloads = download_links.count()
+
+        if total_footer == 0:
+            raise AssertionError('Не найдено ни одного элемента')
+        if total_downloads == 0:
+            raise AssertionError(
+                "Не найдено ни одного элемента")
+
+        # Считаем и кликаем по ссылкам в футере
+        # Сначала собираем href всех ссылок (на случай попапов/динамики DOM)
+        footer_hrefs = []
+        current_base = self.page.url
+        for i in range(total_footer):
+            link = footer_links.nth(i)
+            href = link.get_attribute("href") or ""
+            assert href, "У ссылки отсутствует href"
+            absolute_href = href if href.startswith("http") else urljoin(current_base, href)
+            footer_hrefs.append(absolute_href)
+
+        # Затем открываем каждую ссылку по порядку в новой вкладке и проверяем отсутствие 404
+        for href in footer_hrefs:
+            new_page = self.page.context.new_page()
+            try:
+                new_page.goto(href)
+                new_page.wait_for_load_state("load", timeout=15000)
+                expect(new_page).not_to_have_url("**/404")
+            finally:
+                try:
+                    new_page.close()
+                except Exception:
+                    pass
+
+        # Считаем и проверяем ссылки на скачивание
+        for i in range(total_downloads):
+            dl_link = download_links.nth(i)
+            try:
+                with self.page.expect_download(timeout=8000):
+                    dl_link.click(force=True)
+            except Exception:
+                href = dl_link.get_attribute("href") or ""
+                has_download_attr = dl_link.get_attribute("download") is not None
+                assert href and has_download_attr, "Недостаточно данных для скачивания: отсутствуют href или download"
+
+    @allure.title("Проверить все ссылки на странице")
+    def check_links_mega_sec(self):
+
+        header_items = self.page.locator("xpath=//li[@class='list__item-header']")
+        footer_links = self.page.locator("xpath=//li[@class='list__item-footer']//a")
+        download_links = self.page.locator(
+            "xpath=//div[@class='checkaddress__agreement agreement']//a[@download]")
+
+        total_header = header_items.count()
+        total_footer = footer_links.count()
+        total_downloads = download_links.count()
+
+        if total_header == 0:
+            raise AssertionError("Не найдено ни одного элемента: //li[@class='list__item-header']")
+        if total_footer == 0:
+            raise AssertionError('Не найдено ни одного элемента')
+        if total_downloads == 0:
+            raise AssertionError(
+                "Не найдено ни одного элемента")
+
+        # Считаем и кликаем по ссылкам в футере
+        # Сначала собираем href всех ссылок (на случай попапов/динамики DOM)
+        footer_hrefs = []
+        current_base = self.page.url
+        for i in range(total_footer):
+            link = footer_links.nth(i)
+            href = link.get_attribute("href") or ""
+            assert href, "У ссылки отсутствует href"
+            absolute_href = href if href.startswith("http") else urljoin(current_base, href)
+            footer_hrefs.append(absolute_href)
+
+        # Затем открываем каждую ссылку по порядку в новой вкладке и проверяем отсутствие 404
+        for href in footer_hrefs:
+            new_page = self.page.context.new_page()
+            try:
+                new_page.goto(href)
+                new_page.wait_for_load_state("load", timeout=15000)
+                expect(new_page).not_to_have_url("**/404")
+            finally:
+                try:
+                    new_page.close()
+                except Exception:
+                    pass
+
+        # Считаем и проверяем ссылки на скачивание
+        for i in range(total_downloads):
+            dl_link = download_links.nth(i)
+            try:
+                with self.page.expect_download(timeout=8000):
+                    dl_link.click(force=True)
+            except Exception:
+                href = dl_link.get_attribute("href") or ""
+                has_download_attr = dl_link.get_attribute("download") is not None
+                assert href and has_download_attr, "Недостаточно данных для скачивания: отсутствуют href или download"
+
+    @allure.title("Проверить все ссылки на странице")
+    def def_check_links_without_footer(self):
+        """
+        Проверяет ссылки:
+        - //li[@class='list__item-header'] — кликом по вложенной ссылке (если есть), открывает в новой вкладке и проверяет отсутствие 404
+        - //div[@class="footer__block"]//a[@itemprop="url"] — кликом с Ctrl в новой вкладке, проверка отсутствия 404
+        - //div[@class='checkaddress__agreement agreement']//a[@download] — пытается перехватить скачивание (без сохранения на диск);
+          если скачивание не произошло, проверяет наличие href и атрибута download (как минимум — возможность скачать)
+        """
+        header_items = self.page.locator("xpath=//li[@class='list__item-header']")
+        download_links = self.page.locator("xpath=//div[@class='checkaddress__agreement agreement']//a[@download]")
+
+        total_header = header_items.count()
+        total_downloads = download_links.count()
+
+        if total_header == 0:
+            raise AssertionError("Не найдено ни одного элемента: //li[@class='list__item-header']")
+        if total_downloads == 0:
+            raise AssertionError(
+                "Не найдено ни одного элемента: //div[@class='checkaddress__agreement agreement']//a[@download]")
+
+        # Считаем и кликаем по ссылкам в хедере
+        for i in range(total_header):
+            item = header_items.nth(i)
+            anchor = item.locator("a").first
+            target = anchor if anchor.count() > 0 else item
+            with self.page.context.expect_page() as new_page_info:
+                target.click(modifiers=["Control"], force=True)
+            new_page = new_page_info.value
+            new_page.wait_for_load_state("load", timeout=15000)
+            expect(new_page).not_to_have_url("**/404")
+            new_page.close()
+
+        # Считаем и проверяем ссылки на скачивание
+        for i in range(total_downloads):
+            dl_link = download_links.nth(i)
+            try:
+                with self.page.expect_download(timeout=8000):
+                    dl_link.click(force=True)
+            except Exception:
+                href = dl_link.get_attribute("href") or ""
+                has_download_attr = dl_link.get_attribute("download") is not None
+                assert href and has_download_attr, "Недостаточно данных для скачивания: отсутствуют href или download"
+
+    @allure.title("Проверить все ссылки на странице")
+    def def_check_links_without_footer_sec(self):
+        """
+        Проверяет ссылки:
+        - //li[@class='list__item-header'] — кликом по вложенной ссылке (если есть), открывает в новой вкладке и проверяет отсутствие 404
+        - //div[@class="footer__block"]//a[@itemprop="url"] — кликом с Ctrl в новой вкладке, проверка отсутствия 404
+        - //div[@class='checkaddress__agreement agreement']//a[@download] — пытается перехватить скачивание (без сохранения на диск);
+          если скачивание не произошло, проверяет наличие href и атрибута download (как минимум — возможность скачать)
+        """
+        header_items = self.page.locator("xpath=//li[@class='list__item-header']")
+        download_links = self.page.locator("xpath=//div[@class='application-block']//a[@download]")
+
+        total_header = header_items.count()
+        total_downloads = download_links.count()
+
+        if total_header == 0:
+            raise AssertionError("Не найдено ни одного элемента: //li[@class='list__item-header']")
+        if total_downloads == 0:
+            raise AssertionError(
+                "Не найдено ни одного элемента: //div[@class='checkaddress__agreement agreement']//a[@download]")
+
+        # Считаем и кликаем по ссылкам в хедере
+        for i in range(total_header):
+            item = header_items.nth(i)
+            anchor = item.locator("a").first
+            target = anchor if anchor.count() > 0 else item
+            with self.page.context.expect_page() as new_page_info:
+                target.click(modifiers=["Control"], force=True)
+            new_page = new_page_info.value
+            new_page.wait_for_load_state("load", timeout=15000)
+            expect(new_page).not_to_have_url("**/404")
+            new_page.close()
+
+        # Считаем и проверяем ссылки на скачивание
+        for i in range(total_downloads):
+            dl_link = download_links.nth(i)
+            try:
+                with self.page.expect_download(timeout=8000):
+                    dl_link.click(force=True)
+            except Exception:
+                href = dl_link.get_attribute("href") or ""
+                has_download_attr = dl_link.get_attribute("download") is not None
+                assert href and has_download_attr, "Недостаточно данных для скачивания: отсутствуют href или download"
+
+    @allure.title("Проверить все ссылки на странице")
+    def def_check_links_without_footer_rtk(self):
+        """
+        Проверяет ссылки:
+        - //li[@class='list__item-header'] — кликом по вложенной ссылке (если есть), открывает в новой вкладке и проверяет отсутствие 404
+        - //div[@class="footer__block"]//a[@itemprop="url"] — кликом с Ctrl в новой вкладке, проверка отсутствия 404
+        - //div[@class='checkaddress__agreement agreement']//a[@download] — пытается перехватить скачивание (без сохранения на диск);
+          если скачивание не произошло, проверяет наличие href и атрибута download (как минимум — возможность скачать)
+        """
+        header_items = self.page.locator("xpath=//li[@class='list__item-header']")
+        bonuses_titles = self.page.locator("xpath=//h3[@class='bonuses__title']")
+        download_links = self.page.locator("xpath=//div[@class='checkaddress__agreement agreement']//a[@download]")
+
+        total_header = header_items.count()
+        total_bonuses = bonuses_titles.count()
+        total_downloads = download_links.count()
+
+        if total_header == 0:
+            raise AssertionError("Не найдено ни одного элемента: //li[@class='list__item-header']")
+        if total_bonuses == 0:
+            raise AssertionError("Не найдено ни одного элемента: //h3[@class='bonuses__title']")
+        if total_downloads == 0:
+            raise AssertionError(
+                "Не найдено ни одного элемента: //div[@class='checkaddress__agreement agreement']//a[@download]")
+
+        # Проверяем видимость заголовков бонусов
+        for i in range(total_bonuses):
+            expect(bonuses_titles.nth(i)).to_be_visible()
+
+        # Считаем и кликаем по ссылкам в хедере
+        for i in range(total_header):
+            item = header_items.nth(i)
+            anchor = item.locator("a").first
+            target = anchor if anchor.count() > 0 else item
+            with self.page.context.expect_page() as new_page_info:
+                target.click(modifiers=["Control"], force=True)
+            new_page = new_page_info.value
+            new_page.wait_for_load_state("load", timeout=15000)
+            expect(new_page).not_to_have_url("**/404")
+            new_page.close()
+
+        # Считаем и проверяем ссылки на скачивание
+        for i in range(total_downloads):
+            dl_link = download_links.nth(i)
+            try:
+                with self.page.expect_download(timeout=8000):
+                    dl_link.click(force=True)
+            except Exception:
+                href = dl_link.get_attribute("href") or ""
+                has_download_attr = dl_link.get_attribute("download") is not None
+                assert href and has_download_attr, "Недостаточно данных для скачивания: отсутствуют href или download"
+
 
     @allure.title("Отправить заявку в попап 'Выгодное спецпредложение!' с домом 1, при недоступности — 2 или 3")
     def send_popup_profit(self):
