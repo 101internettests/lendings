@@ -59,13 +59,7 @@ class TestRTKImternetOnlineSecond:
     def test_check_all_city_links(self, page_fixture, rtk_internet_online_ru):
         page = page_fixture
         page.goto(rtk_internet_online_ru)
-        rostelecom_page = RostelecomPage(page=page)
-        time.sleep(15)
-        rostelecom_page.close_popup()
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
-        # 20 раз: открыть попап, кликнуть случайный город в этой же вкладке и проверить,
-        # затем снова открыть попап
-        for _ in range(20):
-            mts_page.click_region_choice_button_new()
-            steps.click_random_city_and_verify_same_tab()
+        mts_page.click_region_choice_button_new()
+        steps.check_random_beeline_cities()

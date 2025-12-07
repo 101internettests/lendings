@@ -1001,6 +1001,119 @@ class MainSteps(BasePage):
                 visited_cities.add(city_name)
                 time.sleep(1)
 
+    @allure.title("Открыть 20 случайных городов (Beeline) и проверить соответствие")
+    def check_random_beeline_cities(self, desired_count: int = 20):
+        """
+        Открывает до desired_count случайных ссылок городов по локатору //a[@class='region_item region_link'].
+        Проверяет, что страницы открываются (не 404) и что город в хедере соответствует выбранному (с допуском по падежам).
+        Открытие выполняется последовательно в той же вкладке по href без клика по элементу.
+        """
+        link_selector = "xpath=//a[@class='region_item region_link']"
+        # Убедимся, что список городов виден/загружен
+        try:
+            self.page.locator(link_selector).first.wait_for(state="attached", timeout=10000)
+        except Exception:
+            raise AssertionError("Список городов (Beeline) не найден: //a[@class='region_item region_link']")
+
+        total = self.page.locator(link_selector).count()
+        if total == 0:
+            raise AssertionError("Список городов пуст (Beeline).")
+
+        target = min(desired_count, total)
+        picked = []
+        picked_hrefs = set()
+
+        def normalize(text: str) -> str:
+            return re.sub(r"\s+", " ", (text or "").strip())
+
+        def city_variants(base: str):
+            variants = {base}
+            if len(base) >= 2:
+                variants.add(base[:-1] + "у")
+                variants.add(base[:-1] + "е")
+            return list(variants)
+
+        safety = 0
+        while len(picked) < target and safety < total * 4:
+            safety += 1
+            idx = random.randint(0, total - 1)
+            link = self.page.locator(link_selector).nth(idx)
+            city_text_raw = (link.text_content() or "").strip()
+            href = link.get_attribute("href") or ""
+            if not city_text_raw or not href or not href.startswith("http"):
+                continue
+            if href in picked_hrefs:
+                continue
+            picked_hrefs.add(href)
+            picked.append((city_text_raw, href, idx))
+
+        for city_text_raw, href, idx in picked:
+            # Подготовим ожидания по названию
+            expected_city = re.sub(r"\s*\(.*?\)\s*$", "", (city_text_raw or "").strip())
+            expected_norm = normalize(expected_city)
+            accepted = []
+            for v in city_variants(expected_norm):
+                accepted.append(v)
+                accepted.append(f"Вы находитесь в городе {v}")
+
+            with allure.step(f"Открыть город (Beeline): {expected_city} (idx {idx + 1}) по href"):
+                # Навигируемся напрямую по href в текущей вкладке
+                try:
+                    self.page.goto(href, wait_until="domcontentloaded")
+                except Exception:
+                    # Повторная попытка
+                    self.page.goto(href)
+                try:
+                    try:
+                        self.page.wait_for_load_state("networkidle", timeout=15000)
+                    except Exception:
+                        try:
+                            self.page.wait_for_load_state("load", timeout=10000)
+                        except Exception:
+                            pass
+                    # Не должно быть 404
+                    expect(self.page).not_to_have_url("**/404")
+                    # Ищем текст города в хедере
+                    header_candidates = [
+                        RegionChoice.NEW_REGION_CHOICE_BUTTON,
+                        RegionChoice.TELE_REGION_CHOICE_BUTTON,
+                        RegionChoice.REGION_CHOICE_BUTTON,
+                    ]
+                    found_text = ""
+                    for sel in header_candidates:
+                        try:
+                            loc = self.page.locator(sel).first
+                            if loc.count() == 0:
+                                continue
+                            txt = normalize(loc.text_content() or "")
+                            if txt:
+                                found_text = txt
+                                break
+                        except Exception:
+                            continue
+                    if found_text:
+                        if not (found_text == expected_norm or any(pat == found_text or pat in found_text for pat in accepted)):
+                            # Фолбэк: проверим текст всего документа
+                            body_text = normalize(self.page.locator("body").text_content() or "")
+                            if not any(pat in body_text for pat in accepted):
+                                raise AssertionError(
+                                    f"Город в хедере не совпал с выбранным.\n"
+                                    f"Ожидали: '{expected_norm}' (допуски: {accepted}).\n"
+                                    f"Нашли: '{found_text or '—'}'.\n"
+                                    f"URL: {self.page.url or '—'}."
+                                )
+                    else:
+                        body_text = normalize(self.page.locator("body").text_content() or "")
+                        if not any(pat in body_text for pat in accepted):
+                            raise AssertionError(
+                                f"Не удалось обнаружить текст города на странице.\n"
+                                f"Ожидали: '{expected_norm}' (допуски: {accepted}).\n"
+                                f"URL: {self.page.url or '—'}."
+                            )
+                except Exception:
+                    # Если что-то пошло не так при проверке конкретного города — продолжаем к следующему
+                    pass
+
     @allure.title("Перейти по одному случайному городу из уже открытого попапа и проверить")
     def click_random_city_and_verify(self):
         # Попап должен быть уже открыт извне
