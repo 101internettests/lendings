@@ -65,9 +65,5 @@ class TestGponMtsHomeOnline:
 
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
-
-        # 20 раз: открыть попап, кликнуть случайный город в этой же вкладке и проверить,
-        # затем снова открыть попап
-        for _ in range(20):
-            mts_page.click_region_choice_button_gpon()
-            steps.click_random_city_and_verify_same_tab()
+        mts_page.click_region_choice_button_gpon()
+        steps.check_random_beeline_cities()

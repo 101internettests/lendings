@@ -57,6 +57,8 @@ PER_DOMAIN_THRESHOLD = int(os.getenv("AGGR_THRESHOLD_PER_DOMAIN", "5"))
 SYSTEMIC_LANDINGS_THRESHOLD = int(os.getenv("SYSTEMIC_LANDINGS_THRESHOLD", "10"))
 TIMEZONE_LABEL = os.getenv("TZ_LABEL", "MSK")
 RUN_SUMMARY_ENABLED = os.getenv("RUN_SUMMARY_ENABLED", "true").strip().lower() == "true"
+# Управление URL-уровнем fixed-уведомлений (по умолчанию выключено, чтобы не дублировать домен+шаг)
+URL_FIXED_ALERTS_ENABLED = os.getenv("URL_FIXED_ALERTS_ENABLED", "false").strip().lower() == "true"
 
 ALERTS_STATE_PATH_ENV = os.getenv("ALERTS_STATE_PATH", ".alerts_state.json").strip()
 _STATE_FILE = Path(ALERTS_STATE_PATH_ENV)
@@ -1346,44 +1348,46 @@ def pytest_sessionfinish(session, exitstatus):
                     _send_telegram_message("\n".join(msg))
                     _STATE["domain_errors"][domain][error_key]["active"] = False
 
-        # URL-level fixed notifications: mark active for URLs seen this run,
-        # and send "fixed" for URLs that were active before but not seen now
-        seen_urls = set()
-        try:
-            for (_dom, _ek), urls in list(DOMAIN_ERROR_URLS.items()):
-                for u in list(urls):
-                    if u:
-                        seen_urls.add(u)
-        except Exception:
+        # URL-level fixed notifications (optional): disabled by default to avoid duplicates
+        if URL_FIXED_ALERTS_ENABLED:
+            # Mark active URLs seen this run
             seen_urls = set()
-        for u in seen_urls:
-            entry = _STATE.setdefault("url_errors", {}).setdefault(u, {})
-            entry["active"] = True
-            # Сохраним связанные тесты (до 5)
             try:
-                tests = sorted(list(URL_ERROR_TESTS.get(u, set())))[:5]
-                if tests:
-                    entry["tests"] = tests
+                for (_dom, _ek), urls in list(DOMAIN_ERROR_URLS.items()):
+                    for u in list(urls):
+                        if u:
+                            seen_urls.add(u)
             except Exception:
-                pass
-        for u, info in list(_STATE.get("url_errors", {}).items()):
-            if info.get("active") and u not in seen_urls:
-                msg = [
-                    "✅ Ошибка по URL автотеста формы исправлена",
-                    "",
-                    f"🕒 Время: {_now_str()}",
-                    f"🔗 URL: {u}",
-                ]
+                seen_urls = set()
+            for u in seen_urls:
+                entry = _STATE.setdefault("url_errors", {}).setdefault(u, {})
+                entry["active"] = True
+                # Сохраним связанные тесты (до 5)
                 try:
-                    tests = info.get("tests") or []
+                    tests = sorted(list(URL_ERROR_TESTS.get(u, set())))[:5]
                     if tests:
-                        msg.append(f"🧪 Тест: {tests[0]}")
+                        entry["tests"] = tests
                 except Exception:
                     pass
-                if REPORT_URL:
-                    msg.append(f"🔎 Детали: {REPORT_URL}")
-                _send_telegram_message("\n".join(msg))
-                _STATE["url_errors"][u]["active"] = False
+            # Send fixed for URLs that were active but not seen now
+            for u, info in list(_STATE.get("url_errors", {}).items()):
+                if info.get("active") and u not in seen_urls:
+                    msg = [
+                        "✅ Ошибка по URL автотеста формы исправлена",
+                        "",
+                        f"🕒 Время: {_now_str()}",
+                        f"🔗 URL: {u}",
+                    ]
+                    try:
+                        tests = info.get("tests") or []
+                        if tests:
+                            msg.append(f"🧪 Тест: {tests[0]}")
+                    except Exception:
+                        pass
+                    if REPORT_URL:
+                        msg.append(f"🔎 Детали: {REPORT_URL}")
+                    _send_telegram_message("\n".join(msg))
+                    _STATE["url_errors"][u]["active"] = False
 
         # Run summary (optional)
         if RUN_SUMMARY_ENABLED:

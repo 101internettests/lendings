@@ -64,11 +64,5 @@ class TestskMegaHomeInternet:
 
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
-        time.sleep(7)
-        region_page = ChoiceRegionPage(page=page)
-        region_page.close_popup_super_offer_new()
-        # 20 раз: открыть попап, кликнуть случайный город в этой же вкладке и проверить,
-        # затем снова открыть попап
-        for _ in range(20):
-            mts_page.click_region_choice_button_new()
-            steps.click_random_city_and_verify_same_tab_new()
+        mts_page.click_region_choice_button_new()
+        steps.check_random_beeline_cities()

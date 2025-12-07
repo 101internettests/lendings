@@ -117,28 +117,5 @@ class TestMskBeelineOnline:
         domru_page.close_popup_location()
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
-        region_page = ChoiceRegionPage(page=page)
-        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
-            try:
-                def strip_xpath(sel: str) -> str:
-                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
-                union_xpath = (
-                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
-                )
-                page.wait_for_selector(union_xpath, state="visible", timeout=50000)
-                region_page.close_popup_super_offer_all()
-            except Exception:
-                pass
-
-        # 20 раз: открыть попап, кликнуть случайный город в этой же вкладке и проверить,
-        # затем снова открыть попап
-        for _ in range(5):
-            mts_page.click_region_choice_button_new()
-            steps.click_random_city_and_verify_new_cutyloc()
-            try:
-                if page.locator(LocationPopup.YES_BUTTON).count() > 0:
-                    domru_page.close_popup_location()
-            except Exception:
-                pass
+        mts_page.click_region_choice_button_new()
+        steps.check_random_beeline_cities()
