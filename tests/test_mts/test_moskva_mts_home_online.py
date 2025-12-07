@@ -30,8 +30,9 @@ class TestMoskvaMtsHomeOnline:
     def test_check_all_pages(self, page_fixture, second_url):
         page = page_fixture
         page.goto(second_url)
-        msk_page = MtsMSKHomeOnlinePage(page=page)
-        msk_page.check_all_links()
+        steps = MainSteps(page=page)
+        steps.check_links_mts()
+        steps.check_random_beeline_cities()
 
     @allure.title("4.1. Выбор региона СПб из хедера")
     def test_choose_region_header_spb(self, page_fixture, second_url):

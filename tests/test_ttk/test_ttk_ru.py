@@ -63,12 +63,8 @@ class TestTTKInternet:
         page.goto(ttk_internet)
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
-
-        # 20 раз: открыть попап, кликнуть случайный город в этой же вкладке и проверить,
-        # затем снова открыть попап
-        for _ in range(20):
-            mts_page.click_region_choice_button_new()
-            steps.click_random_city_and_verify_same_tab_new()
+        mts_page.click_region_choice_button_new()
+        steps.check_random_beeline_cities()
 
 
 @allure.feature("https://ttk-ru.online/")
@@ -126,9 +122,5 @@ class TestTTKRyOnline:
         page.goto(ttk_online)
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
-
-        # 20 раз: открыть попап, кликнуть случайный город в этой же вкладке и проверить,
-        # затем снова открыть попап
-        for _ in range(20):
-            mts_page.click_region_choice_button_new()
-            steps.click_random_city_and_verify_same_tab_new()
+        mts_page.click_region_choice_button_new()
+        steps.check_random_beeline_cities()

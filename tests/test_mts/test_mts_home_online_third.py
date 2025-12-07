@@ -28,8 +28,8 @@ class TestMtsMskHomeOnlineThird:
     def test_check_all_pages(self, page_fixture, six_url):
         page = page_fixture
         page.goto(six_url)
-        mts_second_page = MTSSecondOnlinePage(page=page)
-        mts_second_page.check_all_links()
+        steps = MainSteps(page=page)
+        steps.def_check_links_without_footer()
 
     @allure.title("4. Выбор региона Азнакаево из хедера")
     def test_choose_region_header(self, page_fixture, six_url):

@@ -27,8 +27,8 @@ class TestMolMainRegionPage:
     def test_check_all_pages(self, page_fixture, base_url):
         page = page_fixture
         page.goto(base_url)
-        mts_page = MtsHomeOnlinePage(page=page)
-        mts_page.check_all_links()
+        steps = MainSteps(page=page)
+        steps.def_check_links_without_footer()
 
     @allure.title("4.1. Выбор региона СПб из хедера")
     def test_choose_region_header_spb(self, page_fixture, base_url):

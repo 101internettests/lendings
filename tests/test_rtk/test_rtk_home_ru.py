@@ -31,23 +31,8 @@ class TestRTKHomeRUSecond:
     def test_check_all_pages(self, page_fixture, rtk_home_ru_second):
         page = page_fixture
         page.goto(rtk_home_ru_second)
-        rostelecom_page = RostelecomPage(page=page)
-        region_page = ChoiceRegionPage(page=page)
-        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
-            try:
-                def strip_xpath(sel: str) -> str:
-                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
-
-                union_xpath = (
-                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
-                )
-                page.wait_for_selector(union_xpath, state="visible", timeout=30000)
-                region_page.close_popup_super_offer_all()
-            except Exception:
-                pass
-        rostelecom_page.check_all_links_rtk_home()
+        steps = MainSteps(page=page)
+        steps.def_check_links_without_footer_sec()
 
     @allure.title("4. Выбор региона СПб и Абакан из хедера")
     def test_choose_region_header(self, page_fixture, rtk_home_ru_second):
@@ -76,13 +61,8 @@ class TestRTKHomeRUSecond:
     def test_check_all_city_links(self, page_fixture, rtk_home_ru_second):
         page = page_fixture
         page.goto(rtk_home_ru_second)
-        rostelecom_page = RostelecomPage(page=page)
-        time.sleep(15)
-        rostelecom_page.close_popup()
+
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
-        # 20 раз: открыть попап, кликнуть случайный город в этой же вкладке и проверить,
-        # затем снова открыть попап
-        for _ in range(20):
-            mts_page.click_region_choice_button_new()
-            steps.click_random_city_and_verify_same_tab()
+        mts_page.click_region_choice_button_new()
+        steps.check_random_beeline_cities()

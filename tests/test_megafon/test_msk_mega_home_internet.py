@@ -29,10 +29,10 @@ class TestskMegaHomeInternet:
         page = page_fixture
         page.goto(mega_home_internet)
         rostelecom_page = RostelecomPage(page=page)
-        time.sleep(15)
-        rostelecom_page.close_popup()
-        mega_page = MegaPremiumOnline(page=page)
-        mega_page.check_popup_links_moskva()
+        # time.sleep(15)
+        # rostelecom_page.close_popup()
+        steps = MainSteps(page=page)
+        steps.check_links_mega_sec()
 
     @allure.title("4. Выбор региона СПб из хедера")
     def test_choose_region_header(self, page_fixture, mega_home_internet):

@@ -30,8 +30,8 @@ class TestMoskvaRTKOnline:
     def test_check_all_pages(self, page_fixture, msk_rtk_online):
         page = page_fixture
         page.goto(msk_rtk_online)
-        rostelecom_page = RostelecomPage(page=page)
-        rostelecom_page.check_all_links()
+        steps = MainSteps(page=page)
+        steps.check_links_mts()
 
     @allure.title("4. Выбор региона Спб и Абакан из хедера")
     def test_choose_region_header(self, page_fixture, msk_rtk_online):

@@ -28,21 +28,6 @@ class TestMegaHomeInternet:
     def test_check_popup_links(self, page_fixture, nine_url):
         page = page_fixture
         page.goto(nine_url)
-        region_page = ChoiceRegionPage(page=page)
-        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
-            try:
-                def strip_xpath(sel: str) -> str:
-                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
-
-                union_xpath = (
-                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
-                )
-                page.wait_for_selector(union_xpath, state="visible", timeout=30000)
-                region_page.close_popup_super_offer_all()
-            except Exception:
-                pass
         mega_page = MegaPremiumOnline(page=page)
         mega_page.check_popup_links()
 
@@ -51,14 +36,14 @@ class TestMegaHomeInternet:
         page = page_fixture
         page.goto(nine_url)
         mega_page = MegaPremiumOnline(page=page)
-        mega_page.check_header_links()
+        mega_page.check_header_links_mega()
 
     @allure.title("5. Проверка якорных ссылок в футере")
     def test_check_all_pages_futer(self, page_fixture, nine_url):
         page = page_fixture
         page.goto(nine_url)
         mega_page = MegaPremiumOnline(page=page)
-        mega_page.check_footer_links()
+        mega_page.check_footer_links_mega()
 
     @allure.title("6. Выбор региона СПб из хедера")
     def test_choose_region_header(self, page_fixture, nine_url):

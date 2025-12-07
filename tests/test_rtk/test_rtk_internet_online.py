@@ -29,8 +29,8 @@ class TestRTKOInternetOnline:
     def test_check_all_pages(self, page_fixture, rtk_internet_online_ru):
         page = page_fixture
         page.goto(rtk_internet_online_ru)
-        rostelecom_page = RostelecomPage(page=page)
-        rostelecom_page.check_all_links_rtk()
+        steps = MainSteps(page=page)
+        steps.def_check_links_without_footer()
 
     @allure.title("4. Выбор региона СПБ и Абакан из хедера")
     def test_choose_region_header(self, page_fixture, rtk_internet_online_ru):

@@ -45,9 +45,8 @@ class TestBeelineInternetOnline:
         page.goto(beeline_internet_online)
         domru_page = DomRuClass(page=page)
         domru_page.close_popup_location()
-        beeline_page = BeelineOnlinePage(page=page)
-        beeline_page.check_all_links_online()
-        beeline_page.check_all_links_online_second()
+        steps = MainSteps(page=page)
+        steps.check_links_beeline_sec()
 
     @allure.title("4. Выбор региона из хедера")
     def test_choose_region_header(self, page_fixture, beeline_internet_online):

@@ -30,11 +30,8 @@ class TestInternetMtsHome:
     def test_check_all_pages(self, page_fixture, five_url):
         page = page_fixture
         page.goto(five_url)
-        internet_page = MtsInternetHomeOnlinePage(page=page)
-        time.sleep(7)
-        region_page = ChoiceRegionPage(page=page)
-        region_page.close_popup_super_offer()
-        internet_page.check_all_links()
+        steps = MainSteps(page=page)
+        steps.def_check_links_without_footer()
 
     @allure.title("4. Выбор региона Азнакаево из хедера")
     def test_choose_region_header(self, page_fixture, five_url):

@@ -26,15 +26,15 @@ class TestMegaPremium:
     def test_check_popup_links(self, page_fixture, eight_url):
         page = page_fixture
         page.goto(eight_url)
-        mega_page = MegaPremiumOnline(page=page)
-        mega_page.check_popup_links()
+        steps = MainSteps(page=page)
+        steps.check_links_mega()
 
     @allure.title("4. Проверка якорных ссылок в хэдере")
     def test_check_all_pages_header(self, page_fixture, eight_url):
         page = page_fixture
         page.goto(eight_url)
         mega_page = MegaPremiumOnline(page=page)
-        mega_page.check_header_links()
+        mega_page.check_header_links_mega()
 
     @allure.title("5. Проверка якорных ссылок в футере")
     def test_check_all_pages_futer(self, page_fixture, eight_url):

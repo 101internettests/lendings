@@ -46,8 +46,8 @@ class TestBeelinePro:
         domru_page = DomRuClass(page=page)
         time.sleep(5)
         domru_page.close_popup_location()
-        beeline_page = BeelineOnlinePage(page=page)
-        beeline_page.check_all_links_online_pro()
+        steps = MainSteps(page=page)
+        steps.check_links_beeline_sec()
 
     @allure.title("4. Выбор региона из хедера")
     def test_choose_region_header(self, page_fixture, beeline_pro):
@@ -72,9 +72,3 @@ class TestBeelinePro:
         steps = MainSteps(page=page)
         mts_page.click_region_choice_button_new()
         steps.check_random_beeline_cities()
-
-        # 20 раз: открыть попап, кликнуть случайный город в этой же вкладке и проверить,
-        # затем снова открыть попап
-        # for _ in range(20):
-        #     mts_page.click_region_choice_button_new()
-        #     steps.click_random_city_and_verify_same_tab()
