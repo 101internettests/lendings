@@ -168,6 +168,22 @@ def _inc_url_counter(url: str | None) -> int:
 
 _load_errors_counter()
 
+def _reset_url_counter(url: str | None) -> None:
+    """Reset/remove persistent error counter for a specific URL."""
+    try:
+        if not url:
+            return
+        by_url = _ERRORS_COUNT.setdefault("by_url", {})
+        if url in by_url:
+            try:
+                del by_url[url]
+            except Exception:
+                by_url[url] = 0
+        _ERRORS_COUNT["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        _save_errors_counter()
+    except Exception:
+        pass
+
 
 # ==== Cross-worker dedup flags (to avoid duplicate alerts in parallel) ====
 ALERTS_FLAG_DIR = Path(os.getenv("ALERTS_FLAG_DIR", ".alerts_flags"))
@@ -706,31 +722,11 @@ def pytest_runtest_makereport(item, call):
         # Prefer live/param URL; if absent, fall back to feature_url captured from markers
         url_for_log = current_url or feature_url_meta
 
-        # Handle skipped tests separately: log to Google Sheets with status=skipped and do not touch counters
+        # Handle skipped tests: do not log to Google Sheets; exit early without touching counters
         try:
             if call.excinfo is not None:
                 typename = getattr(getattr(call, "excinfo", None), "typename", "") or ""
                 if typename.lower() == "skipped":
-                    try:
-                        if item.nodeid not in ERROR_LOGGED_NODEIDS:
-                            test_name_for_log = None
-                            try:
-                                meta = TEST_META.get(item.nodeid) or {}
-                                test_name_for_log = meta.get("title") or getattr(item, "name", None) or item.nodeid
-                            except Exception:
-                                test_name_for_log = getattr(item, "name", None) or item.nodeid
-                            # Write row with status 'skipped'
-                            _append_error_row(
-                                url_for_log,
-                                test_name_for_log or item.nodeid,
-                                _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "skipped",
-                                None,
-                                status="skipped",
-                            )
-                            ERROR_LOGGED_NODEIDS.add(item.nodeid)
-                    except Exception:
-                        pass
-                    # Do not proceed with failure handling for skipped
                     return
         except Exception:
             pass
@@ -747,6 +743,44 @@ def pytest_runtest_makereport(item, call):
                 if item.nodeid not in _PASSED_NODEIDS:
                     RUN_PASSED += 1
                     _PASSED_NODEIDS.add(item.nodeid)
+                    # If this URL had previous failures, send an immediate "fixed" alert and reset counter
+                    try:
+                        prev_active = False
+                        try:
+                            prev_active = bool(_STATE.get("url_errors", {}).get(current_url or "", {}).get("active"))
+                        except Exception:
+                            prev_active = False
+                        prev_count = 0
+                        try:
+                            prev_count = int((_ERRORS_COUNT.get("by_url") or {}).get(current_url or "", 0))
+                        except Exception:
+                            prev_count = 0
+                        if current_url and (prev_active or prev_count > 0):
+                            # Deduplicate fixed alerts across workers
+                            if _claim_flag(domain or "—", f"fixed-url-{current_url}", kind="fixed"):
+                                msg = [
+                                    "✅ Ошибка по URL автотеста формы исправлена",
+                                    "",
+                                    f"🕒 Время: {_now_str()}",
+                                    f"🔗 URL: {current_url}",
+                                ]
+                                try:
+                                    tests = sorted(list(URL_ERROR_TESTS.get(current_url, set())))[:1]
+                                    if tests:
+                                        msg.append(f"🧪 Тест: {tests[0]}")
+                                except Exception:
+                                    pass
+                                if REPORT_URL:
+                                    msg.append(f"🔎 Детали: {REPORT_URL}")
+                                _send_telegram_message("\n".join(msg))
+                            # Deactivate and reset persistent counter
+                            try:
+                                _STATE.setdefault("url_errors", {}).setdefault(current_url, {})["active"] = False
+                            except Exception:
+                                pass
+                            _reset_url_counter(current_url)
+                    except Exception:
+                        pass
             else:
                 # Если ранее считали как passed на call-этапе, корректируем
                 if item.nodeid in _PASSED_NODEIDS:
