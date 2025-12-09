@@ -437,7 +437,7 @@ class TestForms:
                     f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
                     f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
                 )
-                page.wait_for_selector(union_xpath, state="visible", timeout=40000)
+                page.wait_for_selector(union_xpath, state="visible", timeout=50000)
                 region_page.close_popup_super_offer_all()
             except Exception:
                 pass
@@ -457,7 +457,11 @@ class TestForms:
                         mts_page.check_sucess()
                         mts_page.close_thankyou_page()
                         # Вернуться назад к странице со списком кнопок
-                        page.go_back()
+                        if str(business_url).startswith("https://beeline-ru.online/business"):
+                            page.go_back()
+                            page.go_back()
+                        else:
+                            page.go_back()
                     except Exception as e:
                         try:
                             allure.attach(
