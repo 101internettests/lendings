@@ -457,7 +457,14 @@ class TestForms:
                         mts_page.check_sucess()
                         mts_page.close_thankyou_page()
                         # Вернуться назад к странице со списком кнопок
-                        page.goto(str(business_url))
+                        try:
+                            page.goto(str(business_url), wait_until="commit")
+                        except Exception:
+                            pass
+                        try:
+                            page.wait_for_url("**/business**", timeout=15000)
+                        except Exception:
+                            pass
                     except Exception as e:
                         try:
                             allure.attach(
