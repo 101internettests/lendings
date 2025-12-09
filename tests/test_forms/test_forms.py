@@ -427,7 +427,7 @@ class TestForms:
                     domru_page.close_popup_location()
             except Exception:
                 pass
-        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
+        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 40с)"):
             try:
                 def strip_xpath(sel: str) -> str:
                     return sel[len("xpath="):] if sel.startswith("xpath=") else sel
@@ -437,7 +437,7 @@ class TestForms:
                     f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
                     f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
                 )
-                page.wait_for_selector(union_xpath, state="visible", timeout=60000)
+                page.wait_for_selector(union_xpath, state="visible", timeout=40000)
                 region_page.close_popup_super_offer_all()
             except Exception:
                 pass
