@@ -97,7 +97,7 @@ class MtsHomeOnlinePage(BasePage):
     @allure.title("Проверить успешность отправления заявки")
     def check_sucess(self):
         # Дождёмся смены URL в разумные сроки, так как редирект на страницу благодарности может занять время
-        deadline = time.time() + 10.0
+        deadline = time.time() + 16.0
         last_url = ""
         while time.time() < deadline:
             try:
@@ -110,26 +110,49 @@ class MtsHomeOnlinePage(BasePage):
                     or lu.endswith("/tilda/form1/submitted/")
                 ):
                     return
+                # Также проверим, не открылся ли redirect в новом окне/вкладке
+                try:
+                    for p in self.page.context.pages:
+                        pu = (p.url or "").lower()
+                        if (
+                            "/thanks" in pu
+                            or "/tilda/form1/submitted" in pu
+                            or pu.endswith("/tilda/form1/submitted/")
+                        ):
+                            # Переключимся на найденную страницу благодарности
+                            self.page = p
+                            return
+                except Exception:
+                    pass
             except Exception:
                 pass
             time.sleep(0.5)
 
         # Последние попытки через ожидание URL по маскам
         try:
-            self.page.wait_for_url("**/thanks**", timeout=3000)
+            self.page.wait_for_url("**/thanks**", timeout=5000)
             return
         except Exception:
             pass
         try:
-            self.page.wait_for_url("**/tilda/form1/submitted**", timeout=3000)
+            self.page.wait_for_url("**/tilda/form1/submitted**", timeout=5000)
             return
         except Exception:
             pass
         # Финальная попытка: дождаться стабилизации сети и перечитать URL
         try:
-            self.page.wait_for_load_state("networkidle", timeout=3000)
+            self.page.wait_for_load_state("networkidle", timeout=5000)
             final_url = (self.page.url or "").lower()
             if "/thanks" in final_url or "/tilda/form1/submitted" in final_url or final_url.endswith("/tilda/form1/submitted/"):
+                return
+        except Exception:
+            pass
+        # Визуальный фолбэк по видимости элементов "Спасибо"
+        try:
+            if (
+                self.page.locator(MTSHomeOnlineMain.MORE_THANKYOU).is_visible(timeout=2000)
+                or self.page.locator(MTSHomeOnlineMain.THANKYOU_TEXT_SECOND).is_visible(timeout=2000)
+            ):
                 return
         except Exception:
             pass

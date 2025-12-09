@@ -457,10 +457,7 @@ class TestForms:
                         mts_page.check_sucess()
                         mts_page.close_thankyou_page()
                         # Вернуться назад к странице со списком кнопок
-                        if str(business_url).startswith("https://beeline-ru.online/business"):
-                            page.goto("https://beeline-ru.online/business")
-                        else:
-                            page.go_back()
+                        page.goto(str(business_url))
                     except Exception as e:
                         try:
                             allure.attach(
