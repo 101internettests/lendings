@@ -914,63 +914,75 @@ class MainSteps(BasePage):
 
     @allure.title("Клик по бизнес-кнопке: хедер или 'Подробнее' по индексу")
     def click_business_button(self, index: int = 0):
-        # index <= 0: клик по кнопке в хэдере (первой доступной)
-        # index >= 1: клик по кнопке 'Подробнее' на странице бизнеса по индексу (1-based)
-        if index <= 0:
-            # Особый случай: для https://mts-home-online.ru/business используем только BUSINESS_BUTTON_THIRD
-            try:
-                current_url = (self.page.url or "").rstrip("/")
-            except Exception:
-                current_url = ""
-            if current_url.startswith("https://mts-home-online.ru/business"):
-                # Особый случай: для этой урлы не нажимаем никакие кнопки
-                return
-            header_candidates = [
-                getattr(Business, "BUSINESS_BUTTON", None),
-                getattr(Business, "BUSINESS_BUTTON_SECOND", None),
-                getattr(Business, "BUSINESS_BUTTON_THIRD", None),
-                getattr(Business, "BUSINESS_BUTTON_FOUR", None),
-                getattr(Business, "BUSINESS_BUTTON_BEELINE", None),
-            ]
-            for sel in header_candidates:
-                if not sel:
-                    continue
+        try:
+            # index <= 0: клик по кнопке в хэдере (первой доступной)
+            # index >= 1: клик по кнопке 'Подробнее' на странице бизнеса по индексу (1-based)
+            if index <= 0:
+                # Особый случай: для https://mts-home-online.ru/business используем только BUSINESS_BUTTON_THIRD
                 try:
-                    self.page.locator(sel).click(timeout=3000)
-                    return
+                    current_url = (self.page.url or "").rstrip("/")
                 except Exception:
-                    continue
+                    current_url = ""
+                if current_url.startswith("https://mts-home-online.ru/business"):
+                    # Особый случай: для этой урлы не нажимаем никакие кнопки
+                    return
+                header_candidates = [
+                    getattr(Business, "BUSINESS_BUTTON", None),
+                    getattr(Business, "BUSINESS_BUTTON_SECOND", None),
+                    getattr(Business, "BUSINESS_BUTTON_THIRD", None),
+                    getattr(Business, "BUSINESS_BUTTON_FOUR", None),
+                    getattr(Business, "BUSINESS_BUTTON_BEELINE", None),
+                ]
+                for sel in header_candidates:
+                    if not sel:
+                        continue
+                    try:
+                        self.page.locator(sel).click(timeout=3000)
+                        return
+                    except Exception:
+                        continue
+                raise AssertionError(
+                    "Кнопка раздела 'Бизнес' не найдена в хедере.\n"
+                    "Пробовали несколько вариантов селекторов (BUSINESS_BUTTON...); ни один не кликабелен.\n"
+                    "Возможные причины: разметка страницы изменилась, кнопка скрыта/отсутствует, страница не успела прогрузиться."
+                )
+            
+            # Иначе кликаем по кнопкам 'Подробнее' по индексу
+            buttons_primary = self.page.locator(Business.MORE_BUTTON)
+            total_primary = buttons_primary.count()
+            if total_primary >= index and total_primary > 0:
+                buttons_primary.nth(index - 1).click()
+                return
+            
+            buttons_fallback = self.page.locator(Business.MORE_BUTTON_SECOND)
+            total_fallback = buttons_fallback.count()
+            if total_fallback >= index and total_fallback > 0:
+                buttons_fallback.nth(index - 1).click()
+                return
+            
+            # Третий вариант: любой элемент с классом services-business
+            buttons_any = self.page.locator(Business.MORE_BUTTON_ANY)
+            total_any = buttons_any.count()
+            if total_any >= index and total_any > 0:
+                buttons_any.nth(index - 1).click()
+                return
+            
             raise AssertionError(
-                "Кнопка раздела 'Бизнес' не найдена в хедере.\n"
-                "Пробовали несколько вариантов селекторов (BUSINESS_BUTTON...); ни один не кликабелен.\n"
-                "Возможные причины: разметка страницы изменилась, кнопка скрыта/отсутствует, страница не успела прогрузиться."
+                f"Кнопка 'Подробнее' №{index} не найдена.\n"
+                f"Найдено основных: {total_primary}, запасных: {total_fallback}, любых: {total_any}.\n"
+                "Проверьте корректность индекса и возможные изменения разметки."
             )
-
-        # Иначе кликаем по кнопкам 'Подробнее' по индексу
-        buttons_primary = self.page.locator(Business.MORE_BUTTON)
-        total_primary = buttons_primary.count()
-        if total_primary >= index and total_primary > 0:
-            buttons_primary.nth(index - 1).click()
-            return
-
-        buttons_fallback = self.page.locator(Business.MORE_BUTTON_SECOND)
-        total_fallback = buttons_fallback.count()
-        if total_fallback >= index and total_fallback > 0:
-            buttons_fallback.nth(index - 1).click()
-            return
-
-        # Третий вариант: любой элемент с классом services-business
-        buttons_any = self.page.locator(Business.MORE_BUTTON_ANY)
-        total_any = buttons_any.count()
-        if total_any >= index and total_any > 0:
-            buttons_any.nth(index - 1).click()
-            return
-
-        raise AssertionError(
-            f"Кнопка 'Подробнее' №{index} не найдена.\n"
-            f"Найдено основных: {total_primary}, запасных: {total_fallback}, любых: {total_any}.\n"
-            "Проверьте корректность индекса и возможные изменения разметки."
-        )
+        except Exception:
+            try:
+                png = self.page.screenshot(full_page=True)
+                allure.attach(
+                    png,
+                    name=f"Скрин при падении click_business_button index={index}",
+                    attachment_type=allure.attachment_type.PNG
+                )
+            except Exception:
+                pass
+            raise
 
     @allure.title("Нажать на кнопку Подключить на странице бизнеса")
     def connect_business_page(self):
