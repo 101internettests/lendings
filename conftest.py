@@ -767,7 +767,14 @@ def pytest_runtest_makereport(item, call):
                                 try:
                                     tests = sorted(list(URL_ERROR_TESTS.get(current_url, set())))[:1]
                                     if tests:
-                                        msg.append(f"🧪 Тест: {tests[0]}")
+                                        test_name = tests[0]
+                                        msg.append(f"🧪 Тест: {test_name}")
+                                        try:
+                                            last_step = TEST_FAIL_LAST_STEP.get(test_name)
+                                            if last_step:
+                                                msg.append(f"🪜 Шаг падения: {last_step}")
+                                        except Exception:
+                                            pass
                                 except Exception:
                                     pass
                                 if REPORT_URL:
@@ -1308,11 +1315,21 @@ def pytest_sessionfinish(session, exitstatus):
                 _STATE.setdefault("systemic_errors", {}).setdefault(error_key, {})["active"] = True
             else:
                 if _STATE.get("systemic_errors", {}).get(error_key, {}).get("active"):
+                    form_title = None
+                    try:
+                        # Найдем первый тест, где последний шаг равен error_key
+                        for t_name, step in (TEST_FAIL_LAST_STEP or {}).items():
+                            if step == error_key:
+                                form_title = t_name
+                                break
+                    except Exception:
+                        form_title = None
                     msg = [
-                        f"✅ Массовая ошибка Не выполнен шаг \"{error_key}\" автотеста формы исправлена",
+                        f"✅ Массовая ошибка Не выполнен шаг \"{error_key}\" автотеста формы {f'[{form_title}]' if form_title else ''} исправлена",
                         "",
                         f"🕒 Время: {_now_str()}",
                         f"🌐 Затронуто: {landings_count} лендингов",
+                        f"📊 Исправлено: {RUN_PASSED} страниц",
                     ]
                     if REPORT_URL:
                         msg.append(f"🔎 Детали: {REPORT_URL}")
@@ -1336,11 +1353,14 @@ def pytest_sessionfinish(session, exitstatus):
                 _STATE.setdefault("systemic_tests", {}).setdefault(test_name, {})["active"] = True
             else:
                 if _STATE.get("systemic_tests", {}).get(test_name, {}).get("active"):
+                    step_name = TEST_FAIL_LAST_STEP.get(test_name)
+                    title_part = step_name or test_name
                     msg = [
-                        f"✅ Массовая ошибка теста \"{test_name}\" исправлена",
+                        f"✅ Массовая ошибка Не выполнен шаг \"{title_part}\" автотеста формы [{test_name}] исправлена",
                         "",
                         f"🕒 Время: {_now_str()}",
                         f"🌐 Затронуто: {landings_count} лендингов",
+                        f"📊 Исправлено: {RUN_PASSED} страниц",
                     ]
                     if REPORT_URL:
                         msg.append(f"🔎 Детали: {REPORT_URL}")
