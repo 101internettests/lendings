@@ -458,8 +458,7 @@ class TestForms:
                         mts_page.close_thankyou_page()
                         # Вернуться назад к странице со списком кнопок
                         if str(business_url).startswith("https://beeline-ru.online/business"):
-                            page.go_back()
-                            page.go_back()
+                            page.goto("https://beeline-ru.online/business")
                         else:
                             page.go_back()
                     except Exception as e:
