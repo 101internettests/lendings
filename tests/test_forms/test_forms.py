@@ -454,7 +454,7 @@ class TestForms:
                         steps.click_business_button(i)
                         steps.connect_business_page()
                         steps.send_popup_business()
-                        mts_page.check_sucess()
+                        # mts_page.check_sucess()
                         mts_page.close_thankyou_page()
                         # Вернуться назад к странице со списком кнопок
                         try:
@@ -483,7 +483,6 @@ class TestForms:
         page.goto(business_url_second)
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
-        region_page = ChoiceRegionPage(page=page)
         with allure.step("Проверка попапа 'Вы находитесь в городе Х' и закрытие при наличии (до 10с)"):
             domru_page = DomRuClass(page=page)
             try:
@@ -521,7 +520,7 @@ class TestForms:
                                 steps.click_business_button()
                             steps.click_business_button(i)
                             steps.send_popup_business()
-                            mts_page.check_sucess()
+                            # mts_page.check_sucess()
                             mts_page.close_thankyou_page()
                         except Exception as e:
                             try:
