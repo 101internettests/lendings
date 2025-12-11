@@ -767,7 +767,7 @@ def pytest_runtest_makereport(item, call):
                             prev_count = int((_ERRORS_COUNT.get("by_url") or {}).get(current_url or "", 0))
                         except Exception:
                             prev_count = 0
-                        if URL_FIXED_ALERTS_ENABLED and current_url and (prev_active or prev_count > 0):
+                    if False and URL_FIXED_ALERTS_ENABLED and current_url and (prev_active or prev_count > 0):
                             # Deduplicate fixed alerts across workers
                             if _claim_flag(domain or "—", f"fixed-url-{current_url}", kind="fixed"):
                                 msg = [
