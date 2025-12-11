@@ -454,7 +454,7 @@ class TestForms:
                         steps.click_business_button(i)
                         steps.connect_business_page()
                         steps.send_popup_business()
-                        # mts_page.check_sucess()
+                        mts_page.check_sucess()
                         mts_page.close_thankyou_page()
                         # Вернуться назад к странице со списком кнопок
                         try:

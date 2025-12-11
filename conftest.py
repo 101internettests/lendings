@@ -54,7 +54,7 @@ ALERTS_ENABLED = os.getenv("ALERTS_ENABLED", "true").strip().lower() == "true"
 SUPPRESS_PERSISTENT_ALERTS = os.getenv("SUPPRESS_PERSISTENT_ALERTS", "true").strip().lower() == "true"
 REPORT_URL = os.getenv("REPORT_URL")
 PER_DOMAIN_THRESHOLD = int(os.getenv("AGGR_THRESHOLD_PER_DOMAIN", "5"))
-SYSTEMIC_LANDINGS_THRESHOLD = int(os.getenv("SYSTEMIC_LANDINGS_THRESHOLD", "10"))
+SYSTEMIC_LANDINGS_THRESHOLD = int(os.getenv("SYSTEMIC_LANDINGS_THRESHOLD", "5"))
 TIMEZONE_LABEL = os.getenv("TZ_LABEL", "MSK")
 RUN_SUMMARY_ENABLED = os.getenv("RUN_SUMMARY_ENABLED", "true").strip().lower() == "true"
 # Управление URL-уровнем fixed-уведомлений (по умолчанию выключено, чтобы не дублировать домен+шаг)
@@ -94,6 +94,7 @@ DOMAIN_ERROR_URLS = defaultdict(set)    # key: (domain, error_key) -> urls
 ERROR_DOMAINS = defaultdict(set)        # key: error_key -> domains
 # Трекинг тестов по парам (домен, шаг) и по URL для более информативных fixed-уведомлений
 DOMAIN_ERROR_TESTS = defaultdict(set)   # key: (domain, error_key) -> set(test_names)
+DOMAIN_ERROR_FILES = defaultdict(set)   # key: (domain, error_key) -> set(file_paths)
 URL_ERROR_TESTS = defaultdict(set)      # key: url -> set(test_names)
 # Отслеживание подсчёта результатов по тестам (чтобы корректно учитывать setup/teardown)
 _COUNTED_NODEIDS: set[str] = set()
@@ -104,10 +105,14 @@ TEST_FAIL_COUNTS = defaultdict(int)          # key: test_name -> total failed oc
 TEST_FAIL_DOMAINS = defaultdict(set)         # key: test_name -> set(domains)
 TEST_FAIL_LAST_STEP = {}                     # key: test_name -> last seen step name
 TEST_FAIL_URLS = defaultdict(set)            # key: test_name -> set(urls)
+TEST_NAME_FILES = defaultdict(set)           # key: test_name -> set(file_paths)
 
 # ==== Persistent run log for daily summaries ====
 RUN_LOG_PATH_ENV = os.getenv("RUN_LOG_PATH", ".run_summaries.jsonl").strip()
 _RUN_LOG_PATH = Path(RUN_LOG_PATH_ENV)
+
+# Pending per-step personal alerts to decide at session end
+PENDING_PERSONAL_BY_STEP = defaultdict(list)  # key: error_key -> list of {domain,key,text}
 
 
 # ==== Persistent errors counter (external file) ====
@@ -772,13 +777,22 @@ def pytest_runtest_makereport(item, call):
                 # Привяжем тест к паре (домен, шаг) и к URL
                 try:
                     test_display_name = None
+                    file_path = ""
                     try:
                         meta = TEST_META.get(item.nodeid) or {}
                         test_display_name = meta.get("title") or getattr(item, "name", None) or item.nodeid
+                        file_path = str(getattr(item, "fspath", "") or "")
                     except Exception:
                         test_display_name = getattr(item, "name", None) or item.nodeid
+                        try:
+                            file_path = str(getattr(item, "fspath", "") or "")
+                        except Exception:
+                            file_path = ""
                     if test_display_name:
                         DOMAIN_ERROR_TESTS[dom_key].add(test_display_name)
+                        if file_path:
+                            DOMAIN_ERROR_FILES[dom_key].add(file_path)
+                            TEST_NAME_FILES[test_display_name].add(file_path)
                         if current_url:
                             URL_ERROR_TESTS[current_url].add(test_display_name)
                 except Exception:
@@ -787,11 +801,17 @@ def pytest_runtest_makereport(item, call):
                 # Агрегация по названию теста
                 try:
                     test_display_name = None
+                    file_path = ""
                     try:
                         meta = TEST_META.get(item.nodeid) or {}
                         test_display_name = meta.get("title") or getattr(item, "name", None) or item.nodeid
+                        file_path = str(getattr(item, "fspath", "") or "")
                     except Exception:
                         test_display_name = getattr(item, "name", None) or item.nodeid
+                        try:
+                            file_path = str(getattr(item, "fspath", "") or "")
+                        except Exception:
+                            file_path = ""
                     if test_display_name:
                         TEST_FAIL_COUNTS[test_display_name] += 1
                         if domain:
@@ -800,6 +820,8 @@ def pytest_runtest_makereport(item, call):
                             TEST_FAIL_LAST_STEP[test_display_name] = step_name
                         if current_url:
                             TEST_FAIL_URLS[test_display_name].add(current_url)
+                        if file_path:
+                            TEST_NAME_FILES[test_display_name].add(file_path)
                 except Exception:
                     pass
 
@@ -833,18 +855,22 @@ def pytest_runtest_makereport(item, call):
                     except Exception:
                         test_display_name = form_title
                     if _should_notify_persistent(new_count):
-                        # Cross-worker dedup per URL-specific occurrence count
-                        if _claim_flag(domain or "—", f"url-{current_url}-{new_count}", kind="persist"):
+                        # Defer personal alert; decide at session end whether to send or suppress in favor of systemic
+                        try:
                             details = _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else None
-                            _send_telegram_message(
-                                _format_persistent_url_message(
-                                    form_title,
-                                    current_url,
-                                    new_count,
-                                    test_display_name,
-                                    details,
-                                )
+                            text = _format_persistent_url_message(
+                                form_title,
+                                current_url,
+                                new_count,
+                                test_display_name,
+                                details,
                             )
+                            dedup_key = f"url-{current_url}-{new_count}"
+                            PENDING_PERSONAL_BY_STEP[error_key].append(
+                                {"domain": (domain or "—"), "key": dedup_key, "text": text}
+                            )
+                        except Exception:
+                            pass
         elif call.excinfo is not None and call.when in ("setup", "teardown"):
             # Count failures that happen outside the 'call' phase as well
             # Корректируем счетчики: если тест ранее помечен как passed — переведем в failed,
@@ -898,22 +924,27 @@ def pytest_runtest_makereport(item, call):
             except Exception:
                 already_active = False
             if not already_active and _should_notify_persistent(new_count):
-                if _claim_flag(domain or "—", f"url-{current_url}-{new_count}", kind="persist"):
+                # Defer personal alert for setup/teardown failures as well
+                try:
                     test_display_name = None
                     try:
                         test_display_name = form_title or getattr(item, "name", None) or item.nodeid
                     except Exception:
                         test_display_name = form_title
                     details = _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else None
-                    _send_telegram_message(
-                        _format_persistent_url_message(
-                            None,
-                            current_url,
-                            new_count,
-                            test_display_name,
-                            details,
-                        )
+                    text = _format_persistent_url_message(
+                        None,
+                        current_url,
+                        new_count,
+                        test_display_name,
+                        details,
                     )
+                    dedup_key = f"url-{current_url}-{new_count}"
+                    PENDING_PERSONAL_BY_STEP[error_key].append(
+                        {"domain": (domain or "—"), "key": dedup_key, "text": text}
+                    )
+                except Exception:
+                    pass
     except Exception:
         pass
 
@@ -1274,16 +1305,37 @@ def pytest_sessionfinish(session, exitstatus):
         if not ALERTS_ENABLED:
             return
 
-        # Systemic errors across many landings
-        for error_key, domains in list(ERROR_DOMAINS.items()):
-            landings_count = len({d for d in domains if d and d != '—'})
+        # Systemic errors across many landings (exclude test_forms.py for step-based aggregation)
+        systemic_steps = set()
+        FORMS_FILE_SUFFIXES = ("tests/test_forms/test_forms.py", "tests\\test_forms\\test_forms.py")
+        for error_key, _domains in list(ERROR_DOMAINS.items()):
+            # Recompute domains for this step excluding those seen only in test_forms.py
+            domains_for_step = set()
+            for (d, ek), _cnt in list(DOMAIN_ERROR_COUNTS.items()):
+                if ek != error_key:
+                    continue
+                try:
+                    files = set(DOMAIN_ERROR_FILES.get((d, ek), set()))
+                except Exception:
+                    files = set()
+                # include this domain if there exists any failure for this (domain, step) not from test_forms.py
+                include_domain = False
+                if not files:
+                    include_domain = True
+                else:
+                    for fp in files:
+                        fp_l = (fp or "").lower()
+                        if not fp_l.endswith(FORMS_FILE_SUFFIXES):
+                            include_domain = True
+                            break
+                if include_domain and d and d != '—':
+                    domains_for_step.add(d)
+            landings_count = len(domains_for_step)
             if landings_count >= SYSTEMIC_LANDINGS_THRESHOLD:
+                systemic_steps.add(error_key)
                 prev = bool(_STATE.get("systemic_errors", {}).get(error_key, {}).get("active"))
                 if not (SUPPRESS_PERSISTENT_ALERTS and prev):
-                    affected_pages = sum(
-                        DOMAIN_ERROR_COUNTS.get((d, error_key), 0)
-                        for d in domains
-                    )
+                    affected_pages = sum(DOMAIN_ERROR_COUNTS.get((d, error_key), 0) for d in domains_for_step)
                     _send_telegram_message(_format_systemic_message(None, error_key, RUN_TOTAL_PAGES, affected_pages, landings_count))
                 _STATE.setdefault("systemic_errors", {}).setdefault(error_key, {})["active"] = True
             else:
@@ -1308,8 +1360,17 @@ def pytest_sessionfinish(session, exitstatus):
                         msg.append(f"🔎 Детали: {REPORT_URL}")
                     _send_telegram_message("\n".join(msg))
                     _STATE["systemic_errors"][error_key]["active"] = False
-        # Systemic failures by test name (e.g., один кейс падает на многих лендингах)
+        # Systemic failures by test name (apply only to tests from test_forms.py)
         for test_name, domains in list(TEST_FAIL_DOMAINS.items()):
+            files = set(TEST_NAME_FILES.get(test_name, set()))
+            has_forms_file = False
+            for fp in files:
+                fp_l = (fp or "").lower()
+                if fp_l.endswith(FORMS_FILE_SUFFIXES):
+                    has_forms_file = True
+                    break
+            if not has_forms_file:
+                continue
             landings_count = len({d for d in domains if d and d != '—'})
             if landings_count >= SYSTEMIC_LANDINGS_THRESHOLD:
                 prev = bool(_STATE.get("systemic_tests", {}).get(test_name, {}).get("active"))
@@ -1339,6 +1400,20 @@ def pytest_sessionfinish(session, exitstatus):
                         msg.append(f"🔎 Детали: {REPORT_URL}")
                     _send_telegram_message("\n".join(msg))
                     _STATE["systemic_tests"][test_name]["active"] = False
+
+        # Send deferred personal alerts only for steps that did NOT reach systemic threshold
+        try:
+            for ek, entries in list(PENDING_PERSONAL_BY_STEP.items()):
+                if ek in systemic_steps:
+                    continue
+                for entry in entries:
+                    try:
+                        if _claim_flag(entry.get("domain") or "—", entry.get("key") or "", kind="persist"):
+                            _send_telegram_message(entry.get("text") or "")
+                    except Exception:
+                        pass
+        except Exception:
+            pass
 
         # Mark active per-domain errors seen this run
         seen_pairs = {(d, ek) for (d, ek) in DOMAIN_ERROR_COUNTS.keys()}
