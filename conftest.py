@@ -755,51 +755,6 @@ def pytest_runtest_makereport(item, call):
                 if item.nodeid not in _PASSED_NODEIDS:
                     RUN_PASSED += 1
                     _PASSED_NODEIDS.add(item.nodeid)
-                    # If this URL had previous failures, send an immediate "fixed" alert and reset counter
-                    try:
-                        prev_active = False
-                        try:
-                            prev_active = bool(_STATE.get("url_errors", {}).get(current_url or "", {}).get("active"))
-                        except Exception:
-                            prev_active = False
-                        prev_count = 0
-                        try:
-                            prev_count = int((_ERRORS_COUNT.get("by_url") or {}).get(current_url or "", 0))
-                        except Exception:
-                            prev_count = 0
-                    if False and URL_FIXED_ALERTS_ENABLED and current_url and (prev_active or prev_count > 0):
-                            # Deduplicate fixed alerts across workers
-                            if _claim_flag(domain or "—", f"fixed-url-{current_url}", kind="fixed"):
-                                msg = [
-                                    "✅ Ошибка по URL автотеста формы исправлена",
-                                    "",
-                                    f"🕒 Время: {_now_str()}",
-                                    f"🔗 URL: {current_url}",
-                                ]
-                                try:
-                                    tests = sorted(list(URL_ERROR_TESTS.get(current_url, set())))[:1]
-                                    if tests:
-                                        test_name = tests[0]
-                                        msg.append(f"🧪 Тест: {test_name}")
-                                        try:
-                                            last_step = TEST_FAIL_LAST_STEP.get(test_name)
-                                            if last_step:
-                                                msg.append(f"🪜 Шаг падения: {last_step}")
-                                        except Exception:
-                                            pass
-                                except Exception:
-                                    pass
-                                if REPORT_URL:
-                                    msg.append(f"🔎 Детали: {REPORT_URL}")
-                                _send_telegram_message("\n".join(msg))
-                            # Deactivate and reset persistent counter
-                            try:
-                                _STATE.setdefault("url_errors", {}).setdefault(current_url, {})["active"] = False
-                            except Exception:
-                                pass
-                            _reset_url_counter(current_url)
-                    except Exception:
-                        pass
             else:
                 # Если ранее считали как passed на call-этапе, корректируем
                 if item.nodeid in _PASSED_NODEIDS:
