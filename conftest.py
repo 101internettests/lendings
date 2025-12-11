@@ -186,7 +186,19 @@ def _reset_url_counter(url: str | None) -> None:
 
 
 # ==== Cross-worker dedup flags (to avoid duplicate alerts in parallel) ====
-ALERTS_FLAG_DIR = Path(os.getenv("ALERTS_FLAG_DIR", ".alerts_flags"))
+# Make flags run-scoped so they don't persist across builds and suppress fresh alerts
+_FLAGS_BASE_DIR = Path(os.getenv("ALERTS_FLAG_DIR", ".alerts_flags"))
+# Prefer explicit run id from env (e.g., Jenkins BUILD_ID, GitHub/GitLab IDs), else generate one
+_RUN_ID = (
+    os.getenv("ALERTS_RUN_ID")
+    or os.getenv("BUILD_ID")
+    or os.getenv("GITHUB_RUN_ID")
+    or os.getenv("CI_PIPELINE_ID")
+)
+if not _RUN_ID:
+    # Fallback: timestamp + pid to avoid collisions
+    _RUN_ID = datetime.utcnow().strftime("%Y%m%d-%H%M%S") + f"-{os.getpid()}"
+ALERTS_FLAG_DIR = _FLAGS_BASE_DIR / _RUN_ID
 try:
     ALERTS_FLAG_DIR.mkdir(parents=True, exist_ok=True)
 except Exception:
@@ -755,7 +767,7 @@ def pytest_runtest_makereport(item, call):
                             prev_count = int((_ERRORS_COUNT.get("by_url") or {}).get(current_url or "", 0))
                         except Exception:
                             prev_count = 0
-                        if current_url and (prev_active or prev_count > 0):
+                        if URL_FIXED_ALERTS_ENABLED and current_url and (prev_active or prev_count > 0):
                             # Deduplicate fixed alerts across workers
                             if _claim_flag(domain or "—", f"fixed-url-{current_url}", kind="fixed"):
                                 msg = [
