@@ -96,11 +96,45 @@ class MtsHomeOnlinePage(BasePage):
 
     @allure.title("Проверить успешность отправления заявки")
     def check_sucess(self):
-        # Минимальная проверка: только по URL, без ожиданий и без дополнительных селекторов
-        lu = (self.page.url or "").lower()
-        if "/thanks" in lu or "/tilda/form1/submitted" in lu or lu.endswith("/tilda/form1/submitted/"):
+        # Дождёмся смены URL в разумные сроки, так как редирект на страницу благодарности может занять время
+        deadline = time.time() + 10.0
+        last_url = ""
+        while time.time() < deadline:
+            try:
+                current_url = self.page.url or ""
+                last_url = current_url
+                lu = current_url.lower()
+                if (
+                    "/thanks" in lu
+                    or "/tilda/form1/submitted" in lu
+                    or lu.endswith("/tilda/form1/submitted/")
+                ):
+                    return
+            except Exception:
+                pass
+            time.sleep(0.5)
+
+        # Последние попытки через ожидание URL по маскам
+        try:
+            self.page.wait_for_url("**/thanks**", timeout=3000)
             return
-        raise AssertionError(f"Страница благодарности не появилась: URL не содержит признаков успешной отправки (last: {lu})")
+        except Exception:
+            pass
+        try:
+            self.page.wait_for_url("**/tilda/form1/submitted**", timeout=3000)
+            return
+        except Exception:
+            pass
+        # Финальная попытка: дождаться стабилизации сети и перечитать URL
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=3000)
+            final_url = (self.page.url or "").lower()
+            if "/thanks" in final_url or "/tilda/form1/submitted" in final_url or final_url.endswith("/tilda/form1/submitted/"):
+                return
+        except Exception:
+            pass
+
+        raise AssertionError(f"Страница благодарности не появилась: URL не содержит признаков успешной отправки (last: {last_url})")
 
     @allure.title("Проверить успешность отправления заявки")
     def check_sucess_express(self):
