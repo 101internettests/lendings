@@ -871,7 +871,7 @@ def pytest_runtest_makereport(item, call):
                 except Exception:
                     already_active = False
 
-                if not (SUPPRESS_PERSISTENT_ALERTS and already_active):
+                if not (already_active):
                     test_display_name = None
                     try:
                         test_display_name = form_title or getattr(item, "name", None) or item.nodeid
@@ -936,7 +936,13 @@ def pytest_runtest_makereport(item, call):
                     ERROR_LOGGED_NODEIDS.add(item.nodeid)
             except Exception:
                 pass
-            if not SUPPRESS_PERSISTENT_ALERTS and _should_notify_persistent(new_count):
+            # Only send first failure alert per (domain, step) incident; suppress repeats across runs.
+            already_active = False
+            try:
+                already_active = bool(_STATE.get("domain_errors", {}).get(domain or "—", {}).get(error_key, {}).get("active"))
+            except Exception:
+                already_active = False
+            if not already_active and _should_notify_persistent(new_count):
                 if _claim_flag(domain or "—", f"url-{current_url}-{new_count}", kind="persist"):
                     test_display_name = None
                     try:

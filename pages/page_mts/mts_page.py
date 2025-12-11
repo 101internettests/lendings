@@ -115,9 +115,9 @@ class MtsHomeOnlinePage(BasePage):
                 thank2_visible = False
             if thank_visible or thank2_visible:
                 print(f"[check_sucess] Thank-you visible (MORE_THANKYOU={thank_visible}, THANKYOU_TEXT_SECOND={thank2_visible})")
-                return
-        except Exception:
-            pass
+                    return
+            except Exception:
+                pass
 
         # Мгновенная проверка других вкладок/окон без ожиданий
         try:
@@ -130,7 +130,7 @@ class MtsHomeOnlinePage(BasePage):
                     or "/tilda/form1/submitted" in pu
                     or pu.endswith("/tilda/form1/submitted/")
                 ):
-                    return
+            return
         except Exception:
             pass
 
@@ -156,8 +156,8 @@ class MtsHomeOnlinePage(BasePage):
                         name="Скрин при падении check_sucess",
                         attachment_type=allure.attachment_type.PNG
                     )
-                except Exception:
-                    pass
+        except Exception:
+            pass
         except Exception:
             pass
 
