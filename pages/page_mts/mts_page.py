@@ -96,83 +96,11 @@ class MtsHomeOnlinePage(BasePage):
 
     @allure.title("Проверить успешность отправления заявки")
     def check_sucess(self):
-        # Быстрая проверка без ожидания редиректа: только видимость селекторов /thanks
-        start_time = time.time()
-        last_url = self.page.url or ""
-        context_urls = set()
-
-        # Визуальный фолбэк: страница благодарности может быть попапом без изменения URL
-        try:
-            thank_visible = False
-            thank2_visible = False
-            try:
-                thank_visible = self.page.locator(MTSHomeOnlineMain.MORE_THANKYOU).is_visible(timeout=1500)
-            except Exception:
-                thank_visible = False
-            try:
-                thank2_visible = self.page.locator(MTSHomeOnlineMain.THANKYOU_TEXT_SECOND).is_visible(timeout=1500)
-            except Exception:
-                thank2_visible = False
-            if thank_visible or thank2_visible:
-                print(f"[check_sucess] Thank-you visible (MORE_THANKYOU={thank_visible}, THANKYOU_TEXT_SECOND={thank2_visible})")
-                    return
-            except Exception:
-                pass
-
-        # Мгновенная проверка других вкладок/окон без ожиданий
-        try:
-            for p in self.page.context.pages:
-                pu = (p.url or "").lower()
-                if pu:
-                    context_urls.add(pu)
-                if (
-                    "/thanks" in pu
-                    or "/tilda/form1/submitted" in pu
-                    or pu.endswith("/tilda/form1/submitted/")
-                ):
+        # Минимальная проверка: только по URL, без ожиданий и без дополнительных селекторов
+        lu = (self.page.url or "").lower()
+        if "/thanks" in lu or "/tilda/form1/submitted" in lu or lu.endswith("/tilda/form1/submitted/"):
             return
-        except Exception:
-            pass
-
-        # Диагностика перед падением: соберем максимум контекста
-        try:
-            elapsed = round(time.time() - start_time, 2)
-            debug_text = (
-                "DEBUG check_sucess diagnostics\n"
-                f"- elapsed_sec: {elapsed}\n"
-                f"- last_url: {last_url}\n"
-                f"- context_pages_urls ({len(context_urls)}):\n  " + ("\n  ".join(sorted(context_urls)) if context_urls else "-") + "\n"
-            )
-            with allure.step("Диагностика: check_sucess"):
-                allure.attach(
-                    debug_text,
-                    name="check_sucess debug",
-                    attachment_type=allure.attachment_type.TEXT
-                )
-                try:
-                    png = self.page.screenshot(full_page=True)
-                    allure.attach(
-                        png,
-                        name="Скрин при падении check_sucess",
-                        attachment_type=allure.attachment_type.PNG
-                    )
-        except Exception:
-            pass
-        except Exception:
-            pass
-
-        try:
-            print("[check_sucess] FAIL: thanks not detected. See Allure attachment 'check_sucess debug'.")
-            if (
-                self.page.locator(MTSHomeOnlineMain.MORE_THANKYOU).is_visible(timeout=1500)  # повторная попытка для консистентности
-                or self.page.locator(MTSHomeOnlineMain.THANKYOU_TEXT_SECOND).is_visible(timeout=1500)
-            ):
-                print("[check_sucess] Note: selector became visible right before fail.")
-                return  # если вдруг в последний момент появился
-        except Exception:
-            pass
-
-        raise AssertionError(f"Страница благодарности не появилась: URL не содержит признаков успешной отправки (last: {last_url})")
+        raise AssertionError(f"Страница благодарности не появилась: URL не содержит признаков успешной отправки (last: {lu})")
 
     @allure.title("Проверить успешность отправления заявки")
     def check_sucess_express(self):

@@ -1420,46 +1420,7 @@ def pytest_sessionfinish(session, exitstatus):
                     _send_telegram_message("\n".join(msg))
                     _STATE["domain_errors"][domain][error_key]["active"] = False
 
-        # URL-level fixed notifications (optional): disabled by default to avoid duplicates
-        if URL_FIXED_ALERTS_ENABLED:
-            # Mark active URLs seen this run
-            seen_urls = set()
-            try:
-                for (_dom, _ek), urls in list(DOMAIN_ERROR_URLS.items()):
-                    for u in list(urls):
-                        if u:
-                            seen_urls.add(u)
-            except Exception:
-                seen_urls = set()
-            for u in seen_urls:
-                entry = _STATE.setdefault("url_errors", {}).setdefault(u, {})
-                entry["active"] = True
-                # Сохраним связанные тесты (до 5)
-                try:
-                    tests = sorted(list(URL_ERROR_TESTS.get(u, set())))[:5]
-                    if tests:
-                        entry["tests"] = tests
-                except Exception:
-                    pass
-            # Send fixed for URLs that were active but not seen now
-            for u, info in list(_STATE.get("url_errors", {}).items()):
-                if info.get("active") and u not in seen_urls:
-                    msg = [
-                        "✅ Ошибка по URL автотеста формы исправлена",
-                        "",
-                        f"🕒 Время: {_now_str()}",
-                        f"🔗 URL: {u}",
-                    ]
-                    try:
-                        tests = info.get("tests") or []
-                        if tests:
-                            msg.append(f"🧪 Тест: {tests[0]}")
-                    except Exception:
-                        pass
-                    if REPORT_URL:
-                        msg.append(f"🔎 Детали: {REPORT_URL}")
-                    _send_telegram_message("\n".join(msg))
-                    _STATE["url_errors"][u]["active"] = False
+        # URL-level fixed notifications removed per policy to avoid duplicate/noisy alerts.
 
         # Run summary (optional)
         if RUN_SUMMARY_ENABLED:
