@@ -760,6 +760,56 @@ def pytest_runtest_makereport(item, call):
                 if item.nodeid not in _PASSED_NODEIDS:
                     RUN_PASSED += 1
                     _PASSED_NODEIDS.add(item.nodeid)
+                    # Немедленное "fixed" по паре (домен, шаг), если инцидент был активен ранее (в состоянии)
+                    try:
+                        step_name_ok = _get_last_step_name() or ""
+                        if domain and step_name_ok:
+                            was_active = False
+                            try:
+                                was_active = bool(_STATE.get("domain_errors", {}).get(domain, {}).get(step_name_ok, {}).get("active"))
+                            except Exception:
+                                was_active = False
+                            if was_active:
+                                # Дедуп по воркерам: одна "fixed" на пару (домен, шаг) за прогон
+                                if _claim_flag(domain, f"fixed-domain-step-{step_name_ok}", kind="fixed"):
+                                    # Имя теста для сообщения
+                                    test_display_name = None
+                                    form_title_for_msg = None
+                                    try:
+                                        meta = TEST_META.get(item.nodeid) or {}
+                                        form_title_for_msg = meta.get("title")
+                                        test_display_name = form_title_for_msg or getattr(item, "name", None) or item.nodeid
+                                    except Exception:
+                                        test_display_name = getattr(item, "name", None) or item.nodeid
+                                    # Пример URL: из накопленных неуспешных для этой пары либо текущий
+                                    sample_url = None
+                                    try:
+                                        dom_key = (domain, step_name_ok)
+                                        urls = sorted(list(DOMAIN_ERROR_URLS.get(dom_key, set())))
+                                        if urls:
+                                            sample_url = urls[0]
+                                    except Exception:
+                                        sample_url = None
+                                    if not sample_url:
+                                        sample_url = current_url or None
+                                    msg = [
+                                        f"✅ Ошибка Не выполнен шаг \"{step_name_ok}\" автотеста формы {f'[{form_title_for_msg}]' if form_title_for_msg else ''} исправлена",
+                                        "",
+                                        f"🕒 Время: {_now_str()}",
+                                        f"🌐 Лендинг: {domain}",
+                                    ]
+                                    if sample_url:
+                                        msg.append(f"🔗 URL: {sample_url}")
+                                    if REPORT_URL:
+                                        msg.append(f"🔎 Детали: {REPORT_URL}")
+                                    _send_telegram_message("\n".join(msg))
+                                # Снимаем активность инцидента
+                                try:
+                                    _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(step_name_ok, {})["active"] = False
+                                except Exception:
+                                    pass
+                    except Exception:
+                        pass
             else:
                 # Если ранее считали как passed на call-этапе, корректируем
                 if item.nodeid in _PASSED_NODEIDS:
@@ -1349,12 +1399,20 @@ def pytest_sessionfinish(session, exitstatus):
                                 break
                     except Exception:
                         form_title = None
+                    # Процент исправленных страниц
+                    percent = 0
+                    try:
+                        if RUN_TOTAL_PAGES > 0:
+                            percent = int(round((RUN_PASSED / RUN_TOTAL_PAGES) * 100))
+                    except Exception:
+                        percent = 0
                     msg = [
                         f"✅ Массовая ошибка Не выполнен шаг \"{error_key}\" автотеста формы {f'[{form_title}]' if form_title else ''} исправлена",
                         "",
                         f"🕒 Время: {_now_str()}",
                         f"🌐 Затронуто: {landings_count} лендингов",
-                        f"📊 Исправлено: {RUN_PASSED} страниц",
+                        f"🔗 Проверено: {RUN_TOTAL_PAGES} страниц",
+                        f"📊 Исправлено: {RUN_PASSED} страниц ({percent}%)",
                     ]
                     if REPORT_URL:
                         msg.append(f"🔎 Детали: {REPORT_URL}")
@@ -1389,12 +1447,19 @@ def pytest_sessionfinish(session, exitstatus):
                 if _STATE.get("systemic_tests", {}).get(test_name, {}).get("active"):
                     step_name = TEST_FAIL_LAST_STEP.get(test_name)
                     title_part = step_name or test_name
+                    percent = 0
+                    try:
+                        if RUN_TOTAL_PAGES > 0:
+                            percent = int(round((RUN_PASSED / RUN_TOTAL_PAGES) * 100))
+                    except Exception:
+                        percent = 0
                     msg = [
                         f"✅ Массовая ошибка Не выполнен шаг \"{title_part}\" автотеста формы [{test_name}] исправлена",
                         "",
                         f"🕒 Время: {_now_str()}",
                         f"🌐 Затронуто: {landings_count} лендингов",
-                        f"📊 Исправлено: {RUN_PASSED} страниц",
+                        f"🔗 Проверено: {RUN_TOTAL_PAGES} страниц",
+                        f"📊 Исправлено: {RUN_PASSED} страниц ({percent}%)",
                     ]
                     if REPORT_URL:
                         msg.append(f"🔎 Детали: {REPORT_URL}")
@@ -1432,12 +1497,22 @@ def pytest_sessionfinish(session, exitstatus):
         for domain, errors in list(_STATE.get("domain_errors", {}).items()):
             for error_key, info in list(errors.items()):
                 if info.get("active") and (domain, error_key) not in seen_pairs:
+                    # Пример URL из накопленных для пары
+                    sample_url = None
+                    try:
+                        urls = sorted(list(DOMAIN_ERROR_URLS.get((domain, error_key), set())))
+                        if urls:
+                            sample_url = urls[0]
+                    except Exception:
+                        sample_url = None
                     msg = [
                         f"✅ Ошибка Не выполнен шаг \"{error_key}\" автотеста формы исправлена",
                         "",
                         f"🕒 Время: {_now_str()}",
                         f"🌐 Лендинг: {domain}",
                     ]
+                    if sample_url:
+                        msg.append(f"🔗 URL: {sample_url}")
                     try:
                         tests = info.get("tests") or []
                         if tests:
