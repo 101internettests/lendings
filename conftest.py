@@ -753,6 +753,20 @@ def pytest_runtest_makereport(item, call):
                                     _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(step_name_ok, {})["active"] = False
                                 except Exception:
                                     pass
+                                # Сбрасываем счётчики повторов по всем URL для этой пары (домен, шаг)
+                                try:
+                                    dom_key = (domain, step_name_ok)
+                                    urls_to_reset = list(DOMAIN_ERROR_URLS.get(dom_key, set()))
+                                    if current_url:
+                                        urls_to_reset.append(current_url)
+                                    seen = set()
+                                    for u in urls_to_reset:
+                                        if not u or u in seen:
+                                            continue
+                                        seen.add(u)
+                                        _reset_url_counter(u)
+                                except Exception:
+                                    pass
                     except Exception:
                         pass
             else:

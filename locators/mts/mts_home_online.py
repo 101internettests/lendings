@@ -1,6 +1,8 @@
 class MTSHomeOnlineMain:
     SUPER_OFFER_HEADER = "xpath=//h3[contains(text(),'Выгодное спецпредложение!')]"
     SUPER_OFFER_HEADER_SECOND = "xpath=//div[contains(text(),'Выгодное спецпредложение!')]"
+    CLOSE_MORE = "xpath=(//button[@class='popup__close'])[7]"
+    CLOSE_MORE_SIX = "xpath=(//button[@class='popup__close'])[6]"
     SUPER_OFFER_CLOSE_NEW = "xpath=(//button[@class='popup__close'])[5]"
     SUPER_OFFER_CLOSE = "xpath=(//button[@class='popup__close'])[4]"
     SUPER_OFFER_CLOSE_MORE = "xpath=(//button[@class='popup__close'])[3]"

@@ -685,8 +685,29 @@ class MainSteps(BasePage):
 
     @allure.title("Нажать на кнопку Изменить город")
     def button_change_city_connection(self):
+        # Персональная правка для домена internet-mts-home.online
+        try:
+            current_url = (self.page.url or "").lower()
+        except Exception:
+            current_url = ""
+        if "internet-mts-home.online" in current_url or "mts-internet.online" in current_url:
+            try:
+                self.page.locator("xpath=(//span[contains(@class,'connection_address_button_change_city')])[2]").click(timeout=3000)
+                return
+            except Exception:
+                pass
+            try:
+                self.page.locator("xpath=(//div[contains(@class,'connection_address_button_change_city')])[2]").click(timeout=3000)
+                return
+            except Exception:
+                pass
         try:
             self.page.locator(Connection.BUTTON_CHANGE_CITY).first.click(timeout=3000)
+            return
+        except Exception:
+            pass
+        try:
+            self.page.locator(Connection.BUTTON_CHANGE_CITY).last.click(timeout=3000)
             return
         except Exception:
             pass
@@ -995,27 +1016,79 @@ class MainSteps(BasePage):
     def send_popup_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
-                self.page.locator(Connection.STREET).first.type("Лен", delay=100)
+                self.page.locator(Connection.STREET).fill('Лен')
+                # self.page.locator(Connection.STREET).type("Лен", delay=50)
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
             except Exception as e:
                 raise AssertionError(
                     f"Не удалось выбрать улицу/подсказку в форме 'Заявка на подключение'. Детали: {e}"
                 )
-            time.sleep(1)
             try:
-                self.page.locator(Connection.HOUSE).first.fill("1")
-                self._click_first_available_house()
+                house_input = self.page.locator(Connection.HOUSE).first
+                # Пробуем дом 2, затем 1, затем 3
+                for num in ("2", "1", "3"):
+                    try:
+                        house_input.fill("")  # очистить
+                        house_input.fill(num)
+                        self._click_first_available_house()
+                        break
+                    except Exception:
+                        # переходим к следующему номеру
+                        continue
+                else:
+                    # ни один номер не сработал
+                    raise AssertionError("Не удалось выбрать дом: ни 2, ни 1, ни 3 не доступны в подсказках")
             except AssertionError as e:
                 raise
             except Exception as e:
                 raise AssertionError(
                     f"Не удалось указать дом в форме 'Заявка на подключение'. Детали: {e}"
                 )
-            time.sleep(1)
             try:
                 self.page.locator(Connection.PHONE).first.fill("99999999999")
-                time.sleep(1)
                 self.page.locator(Connection.BUTTON_SEND).first.click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось отправить форму 'Заявка на подключение'. Детали: {e}"
+                )
+            time.sleep(4)
+
+    @allure.title("Отправить заявку в попап 'Заявка на подключение'")
+    def send_popup_connection_rtk(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            try:
+                self.page.locator(Connection.STREET_LAST).last.fill('Лен')
+                # self.page.locator(Connection.STREET).type("Лен", delay=50)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось выбрать улицу/подсказку в форме 'Заявка на подключение'. Детали: {e}"
+                )
+            try:
+                house_input = self.page.locator(Connection.HOUSE_LAST).last
+                # Пробуем дом 2, затем 1, затем 3
+                for num in ("2", "1", "3"):
+                    try:
+                        house_input.fill("")  # очистить
+                        house_input.fill(num)
+                        self._click_first_available_house()
+                        break
+                    except Exception:
+                        # переходим к следующему номеру
+                        continue
+                else:
+                    # ни один номер не сработал
+                    raise AssertionError("Не удалось выбрать дом: ни 2, ни 1, ни 3 не доступны в подсказках")
+            except AssertionError as e:
+                raise
+            except Exception as e:
+                raise AssertionError(
+                    f"Не удалось указать дом в форме 'Заявка на подключение'. Детали: {e}"
+                )
+            try:
+                self.page.locator(Connection.NAME_LAST).last.fill("Тест")
+                self.page.locator(Connection.PHONE_LAST).last.fill("99999999999")
+                self.page.locator(Connection.BUTTON_SEND_LAST).last.click()
             except Exception as e:
                 raise AssertionError(
                     f"Не удалось отправить форму 'Заявка на подключение'. Детали: {e}"
@@ -1034,8 +1107,18 @@ class MainSteps(BasePage):
                 )
             time.sleep(1)
             try:
-                self.page.locator(Connection.HOUSE).last.fill("2")
-                self._click_first_available_house()
+                house_input = self.page.locator(Connection.HOUSE).last
+                # Пробуем дом 2, затем 1, затем 3
+                for num in ("2", "1", "3"):
+                    try:
+                        house_input.fill("")  # очистить
+                        house_input.fill(num)
+                        self._click_first_available_house()
+                        break
+                    except Exception:
+                        continue
+                else:
+                    raise AssertionError("Не удалось выбрать дом: ни 2, ни 1, ни 3 не доступны в подсказках")
             except AssertionError as e:
                 raise
             except Exception as e:

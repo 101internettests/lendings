@@ -14,10 +14,15 @@ class Profit:
 
 
 class Connection:
-    STREET = "xpath=//input[contains(@class,'connection_address_street')]"
-    HOUSE = "xpath=//input[contains(@class,'connection_address_house')]"
-    PHONE = "xpath=//input[contains(@class,'connection_address_phone')]"
-    BUTTON_SEND = "xpath=//input[contains(@class,'connection_address_button_send')]"
+    STREET_LAST = "xpath=(//input[contains(@class,'connection_address_street')])"
+    HOUSE_LAST = "xpath=(//input[contains(@class,'connection_address_house')])"
+    NAME_LAST = "xpath=(//input[contains(@class,'popup__name')])"
+    PHONE_LAST = "xpath=(//input[contains(@class,'connection_address_phone')])"
+    BUTTON_SEND_LAST = "xpath=(//input[contains(@class,'connection_address_button_send')])"
+    STREET = "xpath=(//input[contains(@class,'connection_address_street')])[1]"
+    HOUSE = "xpath=(//input[contains(@class,'connection_address_house')])[1]"
+    PHONE = "xpath=(//input[contains(@class,'connection_address_phone')])[1]"
+    BUTTON_SEND = "xpath=(//input[contains(@class,'connection_address_button_send')])[1]"
     BUTTON_CHANGE_CITY = "xpath=//div[contains(@class,'connection_address_button_change_city')]"
     BUTTON_CHANGE_CITY_SEC = "xpath=//span[contains(@class,'connection_address_button_change_city')]"
     CONNECT_BUTTON = "xpath=(//button[contains(@class,'connection_address_button')])"

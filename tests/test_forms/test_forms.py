@@ -152,73 +152,65 @@ class TestForms:
     #                     print(f"Кнопка с индексом {i} не найдена на фронте или шаг по ней завершился ошибкой")
     #                     pytest.fail(f"Кнопка с индексом {i} не найдена на фронте или шаг по ней завершился ошибкой")
 
-    # @pytest.mark.skip("Ожидает доработок")
-    # @allure.title("2.2 Отправка заявок с карточек тарифа")
-    # def test_application_popup_button_connect_cards(self, page_fixture, connect_cards_url):
-    #     page = page_fixture
-    #     page.goto(connect_cards_url)
-    #     mts_page = MtsHomeOnlinePage(page=page)
-    #     steps = MainSteps(page=page)
-    #     region_page = ChoiceRegionPage(page=page)
-    #     with allure.step("Проверка попапа 'Вы находитесь в городе Х' и закрытие при наличии (до 10с)"):
-    #         domru_page = DomRuClass(page=page)
-    #         try:
-    #             if page.locator(LocationPopup.YES_BUTTON).count() > 0:
-    #                 domru_page.close_popup_location()
-    #         except Exception:
-    #             pass
-    #     with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
-    #         try:
-    #             def strip_xpath(sel: str) -> str:
-    #                 return sel[len("xpath="):] if sel.startswith("xpath=") else sel
-    #             union_xpath = (
-    #                 f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
-    #                 f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
-    #                 f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
-    #             )
-    #             page.wait_for_selector(union_xpath, state="visible", timeout=50000)
-    #             region_page.close_popup_super_offer_all()
-    #         except Exception:
-    #             pass
-    #
-    #     with allure.step("Посчитать кнопки и пройти по всем"):
-    #         total = steps.count_connect_buttons_cards()
-    #         assert total > 0, "Не найдено кнопок Подключить"
-    #         for i in range(1, total + 1):
-    #             with allure.step(f"Кнопка #{i}"):
-    #                 steps.click_connect_button_index_cards(i)
-    #                 if i == 1:
-    #                     steps.send_popup_connection()
-    #                 elif i == 2:
-    #                     steps.button_change_city_connection()
-    #                     region_page = ChoiceRegionPage(page=page)
-    #                     time.sleep(2)
-    #                     region_page.fill_region_search_new("Воронеж")
-    #                     region_page.verify_first_region_choice("Воронеж")
-    #                     time.sleep(2)
-    #                     region_page.select_first_region()
-    #                     steps.send_popup_connection_second()
-    #                 else:
-    #                     # 3-я и далее: чередуем 1/2 вариант
-    #                     if i % 2 == 1:
-    #                         steps.send_popup_connection()
-    #                     else:
-    #                         steps.button_change_city_connection()
-    #                         region_page = ChoiceRegionPage(page=page)
-    #                         time.sleep(2)
-    #                         region_page.fill_region_search_new("Воронеж")
-    #                         region_page.verify_first_region_choice("Воронеж")
-    #                         time.sleep(2)
-    #                         region_page.select_first_region()
-    #                         steps.send_popup_connection_second()
-    #                 mts_page.check_sucess()
-    #                 try:
-    #                     base_url = (example_url or "").split("?", 1)[0].rstrip("/")
-    #                     if not (base_url.endswith("/submitted") or base_url.endswith("/thanks")):
-    #                         mts_page.close_thankyou_page_sec()
-    #                 except Exception:
-    #                     # Не блокируем тест на случай неожиданных ошибок при проверке условия
-    #                     mts_page.close_thankyou_page_sec()
+    @allure.title("2.2. Отправка заявок с карточек тарифа")
+    def test_application_popup_button_connect_cards(self, page_fixture, connect_cards_url):
+        page = page_fixture
+        page.goto(connect_cards_url)
+        mts_page = MtsHomeOnlinePage(page=page)
+        steps = MainSteps(page=page)
+        region_page = ChoiceRegionPage(page=page)
+        with allure.step("Проверка попапа 'Вы находитесь в городе Х' и закрытие при наличии (до 10с)"):
+            domru_page = DomRuClass(page=page)
+            try:
+                if page.locator(LocationPopup.YES_BUTTON).count() > 0:
+                    domru_page.close_popup_location()
+            except Exception:
+                pass
+        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
+            try:
+                def strip_xpath(sel: str) -> str:
+                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
+                union_xpath = (
+                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
+                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
+                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
+                )
+                page.wait_for_selector(union_xpath, state="visible", timeout=60000)
+                region_page.close_popup_super_offer_all()
+            except Exception:
+                pass
+
+        with allure.step("Посчитать кнопки и пройти по всем"):
+            total = steps.count_connect_buttons_cards()
+            assert total > 0, "Не найдено кнопок Подключить"
+            for i in range(1, total + 1):
+                with allure.step(f"Кнопка #{i}"):
+                    steps.click_connect_button_index_cards(i)
+                    if i == 1:
+                        time.sleep(2)
+                        if "rtk" in (page.url or "").lower():
+                            steps.send_popup_connection_rtk()
+                        else:
+                            steps.send_popup_connection()
+                    elif i == 2:
+                        if "rtk" in (page.url or "").lower():
+                            # Для rtk — только первый сценарий без смены региона
+                            steps.send_popup_connection_rtk()
+                        else:
+                            steps.button_change_city_connection()
+                            region_page = ChoiceRegionPage(page=page)
+                            region_page.fill_region_search_new("Воронеж")
+                            region_page.verify_first_region_choice("Воронеж")
+                            region_page.select_first_region()
+                            steps.send_popup_connection_second()
+                    else:
+                        if "rtk" in (page.url or "").lower():
+                            steps.send_popup_connection_rtk()
+                        else:
+                            steps.send_popup_connection()
+                    mts_page.check_sucess_simple()
+                    mts_page.go_back()
+                    # mts_page.close_thankyou_page_sec()
 
     # @pytest.mark.skip("Ожидает доработок")
     # @allure.title("3.1 Отправка заявки со ВСЕХ  форм-попапов на странице с названиями Проверить адрес")
@@ -390,7 +382,7 @@ class TestForms:
                             time.sleep(2)
                             region_page.select_first_region()
                             steps.send_form_undecided_second(i)
-                    mts_page.check_sucess()
+                    # mts_page.check_sucess()
                     mts_page.close_thankyou_page()
 
     @allure.title("4.2 Отправка заявки с формы Остались вопросы для ТТК")

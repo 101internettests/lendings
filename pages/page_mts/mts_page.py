@@ -136,6 +136,32 @@ class MtsHomeOnlinePage(BasePage):
 
         raise AssertionError(f"Страница благодарности не появилась: URL не содержит признаков успешной отправки (last: {last_url})")
 
+    @allure.title("Проверить успешность отправления заявки (простой)")
+    def check_sucess_simple(self):
+        # Минимальная проверка: по текущему URL + короткие попытки дождаться нужного адреса
+        try:
+            lu = (self.page.url or "").lower()
+            if "/thanks" in lu or "/tilda/form1/submitted" in lu or lu.endswith("/tilda/form1/submitted/"):
+                return
+        except Exception:
+            pass
+        # Пара коротких попыток дождаться нужного шаблона URL
+        try:
+            self.page.wait_for_url("**/thanks**", timeout=2000)
+            return
+        except Exception:
+            pass
+        try:
+            self.page.wait_for_url("**/tilda/form1/submitted**", timeout=2000)
+            return
+        except Exception:
+            pass
+        # Финальная проверка текущего URL
+        lu_final = (self.page.url or "").lower()
+        if "/thanks" in lu_final or "/tilda/form1/submitted" in lu_final or lu_final.endswith("/tilda/form1/submitted/"):
+            return
+        raise AssertionError(f"Страница благодарности не появилась (simple): URL не содержит признаков успешной отправки (last: {lu_final})")
+
     @allure.title("Проверить успешность отправления заявки")
     def check_sucess_express(self):
         expect(self.page.locator(MTSHomeOnlineMain.MORE_THANKYOU)).to_be_visible(timeout=10000)
@@ -172,7 +198,7 @@ class MtsHomeOnlinePage(BasePage):
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def close_thankyou_page_express(self):
         try:
-            self.page.locator(MTSHomeOnlineMain.GO_TO_MAIN).click()
+            self.page.locator(MTSHomeOnlineMain.GO_TO_MAIN).click(timeout=10000)
         except Exception:
             raise AssertionError(
                 "Не удалось нажать кнопку возврата на главную со страницы благодарности.\n"
@@ -1156,7 +1182,9 @@ class ChoiceRegionPage(BasePage):
             MTSHomeOnlineMain.SUPER_OFFER_CLOSE_HOME,
             MTSHomeOnlineMain.SUPER_OFFER_CLOSE_MORE,
             MTSHomeOnlineMain.SUPER_OFFER_CLOSE_SECOND,
-            MTSHomeOnlineMain.SUPER_OFFER_CLOSE_NEW
+            MTSHomeOnlineMain.SUPER_OFFER_CLOSE_NEW,
+            MTSHomeOnlineMain.CLOSE_MORE,
+            MTSHomeOnlineMain.CLOSE_MORE_SIX
         ]
 
         # Пытаемся найти и нажать первую доступную кнопку
@@ -1164,6 +1192,7 @@ class ChoiceRegionPage(BasePage):
             if self.page.locator(button_locator).is_visible():
                 self.page.locator(button_locator).click()
                 break
+
 
 class MTSSecondOnlinePage(BasePage):
     @allure.title("Нажать на кнопку Принять на главной странице")
