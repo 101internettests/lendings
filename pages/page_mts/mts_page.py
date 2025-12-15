@@ -171,6 +171,56 @@ class MtsHomeOnlinePage(BasePage):
         with allure.step("Проверить, что заявка отправилась"):
             expect(self.page.locator(MTSHomeOnlineMain.THANKYOU_TEXT_SECOND)).to_be_visible()
 
+    @allure.title("Дождаться страницы благодарности (устойчивое ожидание)")
+    def wait_for_thankyou(self, timeout_ms: int = 90000):
+        import re
+        end_ts = time.time() + (timeout_ms / 1000.0)
+        last_url = ""
+        # 1) Пытаемся дождаться по URL с расширенным таймаутом
+        try:
+            self.page.wait_for_url(re.compile(r".*(/thanks|/tilda/form1/submitted|/submitted).*"), timeout=timeout_ms)
+            return
+        except Exception:
+            pass
+        # 2) Поллинг URL + промежуточные ожидания ready/networkidle
+        while time.time() < end_ts:
+            try:
+                lu = (self.page.url or "").lower()
+                last_url = lu
+                if (
+                    "/thanks" in lu
+                    or "/tilda/form1/submitted" in lu
+                    or lu.endswith("/tilda/form1/submitted/")
+                    or "/submitted" in lu
+                    or lu.endswith("/submitted")
+                ):
+                    return
+            except Exception:
+                pass
+            try:
+                self.page.wait_for_load_state("domcontentloaded", timeout=2000)
+            except Exception:
+                pass
+            try:
+                self.page.wait_for_load_state("networkidle", timeout=2000)
+            except Exception:
+                pass
+            time.sleep(0.5)
+        # 3) Пробуем дождаться типовых элементов страницы благодарности
+        candidates = [
+            getattr(MTSHomeOnlineMain, "MORE_THANKYOU", None),
+            getattr(MTSHomeOnlineMain, "THANKYOU_CLOSE", None),
+            getattr(MTSHomeOnlineMain, "GO_TO_MAIN", None),
+            getattr(MTSHomeOnlineMain, "THANKYOU_TEXT_SECOND", None),
+        ]
+        for sel in [s for s in candidates if s]:
+            try:
+                self.page.locator(sel).wait_for(state="visible", timeout=4000)
+                return
+            except Exception:
+                continue
+        raise AssertionError(f"Страница благодарности не появилась: слишком долгая загрузка (last: {last_url})")
+
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def close_thankyou_page(self):
         # Проверяем, какая кнопка доступна и нажимаем первую доступную

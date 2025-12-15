@@ -1265,7 +1265,7 @@ class MainSteps(BasePage):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
                 self.page.locator(Undecided.STREET).nth(index - 1).type("Лен", delay=100)
-                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click(timeout=10000)
             except Exception as e:
                 raise AssertionError(
                     f"Не удалось выбрать улицу/подсказку в форме 'Не определились с тарифом?' (индекс {index}). Детали: {e}"

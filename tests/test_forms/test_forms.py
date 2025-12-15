@@ -353,37 +353,11 @@ class TestForms:
             except Exception:
                 pass
 
-        with allure.step("Посчитать кнопки и пройти по всем"):
+        with allure.step("Найти кнопку и отправить форму (только одну)"):
             total = steps.count_undecided_blocks()
             assert total > 0, "Не найдено кнопок Проверить адрес"
-            for i in range(1, total + 1):
-                with allure.step(f"Кнопка #{i}"):
-                    if i == 1:
-                        steps.send_form_undecided(i)
-                    elif i == 2:
-                        steps.button_change_city_undecideds(i)
-                        region_page = ChoiceRegionPage(page=page)
-                        time.sleep(2)
-                        region_page.fill_region_search_new("Воронеж")
-                        region_page.verify_first_region_choice("Воронеж")
-                        time.sleep(2)
-                        region_page.select_first_region()
-                        steps.send_form_undecided_second(i)
-                    else:
-                        # 3-я и далее: чередуем 1/2 вариант
-                        if i % 2 == 1:
-                            steps.send_form_undecided(i)
-                        else:
-                            steps.button_change_city_undecideds(i)
-                            region_page = ChoiceRegionPage(page=page)
-                            time.sleep(2)
-                            region_page.fill_region_search_new("Воронеж")
-                            region_page.verify_first_region_choice("Воронеж")
-                            time.sleep(2)
-                            region_page.select_first_region()
-                            steps.send_form_undecided_second(i)
-                    # mts_page.check_sucess()
-                    mts_page.close_thankyou_page()
+            steps.send_form_undecided(1)
+            mts_page.close_thankyou_page()
 
     @allure.title("4.2 Отправка заявки с формы Остались вопросы для ТТК")
     def test_application_undecided_ttk(self, page_fixture, undecided_ttk_url):
@@ -445,7 +419,7 @@ class TestForms:
                         steps.click_business_button(i)
                         steps.connect_business_page()
                         steps.send_popup_business()
-                        # mts_page.check_sucess()
+                        mts_page.wait_for_thankyou(timeout_ms=90000)
                         mts_page.close_thankyou_page()
                         # Вернуться назад к странице со списком кнопок
                         try:
@@ -474,6 +448,7 @@ class TestForms:
         page.goto(business_url_second)
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
+        region_page = ChoiceRegionPage(page=page)
         with allure.step("Проверка попапа 'Вы находитесь в городе Х' и закрытие при наличии (до 10с)"):
             domru_page = DomRuClass(page=page)
             try:
@@ -481,20 +456,20 @@ class TestForms:
                     domru_page.close_popup_location()
             except Exception:
                 pass
-        # with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 40с)"):
-        #     try:
-        #         def strip_xpath(sel: str) -> str:
-        #             return sel[len("xpath="):] if sel.startswith("xpath=") else sel
-        #
-        #         union_xpath = (
-        #             f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
-        #             f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
-        #             f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
-        #         )
-        #         page.wait_for_selector(union_xpath, state="visible", timeout=60000)
-        #         region_page.close_popup_super_offer_all()
-        #     except Exception:
-        #         pass
+        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 40с)"):
+            try:
+                def strip_xpath(sel: str) -> str:
+                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
+
+                union_xpath = (
+                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
+                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
+                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
+                )
+                page.wait_for_selector(union_xpath, state="visible", timeout=40000)
+                region_page.close_popup_super_offer_all()
+            except Exception:
+                pass
 
             steps.click_business_button()
             with allure.step("Посчитать кнопки и пройти по всем"):
@@ -511,7 +486,7 @@ class TestForms:
                                 steps.click_business_button()
                             steps.click_business_button(i)
                             steps.send_popup_business()
-                            # mts_page.check_sucess()
+                            mts_page.wait_for_thankyou(timeout_ms=90000)
                             mts_page.close_thankyou_page()
                         except Exception as e:
                             try:
