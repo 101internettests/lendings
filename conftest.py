@@ -50,15 +50,26 @@ except Exception:
 
 
 # ==== Alerts configuration and state ====
-ALERTS_ENABLED = os.getenv("ALERTS_ENABLED", "true").strip().lower() == "true"
-SUPPRESS_PERSISTENT_ALERTS = os.getenv("SUPPRESS_PERSISTENT_ALERTS", "false").strip().lower() == "true"
+def _env_bool(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    val = raw.strip().lower()
+    if val in ("1", "true", "yes", "y", "on"):
+        return True
+    if val in ("0", "false", "no", "n", "off", ""):
+        return False
+    return default
+
+ALERTS_ENABLED = _env_bool("ALERTS_ENABLED", True)
+SUPPRESS_PERSISTENT_ALERTS = _env_bool("SUPPRESS_PERSISTENT_ALERTS", False)
 REPORT_URL = os.getenv("REPORT_URL")
 PER_DOMAIN_THRESHOLD = int(os.getenv("AGGR_THRESHOLD_PER_DOMAIN", "5"))
 SYSTEMIC_LANDINGS_THRESHOLD = int(os.getenv("SYSTEMIC_LANDINGS_THRESHOLD", "5"))
 TIMEZONE_LABEL = os.getenv("TZ_LABEL", "MSK")
-RUN_SUMMARY_ENABLED = os.getenv("RUN_SUMMARY_ENABLED", "false").strip().lower() == "true"
+RUN_SUMMARY_ENABLED = _env_bool("RUN_SUMMARY_ENABLED", False)
 # Управление URL-уровнем fixed-уведомлений (включено по умолчанию)
-URL_FIXED_ALERTS_ENABLED = os.getenv("URL_FIXED_ALERTS_ENABLED", "true").strip().lower() == "true"
+URL_FIXED_ALERTS_ENABLED = _env_bool("URL_FIXED_ALERTS_ENABLED", True)
 
 ALERTS_STATE_PATH_ENV = os.getenv("ALERTS_STATE_PATH", "/var/lib/jenkins/alerts_state.json").strip()
 _STATE_FILE = Path(ALERTS_STATE_PATH_ENV)
@@ -780,12 +791,12 @@ def pytest_runtest_makereport(item, call):
                 error_key = step_name or type(call.excinfo.value).__name__
                 dom_key = (domain or "—", error_key)
                 DOMAIN_ERROR_COUNTS[dom_key] += 1
-                # Отметим инцидент как активный немедленно (для мгновенных fixed в этом же прогоне)
+                # ВАЖНО: сначала узнаём, был ли инцидент активным ДО текущего падения
+                was_active = False
                 try:
-                    if domain and error_key:
-                        _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(error_key, {})["active"] = True
+                    was_active = bool(_STATE.get("domain_errors", {}).get(domain or "—", {}).get(error_key, {}).get("active"))
                 except Exception:
-                    pass
+                    was_active = False
                 if current_url:
                     DOMAIN_ERROR_URLS[dom_key].add(current_url)
                 ERROR_DOMAINS[error_key].add(domain or "—")
@@ -857,13 +868,8 @@ def pytest_runtest_makereport(item, call):
                         ERROR_LOGGED_NODEIDS.add(item.nodeid)
                 except Exception:
                     pass
-                already_active = False
-                try:
-                    already_active = bool(_STATE.get("domain_errors", {}).get(domain or "—", {}).get(error_key, {}).get("active"))
-                except Exception:
-                    already_active = False
-
-                if not (already_active):
+                # Отправляем негативный алерт, если инцидент ещё не был активен (это первый/очередной по расписанию)
+                if not was_active:
                     test_display_name = None
                     try:
                         test_display_name = form_title or getattr(item, "name", None) or item.nodeid
@@ -883,6 +889,12 @@ def pytest_runtest_makereport(item, call):
                                 _send_telegram_message(text)
                         except Exception:
                             pass
+                # Теперь помечаем инцидент активным (для последующего "fixed")
+                try:
+                    if (domain or "—") and error_key:
+                        _STATE.setdefault("domain_errors", {}).setdefault(domain or "—", {}).setdefault(error_key, {})["active"] = True
+                except Exception:
+                    pass
         elif call.excinfo is not None and call.when in ("setup", "teardown"):
             # Count failures that happen outside the 'call' phase as well
             # Корректируем счетчики: если тест ранее помечен как passed — переведем в failed,
@@ -900,11 +912,12 @@ def pytest_runtest_makereport(item, call):
                 pass
             step_name = _get_last_step_name() or ""
             error_key = step_name or type(call.excinfo.value).__name__
+            # Узнаём состояние ДО отметки
+            was_active_setup = False
             try:
-                if domain and error_key:
-                    _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(error_key, {})["active"] = True
+                was_active_setup = bool(_STATE.get("domain_errors", {}).get(domain or "—", {}).get(error_key, {}).get("active"))
             except Exception:
-                pass
+                was_active_setup = False
             new_count = _inc_url_counter(current_url)
             # Привязка тестов к паре (домен, шаг) и к URL для setup/teardown падений
             try:
@@ -935,12 +948,7 @@ def pytest_runtest_makereport(item, call):
             except Exception:
                 pass
             # Only send first failure alert per (domain, step) incident; suppress repeats across runs.
-            already_active = False
-            try:
-                already_active = bool(_STATE.get("domain_errors", {}).get(domain or "—", {}).get(error_key, {}).get("active"))
-            except Exception:
-                already_active = False
-            if not already_active and _should_notify_persistent(new_count):
+            if not was_active_setup and _should_notify_persistent(new_count):
                 # Немедленная персональная отправка и для setup/teardown
                 try:
                     if _claim_flag(domain or "—", f"url-{current_url}-{new_count}", kind="persist"):
@@ -959,6 +967,12 @@ def pytest_runtest_makereport(item, call):
                         _send_telegram_message(text)
                 except Exception:
                     pass
+            # Теперь пометить активным
+            try:
+                if (domain or "—") and error_key:
+                    _STATE.setdefault("domain_errors", {}).setdefault(domain or "—", {}).setdefault(error_key, {})["active"] = True
+            except Exception:
+                pass
     except Exception:
         pass
 
@@ -1262,7 +1276,7 @@ def browser_fixture():
     Режим headless контролируется через .env файл
     """
     # Получаем значение HEADLESS из .env (по умолчанию True если не указано)
-    headless = os.getenv("HEADLESS", "True").lower() == "true"
+    headless = _env_bool("HEADLESS", True)
 
     with sync_playwright() as playwright:
         # Запускаем браузер с нужными настройками
@@ -1276,7 +1290,7 @@ def browser_fixture_ignore_https():
     """
     Фикстура для создания браузера с игнорированием ошибок HTTPS
     """
-    headless = os.getenv("HEADLESS", "True").lower() == "true"
+    headless = _env_bool("HEADLESS", True)
 
     with sync_playwright() as playwright:
         # Запускаем браузер с отключенной проверкой сертификатов
