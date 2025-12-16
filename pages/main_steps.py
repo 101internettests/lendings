@@ -823,13 +823,29 @@ class MainSteps(BasePage):
 
     @allure.title("Кликнуть на кнопку Подключить по индексу (1-based)")
     def click_connect_button_index_cards(self, index: int):
-        selector = f"xpath=(//button[contains(@class,'connection_address_card_button')])[{index}]"
+        # Кликаем по индексному элементу только среди видимых карточных кнопок
         try:
-            self.page.locator(selector).click()
+            primary = self.page.locator(Connection.CARDS_BUTTONS)
+            fallback = self.page.locator("xpath=//a[contains(@class,'connection_address_card_button')] | //button[contains(@class,'connection_address_card_button')]")
+            nodes = primary.all() if primary.count() > 0 else fallback.all()
+            visible_nodes = []
+            for n in nodes:
+                try:
+                    if n.is_visible():
+                        visible_nodes.append(n)
+                except Exception:
+                    continue
+            if index < 1 or index > len(visible_nodes):
+                raise AssertionError(
+                    f"Кнопка 'Подключить' (карточка) №{index} не видна на странице. Видимых: {len(visible_nodes)}"
+                )
+            visible_nodes[index - 1].click()
+        except AssertionError:
+            raise
         except Exception as e:
             raise AssertionError(
-                f"Не удалось кликнуть по кнопке 'Подключить' (карточка) №{index}.\n"
-                "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
+                f"Не удалось кликнуть по кнопке 'Подключить' (карточка) №{index} среди видимых.\n"
+                "Возможно элемент пропал или изменился селектор."
                 f"\nТехнические детали: {e}"
             )
 
@@ -870,11 +886,25 @@ class MainSteps(BasePage):
 
     @allure.title("Посчитать количество кнопок Подключить")
     def count_connect_buttons_cards(self) -> int:
+        # Считаем только видимые карточные кнопки (скрытые игнорируем)
         try:
-            return self.page.locator(Connection.CARDS_BUTTONS).count()
+            primary = self.page.locator(Connection.CARDS_BUTTONS)
+            if primary.count() == 0:
+                candidates = self.page.locator("xpath=//a[contains(@class,'connection_address_card_button')] | //button[contains(@class,'connection_address_card_button')]")
+            else:
+                candidates = primary
+            nodes = candidates.all()
+            visible = 0
+            for n in nodes:
+                try:
+                    if n.is_visible():
+                        visible += 1
+                except Exception:
+                    continue
+            return visible
         except Exception as e:
             raise AssertionError(
-                "Не удалось посчитать кнопки 'Подключить' в карточках.\n"
+                "Не удалось посчитать кнопки 'Подключить' в карточках (видимые).\n"
                 "Возможно элементы отсутствуют на странице или изменился селектор."
                 f"\nТехнические детали: {e}"
             )
@@ -1457,7 +1487,7 @@ class MainSteps(BasePage):
     def send_popup_express_connection_second(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
-                self.page.locator(ExpressConnection.STREET).type("Лен", delay=100)
+                self.page.locator(ExpressConnection.STREET).type("Лени", delay=200)
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
             except Exception as e:
                 raise AssertionError(

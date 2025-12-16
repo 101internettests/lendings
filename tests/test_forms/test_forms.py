@@ -567,7 +567,6 @@ class TestForms:
         page.goto(express_url)
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
-        region_page = ChoiceRegionPage(page=page)
         with allure.step("Проверка попапа 'Вы находитесь в городе Х' и закрытие при наличии (до 10с)"):
             domru_page = DomRuClass(page=page)
             try:
@@ -590,6 +589,7 @@ class TestForms:
             region_page.verify_first_region_choice("Воронеж")
             time.sleep(2)
             region_page.select_first_region()
+            time.sleep(2)
             steps.send_popup_express_connection_second()
             mts_page.check_sucess_express()
             mts_page.close_thankyou_page_express()
