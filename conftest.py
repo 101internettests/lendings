@@ -880,11 +880,15 @@ def pytest_runtest_makereport(item, call):
                         try:
                             if _claim_flag(domain or "—", f"url-{current_url}-{new_count}", kind="persist"):
                                 details = _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else None
-                                text = _format_single_error_message(
-                                    form_title,
-                                    current_url,
-                                    step_name or error_key,
-                                    details,
+                                text = _format_persistent_error_message(
+                                    form_title=form_title,
+                                    url=current_url,
+                                    step_name=step_name or error_key,
+                                    details=details,
+                                    domain=(domain or "—"),
+                                    error_key=error_key,
+                                    repeats_count=new_count,
+                                    test_name=test_display_name,
                                 )
                                 _send_telegram_message(text)
                         except Exception:
@@ -958,11 +962,15 @@ def pytest_runtest_makereport(item, call):
                         except Exception:
                             test_display_name = form_title
                         details = _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else None
-                        text = _format_single_error_message(
-                            form_title,
-                            current_url,
-                            step_name or error_key,
-                            details,
+                        text = _format_persistent_error_message(
+                            form_title=form_title,
+                            url=current_url,
+                            step_name=step_name or error_key,
+                            details=details,
+                            domain=(domain or "—"),
+                            error_key=error_key,
+                            repeats_count=new_count,
+                            test_name=test_display_name,
                         )
                         _send_telegram_message(text)
                 except Exception:

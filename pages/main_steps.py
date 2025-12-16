@@ -933,8 +933,18 @@ class MainSteps(BasePage):
 
     @allure.title("Посчитать количество блоков формы Остались вопросы?")
     def count_undecided_blocks(self) -> int:
+        # Считаем только видимые на фронте элементы
         try:
-            return self.page.locator(Undecided.UNDECIDED_BLOCK).count()
+            candidates = self.page.locator(Undecided.UNDECIDED_BLOCK)
+            nodes = candidates.all()
+            visible = 0
+            for n in nodes:
+                try:
+                    if n.is_visible():
+                        visible += 1
+                except Exception:
+                    continue
+            return visible
         except Exception as e:
             raise AssertionError(
                 "Не удалось посчитать блоки формы 'Остались вопросы?'.\n"
@@ -955,13 +965,35 @@ class MainSteps(BasePage):
 
     @allure.title("Посчитать количество кнопок Подробнее на странице бизнеса")
     def count_business_buttons(self) -> int:
-        first_count = self.page.locator(Business.MORE_BUTTON).count()
-        if first_count > 0:
-            return first_count
-        second_count = self.page.locator(Business.MORE_BUTTON_SECOND).count()
-        if second_count > 0:
-            return second_count
-        return self.page.locator(Business.MORE_BUTTON_ANY).count()
+        # Считаем только видимые на фронте кнопки "Подробнее"
+        try:
+            # Кандидаты по приоритету
+            candidates = [
+                self.page.locator(Business.MORE_BUTTON),
+                self.page.locator(Business.MORE_BUTTON_SECOND),
+                self.page.locator(Business.MORE_BUTTON_ANY),
+            ]
+            visible_total = 0
+            for loc in candidates:
+                try:
+                    nodes = loc.all()
+                except Exception:
+                    nodes = []
+                for n in nodes:
+                    try:
+                        if n.is_visible():
+                            visible_total += 1
+                    except Exception:
+                        continue
+                if visible_total > 0:
+                    break
+            return visible_total
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось посчитать кнопки 'Подробнее' на странице бизнеса (видимые).\n"
+                "Возможно элементы отсутствуют на странице или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
 
     @allure.title("Клик по бизнес-кнопке: хедер или 'Подробнее' по индексу")
     def click_business_button(self, index: int = 0):
@@ -1666,7 +1698,7 @@ class MainSteps(BasePage):
                 accepted.append(v)
                 accepted.append(f"Вы находитесь в городе {v}")
 
-            with allure.step(f"Открыть город (Beeline): {expected_city} (idx {idx + 1}) по href"):
+            with allure.step(f"Открыть город: {expected_city}"):
                 # Навигируемся напрямую по href в текущей вкладке
                 try:
                     self.page.goto(href, wait_until="domcontentloaded")

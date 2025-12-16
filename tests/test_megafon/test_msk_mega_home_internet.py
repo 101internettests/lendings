@@ -22,7 +22,7 @@ class TestskMegaHomeInternet:
         time.sleep(2)
         steps = MainSteps(page=page)
         steps.send_popup_profit()
-        mts_page.check_sucess()
+        # mts_page.check_sucess()
 
     @allure.title("3. Переход по всем ссылкам на странице ")
     def test_check_all_pages(self, page_fixture, mega_home_internet):

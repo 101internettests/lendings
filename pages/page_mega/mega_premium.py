@@ -193,7 +193,7 @@ class MegaPremiumOnline(BasePage):
         try:
             # Проверяем ссылки в хедере
             for name, locator in MainPageLocs.HEADER_LINKS.items():
-                self.check_link(locator, f"Header: {name}")
+                self.check_link(locator, f"Link: {name}")
         except Exception:
             raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 
@@ -203,7 +203,7 @@ class MegaPremiumOnline(BasePage):
         try:
             # Проверяем ссылки в хедере
             for name, locator in MainPageLocs.POPUP_LINKS.items():
-                self.check_link(locator, f"Header: {name}")
+                self.check_link(locator, f"Link: {name}")
         except Exception:
             raise AssertionError("Не все ссылки были проверены, возможно попап перекрыл экран или ссылки пропали")
 

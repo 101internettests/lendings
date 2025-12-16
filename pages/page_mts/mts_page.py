@@ -226,14 +226,24 @@ class MtsHomeOnlinePage(BasePage):
         # Проверяем, какая кнопка доступна и нажимаем первую доступную
         if self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON).is_visible(timeout=1000):
             self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON).click()
-        elif self.page.locator(MTSHomeOnlineMain.THANKYOU_CLOSE).is_visible(timeout=1000):
+            return
+        if self.page.locator(MTSHomeOnlineMain.THANKYOU_CLOSE).is_visible(timeout=1000):
             self.page.locator(MTSHomeOnlineMain.THANKYOU_CLOSE).click()
-        elif self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_NEW).is_visible(timeout=1000):
+            return
+        if self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_NEW).is_visible(timeout=1000):
             self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_NEW).click()
-        elif self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_MEGA).is_visible(timeout=1000):
+            return
+        if self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_MEGA).is_visible(timeout=1000):
             self.page.locator(MTSHomeOnlineMain.CLOSE_BUTTON_MEGA).click()
-        elif self.page.locator(MTSHomeOnlineMain.GO_TO_MAIN).is_visible(timeout=1000):
+            return
+        if self.page.locator(MTSHomeOnlineMain.GO_TO_MAIN).is_visible(timeout=1000):
             self.page.locator(MTSHomeOnlineMain.GO_TO_MAIN).click()
+            return
+        # Если ни одна из кнопок не доступна — сообщаем в ошибке
+        raise AssertionError(
+            "Не удалось закрыть страницу благодарности: ни одна из кнопок закрытия не видна или не кликабельна.\n"
+            f"Текущий URL: {(self.page.url or '—')}"
+        )
 
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
     def close_thankyou_page_sec(self):

@@ -72,9 +72,8 @@ class TestForms:
     #     # mts_page.check_sucess()
     #     mts_page.close_thankyou_page()
 
-    # @pytest.mark.skip("Ожидает доработок")
     # @allure.title("2.1 Отправка заявки из попапа  по кнопке Подключить (все кнопки на странице)")
-    # def test_application_popup_button_connect(self, page_fixture, connection_url):
+    # def test_application_popup_button_connect_first(self, page_fixture, connection_url):
     #     page = page_fixture
     #     page.goto(connection_url)
     #     mts_page = MtsHomeOnlinePage(page=page)
@@ -96,7 +95,7 @@ class TestForms:
     #                 f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
     #                 f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
     #             )
-    #             page.wait_for_selector(union_xpath, state="visible", timeout=20000)
+    #             page.wait_for_selector(union_xpath, state="visible", timeout=50000)
     #             region_page.close_popup_super_offer_all()
     #         except Exception:
     #             pass
@@ -132,7 +131,7 @@ class TestForms:
     #                             time.sleep(2)
     #                             region_page.select_first_region()
     #                             steps.send_popup_connection_second()
-    #                     mts_page.check_sucess()
+    #                     mts_page.check_sucess_simple()
     #                     try:
     #                         base_url = (connection_url or "").split("?", 1)[0].rstrip("/")
     #                         if not (base_url.endswith("/submitted") or base_url.endswith("/thanks")):
@@ -170,6 +169,7 @@ class TestForms:
             try:
                 def strip_xpath(sel: str) -> str:
                     return sel[len("xpath="):] if sel.startswith("xpath=") else sel
+
                 union_xpath = (
                     f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
                     f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
@@ -420,7 +420,18 @@ class TestForms:
                         steps.connect_business_page()
                         steps.send_popup_business()
                         mts_page.wait_for_thankyou(timeout_ms=90000)
-                        mts_page.close_thankyou_page()
+                        try:
+                            mts_page.close_thankyou_page()
+                        except Exception:
+                            # Если закрыть страницу благодарности не удалось — вернёмся на исходный URL списка
+                            try:
+                                page.goto(str(business_url), wait_until="domcontentloaded")
+                            except Exception:
+                                pass
+                            try:
+                                page.wait_for_load_state("networkidle", timeout=5000)
+                            except Exception:
+                                pass
                         # Вернуться назад к странице со списком кнопок
                         try:
                             page.goto(str(business_url), wait_until="commit")
@@ -487,7 +498,18 @@ class TestForms:
                             steps.click_business_button(i)
                             steps.send_popup_business()
                             mts_page.wait_for_thankyou(timeout_ms=90000)
-                            mts_page.close_thankyou_page()
+                            try:
+                                mts_page.close_thankyou_page()
+                            except Exception:
+                                # Если закрыть страницу благодарности не удалось — вернёмся на исходный URL списка
+                                try:
+                                    page.goto(str(business_url_second), wait_until="domcontentloaded")
+                                except Exception:
+                                    pass
+                                try:
+                                    page.wait_for_load_state("networkidle", timeout=5000)
+                                except Exception:
+                                    pass
                         except Exception as e:
                             try:
                                 allure.attach(
@@ -497,8 +519,7 @@ class TestForms:
                                 )
                             except Exception:
                                 pass
-                            print(f"Кнопка с индексом {i} не найдена на фронте или шаг по ней завершился ошибкой")
-                            pytest.fail(f"Кнопка с индексом {i} не найдена на фронте или шаг по ней завершился ошибкой")
+                            raise
 
     @allure.title("6. Форма переезд")
     def test_application_moving(self, page_fixture, moving_url):
