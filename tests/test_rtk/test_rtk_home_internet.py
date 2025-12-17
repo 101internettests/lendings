@@ -20,7 +20,7 @@ class TestRTKOHomeInternetRu:
         internet_page.check_popup_super_offer()
         time.sleep(2)
         steps = MainSteps(page=page)
-        # steps.send_popup_profit()
+        steps.send_popup_profit()
         time.sleep(4)
         #mts_page.check_sucess()
         mts_page.close_thankyou_page()
