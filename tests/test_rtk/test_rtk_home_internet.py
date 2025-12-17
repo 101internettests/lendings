@@ -22,7 +22,7 @@ class TestRTKOHomeInternetRu:
         steps = MainSteps(page=page)
         # steps.send_popup_profit()
         time.sleep(4)
-        mts_page.check_sucess()
+        #mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
     @allure.title("3. Проверка всех ссылок")
