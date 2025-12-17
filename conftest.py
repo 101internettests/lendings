@@ -1043,11 +1043,48 @@ def base_url():
     return "https://mts-home.online/"
 
 
-@pytest.fixture(scope="session")
-def express_url():
-    """Базовый URL для тестов"""
-    return "https://mts-home-online.ru/"
+# Убрано: express_url как одиночный fixture. Теперь URL берутся только из файла EXPRESS_URLS_FILE.
 
+
+def _read_urls_from_file(path: str) -> list[str]:
+    """Считывает список URL из файла: по одному на строку, игнорируя пустые и начинающиеся с #."""
+    urls: list[str] = []
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            for raw in f:
+                line = (raw or "").strip()
+                if not line or line.startswith("#"):
+                    continue
+                urls.append(line)
+    except Exception as e:
+        raise Exception(f"Ошибка {e}")
+    return urls
+
+
+def _resolve_path_from_env(env_name: str) -> str | None:
+    """Возвращает абсолютный путь из env (поддерживает относительные пути от корня репо)."""
+    from pathlib import Path as _Path
+    fp = os.getenv(env_name)
+    if not fp:
+        raise Exception("Файл не найден")
+        return None
+    fp = fp.strip().strip('"').strip("'")
+    # Абсолютный путь — возвращаем как есть
+    if os.path.isabs(fp):
+        return fp
+    # Относительный — резолвим относительно директории этого conftest.py (корень репо)
+    root = str(_Path(__file__).resolve().parent)
+    return str(_Path(root).joinpath(fp))
+
+
+
+
+def pytest_generate_tests(metafunc):
+    """Хук генерации тестов (сейчас не используется для express_url; параметризация вынесена в fixture)."""
+    try:
+        return
+    except Exception:
+        pass
 
 @pytest.fixture(scope="session")
 def second_url():
