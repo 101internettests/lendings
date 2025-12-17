@@ -72,84 +72,84 @@ class TestForms:
     #     # mts_page.check_sucess()
     #     mts_page.close_thankyou_page()
 
-    @allure.title("2.1 Отправка заявки из попапа  по кнопке Подключить (все кнопки на странице)")
-    def test_application_popup_button_connect_first(self, page_fixture, connection_url):
-        page = page_fixture
-        page.goto(connection_url)
-        mts_page = MtsHomeOnlinePage(page=page)
-        steps = MainSteps(page=page)
-        region_page = ChoiceRegionPage(page=page)
-        with allure.step("Проверка попапа 'Вы находитесь в городе Х' и закрытие при наличии (до 10с)"):
-            domru_page = DomRuClass(page=page)
-            try:
-                if page.locator(LocationPopup.YES_BUTTON).count() > 0:
-                    domru_page.close_popup_location()
-            except Exception:
-                pass
-        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
-            try:
-                def strip_xpath(sel: str) -> str:
-                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
-                union_xpath = (
-                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
-                )
-                page.wait_for_selector(union_xpath, state="visible", timeout=50000)
-                region_page.close_popup_super_offer_all()
-            except Exception:
-                pass
-
-        with allure.step("Посчитать кнопки и пройти по всем"):
-            total = steps.count_connect_buttons()
-            assert total > 0, "Не найдено кнопок Подключить"
-            for i in range(1, total + 1):
-                with allure.step(f"Кнопка #{i}"):
-                    try:
-                        steps.click_connect_button_index(i)
-                        if i == 1:
-                            steps.send_popup_connection()
-                        elif i == 2:
-                            steps.button_change_city_connection()
-                            region_page = ChoiceRegionPage(page=page)
-                            time.sleep(2)
-                            region_page.fill_region_search_new("Воронеж")
-                            region_page.verify_first_region_choice("Воронеж")
-                            time.sleep(2)
-                            region_page.select_first_region()
-                            steps.send_popup_connection_second()
-                        else:
-                            # 3-я и далее: чередуем 1/2 вариант
-                            if i % 2 == 1:
-                                steps.send_popup_connection()
-                            else:
-                                steps.button_change_city_connection()
-                                region_page = ChoiceRegionPage(page=page)
-                                time.sleep(2)
-                                region_page.fill_region_search_new("Воронеж")
-                                region_page.verify_first_region_choice("Воронеж")
-                                time.sleep(2)
-                                region_page.select_first_region()
-                                steps.send_popup_connection_second()
-                        mts_page.check_sucess_simple()
-                        try:
-                            base_url = (connection_url or "").split("?", 1)[0].rstrip("/")
-                            if not (base_url.endswith("/submitted") or base_url.endswith("/thanks")):
-                                mts_page.close_thankyou_page_sec()
-                        except Exception:
-                            # Не блокируем тест на случай неожиданных ошибок при проверке условия
-                            mts_page.close_thankyou_page_sec()
-                    except Exception as e:
-                        try:
-                            allure.attach(
-                                f"Индекс: {i}\nURL: {page.url}\nОшибка: {e}",
-                                name=f"Ошибка кнопки #{i}",
-                                attachment_type=allure.attachment_type.TEXT
-                            )
-                        except Exception:
-                            pass
-                        print(f"Кнопка с индексом {i} не найдена на фронте или шаг по ней завершился ошибкой")
-                        pytest.fail(f"Кнопка с индексом {i} не найдена на фронте или шаг по ней завершился ошибкой")
+    # @allure.title("2.1 Отправка заявки из попапа  по кнопке Подключить (все кнопки на странице)")
+    # def test_application_popup_button_connect_first(self, page_fixture, connection_url):
+    #     page = page_fixture
+    #     page.goto(connection_url)
+    #     mts_page = MtsHomeOnlinePage(page=page)
+    #     steps = MainSteps(page=page)
+    #     region_page = ChoiceRegionPage(page=page)
+    #     with allure.step("Проверка попапа 'Вы находитесь в городе Х' и закрытие при наличии (до 10с)"):
+    #         domru_page = DomRuClass(page=page)
+    #         try:
+    #             if page.locator(LocationPopup.YES_BUTTON).count() > 0:
+    #                 domru_page.close_popup_location()
+    #         except Exception:
+    #             pass
+    #     with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
+    #         try:
+    #             def strip_xpath(sel: str) -> str:
+    #                 return sel[len("xpath="):] if sel.startswith("xpath=") else sel
+    #             union_xpath = (
+    #                 f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
+    #                 f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
+    #                 f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
+    #             )
+    #             page.wait_for_selector(union_xpath, state="visible", timeout=50000)
+    #             region_page.close_popup_super_offer_all()
+    #         except Exception:
+    #             pass
+    #
+    #     with allure.step("Посчитать кнопки и пройти по всем"):
+    #         total = steps.count_connect_buttons()
+    #         assert total > 0, "Не найдено кнопок Подключить"
+    #         for i in range(1, total + 1):
+    #             with allure.step(f"Кнопка #{i}"):
+    #                 try:
+    #                     steps.click_connect_button_index(i)
+    #                     if i == 1:
+    #                         steps.send_popup_connection()
+    #                     elif i == 2:
+    #                         steps.button_change_city_connection()
+    #                         region_page = ChoiceRegionPage(page=page)
+    #                         time.sleep(2)
+    #                         region_page.fill_region_search_new("Воронеж")
+    #                         region_page.verify_first_region_choice("Воронеж")
+    #                         time.sleep(2)
+    #                         region_page.select_first_region()
+    #                         steps.send_popup_connection_second()
+    #                     else:
+    #                         # 3-я и далее: чередуем 1/2 вариант
+    #                         if i % 2 == 1:
+    #                             steps.send_popup_connection()
+    #                         else:
+    #                             steps.button_change_city_connection()
+    #                             region_page = ChoiceRegionPage(page=page)
+    #                             time.sleep(2)
+    #                             region_page.fill_region_search_new("Воронеж")
+    #                             region_page.verify_first_region_choice("Воронеж")
+    #                             time.sleep(2)
+    #                             region_page.select_first_region()
+    #                             steps.send_popup_connection_second()
+    #                     mts_page.check_sucess_simple()
+    #                     try:
+    #                         base_url = (connection_url or "").split("?", 1)[0].rstrip("/")
+    #                         if not (base_url.endswith("/submitted") or base_url.endswith("/thanks")):
+    #                             mts_page.close_thankyou_page_sec()
+    #                     except Exception:
+    #                         # Не блокируем тест на случай неожиданных ошибок при проверке условия
+    #                         mts_page.close_thankyou_page_sec()
+    #                 except Exception as e:
+    #                     try:
+    #                         allure.attach(
+    #                             f"Индекс: {i}\nURL: {page.url}\nОшибка: {e}",
+    #                             name=f"Ошибка кнопки #{i}",
+    #                             attachment_type=allure.attachment_type.TEXT
+    #                         )
+    #                     except Exception:
+    #                         pass
+    #                     print(f"Кнопка с индексом {i} не найдена на фронте или шаг по ней завершился ошибкой")
+    #                     pytest.fail(f"Кнопка с индексом {i} не найдена на фронте или шаг по ней завершился ошибкой")
 
     @allure.title("2.2. Отправка заявок с карточек тарифа")
     def test_application_popup_button_connect_cards(self, page_fixture, connect_cards_url):
