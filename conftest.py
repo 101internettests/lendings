@@ -243,6 +243,25 @@ except Exception:
     pass
 
 
+def _reinit_flag_dir_from_env():
+    """Re-initialize the flag directory based on current env (shared across xdist workers)."""
+    global _FLAGS_BASE_DIR, _RUN_ID, ALERTS_FLAG_DIR
+    try:
+        _FLAGS_BASE_DIR = Path(os.getenv("ALERTS_FLAG_DIR", ".alerts_flags"))
+        _RUN_ID = (
+            os.getenv("ALERTS_RUN_ID")
+            or os.getenv("BUILD_ID")
+            or os.getenv("GITHUB_RUN_ID")
+            or os.getenv("CI_PIPELINE_ID")
+        )
+        if not _RUN_ID:
+            _RUN_ID = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        ALERTS_FLAG_DIR = _FLAGS_BASE_DIR / _RUN_ID
+        ALERTS_FLAG_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+
+
 def _flag_path(domain: str, error_key: str, kind: str = "single") -> Path:
     safe = slugify(f"{domain}-{error_key}") or "key"
     return ALERTS_FLAG_DIR / f"{kind}-{safe}.flag"
@@ -260,6 +279,48 @@ def _claim_flag(domain: str, error_key: str, kind: str = "single") -> bool:
     except Exception:
         # If anything goes wrong, don't block alerts; return True only on success
         return False
+
+
+def pytest_configure(config):
+    """Ensure a shared ALERTS_RUN_ID across xdist workers and re-init flag dir."""
+    try:
+        # If we're a worker, master passes workerinput
+        workerinput = getattr(config, "workerinput", None)
+        if workerinput is not None:
+            rid = workerinput.get("alerts_run_id")
+            if rid:
+                os.environ["ALERTS_RUN_ID"] = str(rid)
+        else:
+            # Master node: ensure a stable run id for all workers in this session if not provided by CI
+            rid = (
+                os.getenv("ALERTS_RUN_ID")
+                or os.getenv("BUILD_ID")
+                or os.getenv("GITHUB_RUN_ID")
+                or os.getenv("CI_PIPELINE_ID")
+            )
+            if not rid:
+                rid = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+                os.environ["ALERTS_RUN_ID"] = rid
+        _reinit_flag_dir_from_env()
+    except Exception:
+        pass
+
+
+def pytest_configure_node(node):
+    """Propagate ALERTS_RUN_ID from master to each xdist worker."""
+    try:
+        rid = (
+            os.getenv("ALERTS_RUN_ID")
+            or os.getenv("BUILD_ID")
+            or os.getenv("GITHUB_RUN_ID")
+            or os.getenv("CI_PIPELINE_ID")
+        )
+        if not rid:
+            rid = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+            os.environ["ALERTS_RUN_ID"] = rid
+        node.workerinput["alerts_run_id"] = rid
+    except Exception:
+        pass
 
 
 def _now_str():
