@@ -324,7 +324,18 @@ def pytest_configure_node(node):
 
 
 def _now_str():
-    return f"{datetime.utcnow().strftime('%Y-%m-%d %H:%M')} ({TIMEZONE_LABEL})"
+    """Return current time string adjusted to configured timezone.
+    By default, if TZ_LABEL=MSK, we shift UTC by +3 hours; otherwise use TZ_OFFSET_HOURS if provided.
+    """
+    try:
+        from datetime import timedelta
+        # If explicit offset provided, use it; else default to +3 for MSK, 0 otherwise.
+        default_offset = "3" if (str(TIMEZONE_LABEL).upper() == "MSK") else "0"
+        offset_hours = int(os.getenv("TZ_OFFSET_HOURS", default_offset))
+        ts = datetime.utcnow() + timedelta(hours=offset_hours)
+        return ts.strftime("%Y-%m-%d %H:%M") + f" ({TIMEZONE_LABEL})"
+    except Exception:
+        return f"{datetime.utcnow().strftime('%Y-%m-%d %H:%M')} ({TIMEZONE_LABEL})"
 
 # ==== Error text sanitization ====
 def _sanitize_error_text(text: str | None) -> str | None:
