@@ -1578,7 +1578,7 @@ class MainSteps(BasePage):
                 if not city_name or city_name in visited_cities:
                     continue
 
-                with allure.step(f"Открыть город: {city_name} (idx {rand_index}) в новой вкладке"):
+                with allure.step("Открыть город (в новой вкладке)"):
                     with self.page.context.expect_page() as new_page_info:
                         city_item.click(modifiers=["Control"], force=True)  # открываем в новой вкладке
                     new_page = new_page_info.value
@@ -1698,7 +1698,7 @@ class MainSteps(BasePage):
                 accepted.append(v)
                 accepted.append(f"Вы находитесь в городе {v}")
 
-            with allure.step(f"Открыть город: {expected_city}"):
+            with allure.step("Открыть город"):
                 # Навигируемся напрямую по href в текущей вкладке
                 try:
                     self.page.goto(href, wait_until="domcontentloaded")
@@ -1775,7 +1775,7 @@ class MainSteps(BasePage):
         city_href = city_item.get_attribute("href") or ""
         href_host = urlparse(city_href).netloc
 
-        with allure.step(f"Открыть город: {city_name} (idx {rand_index}) в новой вкладке"):
+        with allure.step("Открыть город (в новой вкладке)"):
             with self.page.context.expect_page() as new_page_info:
                 city_item.click(modifiers=["Control"], force=True)  # открываем в новой вкладке
             new_page = new_page_info.value
@@ -1856,7 +1856,7 @@ class MainSteps(BasePage):
         city_href = city_item.get_attribute("href") or ""
         href_host = urlparse(city_href).netloc
 
-        with allure.step(f"Открыть город: {city_name} (idx {rand_index}) в той же вкладке"):
+        with allure.step("Открыть город (та же вкладка)"):
             city_item.scroll_into_view_if_needed()
             city_item.click(force=True)
 
@@ -1935,7 +1935,7 @@ class MainSteps(BasePage):
         city_href = city_item.get_attribute("href") or ""
         href_host = urlparse(city_href).netloc
 
-        with allure.step(f"Открыть город: {city_name} (idx {rand_index}) в той же вкладке"):
+        with allure.step("Открыть город (та же вкладка)"):
             city_item.scroll_into_view_if_needed()
             city_item.click(force=True)
 
@@ -2016,7 +2016,7 @@ class MainSteps(BasePage):
         city_href = city_item.get_attribute("href") or ""
         href_host = urlparse(city_href).netloc
 
-        with allure.step(f"Открыть город: {city_name} (idx {rand_index}) в той же вкладке"):
+        with allure.step("Открыть город (та же вкладка)"):
             city_item.scroll_into_view_if_needed()
             city_item.click(force=True)
 
@@ -2095,7 +2095,7 @@ class MainSteps(BasePage):
         city_href = city_item.get_attribute("href") or ""
         href_host = urlparse(city_href).netloc
 
-        with allure.step(f"Открыть город: {city_name} (idx {rand_index}) в той же вкладке"):
+        with allure.step("Открыть город (та же вкладка)"):
             city_item.scroll_into_view_if_needed()
             city_item.click(force=True)
 
