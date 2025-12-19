@@ -813,44 +813,15 @@ def pytest_runtest_makereport(item, call):
                 if item.nodeid not in _PASSED_NODEIDS:
                     RUN_PASSED += 1
                     _PASSED_NODEIDS.add(item.nodeid)
-                    # Сбросить счётчики повторов по всем известным URL этого теста, чтобы следующий фейл снова считался первым
-                    try:
-                        candidate_urls = set()
-                        if current_url:
-                            candidate_urls.add(current_url)
-                        # Из параметров теста: все параметра, содержащие 'url'
-                        try:
-                            for k, v in (item.funcargs or {}).items():
-                                if isinstance(v, str) and "url" in str(k).lower() and v.startswith("http"):
-                                    candidate_urls.add(v)
-                        except Exception:
-                            pass
-                        # Из метаданных (feature_url)
-                        try:
-                            meta = TEST_META.get(item.nodeid) or {}
-                            feature_url_meta2 = meta.get("feature_url")
-                            if isinstance(feature_url_meta2, str) and feature_url_meta2.startswith("http"):
-                                candidate_urls.add(feature_url_meta2)
-                        except Exception:
-                            pass
-                        for u in list(candidate_urls):
-                            _reset_url_counter(u)
-                    except Exception:
-                        pass
-                    # Упрощённая логика FIXED: если у домена есть активные инциденты — отправить один фикс по домену
+                    # FIXED только для конкретной пары (домен, шаг), если она была активна и теперь прошла
                     try:
                         step_name_ok = _get_last_step_name() or ""
-                        if domain:
-                            # Соберём активные шаги для домена
-                            active_steps = []
-                            try:
-                                active_map = (_STATE.get("domain_errors", {}).get(domain, {})) or {}
-                                active_steps = [ek for ek, ent in active_map.items() if bool((ent or {}).get("active"))]
-                            except Exception:
-                                active_steps = []
-                            if active_steps:
-                                # Дедуп по домену: одна "fixed" на домен за прогон
-                                if _claim_flag(domain, f"fixed-domain", kind="fixed"):
+                        if domain and step_name_ok:
+                            entry = _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(step_name_ok, {})
+                            was_active_fix = bool(entry.get("active"))
+                            if was_active_fix:
+                                # дедуп: один fixed на (домен, шаг) за прогон
+                                if _claim_flag(domain, f"fixed-domain-step-{step_name_ok}", kind="fixed"):
                                     form_title_for_msg = None
                                     test_display_name = None
                                     try:
@@ -859,14 +830,9 @@ def pytest_runtest_makereport(item, call):
                                         test_display_name = form_title_for_msg or getattr(item, "name", None) or item.nodeid
                                     except Exception:
                                         test_display_name = getattr(item, "name", None) or item.nodeid
-                                    resolved_step = step_name_ok or active_steps[0]
-                                    # Пример URL
                                     sample_url = None
                                     try:
-                                        urls = []
-                                        for s in active_steps:
-                                            urls.extend(list(DOMAIN_ERROR_URLS.get((domain, s), set())))
-                                        urls = sorted(list(set(urls)))
+                                        urls = sorted(list(DOMAIN_ERROR_URLS.get((domain, step_name_ok), set())))
                                         if urls:
                                             sample_url = urls[0]
                                     except Exception:
@@ -874,7 +840,7 @@ def pytest_runtest_makereport(item, call):
                                     if not sample_url:
                                         sample_url = current_url or None
                                     msg = [
-                                        f"✅ Ошибка Не выполнен шаг \"{resolved_step}\" автотеста формы {f'[{form_title_for_msg}]' if form_title_for_msg else ''} исправлена",
+                                        f"✅ Ошибка Не выполнен шаг \"{step_name_ok}\" автотеста формы {f'[{form_title_for_msg}]' if form_title_for_msg else ''} исправлена",
                                         "",
                                         f"🕒 Время: {_now_str()}",
                                         f"🌐 Лендинг: {domain}",
@@ -884,17 +850,15 @@ def pytest_runtest_makereport(item, call):
                                     if REPORT_URL:
                                         msg.append(f"🔎 Отчёт: {REPORT_URL}")
                                     _send_telegram_message("\n".join(msg))
-                                # Снимем активность всех шагов домена
+                                # снять активность и запомнить время фикса
                                 try:
-                                    for s in active_steps:
-                                        _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(s, {})["active"] = False
+                                    entry["active"] = False
+                                    entry["last_fixed_at"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
                                 except Exception:
                                     pass
-                                # Сбросим счётчики URL
+                                # Сбросить счётчики только по URL, где падала именно эта пара (домен, шаг), плюс текущий URL
                                 try:
-                                    urls_to_reset = []
-                                    for s in active_steps:
-                                        urls_to_reset.extend(list(DOMAIN_ERROR_URLS.get((domain, s), set())))
+                                    urls_to_reset = list(DOMAIN_ERROR_URLS.get((domain, step_name_ok), set()))
                                     if current_url:
                                         urls_to_reset.append(current_url)
                                     seen = set()
@@ -905,31 +869,6 @@ def pytest_runtest_makereport(item, call):
                                         _reset_url_counter(u)
                                 except Exception:
                                     pass
-                    except Exception:
-                        pass
-                    # Дополнительно: если прошёл любой шаг для домена, сбросить счётчики по ВСЕМ ошибочным шагам домена
-                    # Это гарантирует, что следующий фейл по любому из ранее падавших шагов начнётся как первый
-                    try:
-                        if domain:
-                            urls_to_reset_all = set()
-                            # Соберём все URL, которые когда-либо ассоциировались с ошибками по этому домену
-                            for (d, s), urlset in list(DOMAIN_ERROR_URLS.items()):
-                                if d == domain:
-                                    for u in urlset:
-                                        if u:
-                                            urls_to_reset_all.add(u)
-                                    # Снимем активность шагов домена
-                                    try:
-                                        _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(s, {})["active"] = False
-                                    except Exception:
-                                        pass
-                            # Текущий URL тоже добавим
-                            if current_url:
-                                urls_to_reset_all.add(current_url)
-                            for u in urls_to_reset_all:
-                                _reset_url_counter(u)
-                            # Также обнулим все счётчики по домену целиком (на случай несовпадения URL)
-                            _reset_domain_url_counters(domain)
                     except Exception:
                         pass
             else:
