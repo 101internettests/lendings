@@ -179,6 +179,21 @@ def _inc_url_counter(url: str | None) -> int:
         return 0
 
 
+def _inc_pair_counter(domain: str | None, step: str | None) -> int:
+    """Increment persistent counter for a specific (domain, step) incident across runs."""
+    try:
+        if not domain or not step:
+            return 0
+        by_pair = _ERRORS_COUNT.setdefault("by_pair", {})
+        dmap = by_pair.setdefault(domain, {})
+        dmap[step] = int(dmap.get(step, 0)) + 1
+        _ERRORS_COUNT["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        _save_errors_counter()
+        return int(dmap.get(step, 0))
+    except Exception:
+        return 0
+
+
 _load_errors_counter()
 
 def _reset_url_counter(url: str | None) -> None:
@@ -867,6 +882,14 @@ def pytest_runtest_makereport(item, call):
                                             continue
                                         seen.add(u)
                                         _reset_url_counter(u)
+                                    # Сбросить счётчик пары (домен, шаг), чтобы следующий фейл снова был "1"
+                                    try:
+                                        by_pair = _ERRORS_COUNT.setdefault("by_pair", {})
+                                        dmap = by_pair.setdefault(domain, {})
+                                        if step_name_ok in dmap:
+                                            del dmap[step_name_ok]
+                                    except Exception:
+                                        pass
                                 except Exception:
                                     pass
                     except Exception:
@@ -944,6 +967,8 @@ def pytest_runtest_makereport(item, call):
 
                 # Persist URL-based counter (independent of step)
                 new_count = _inc_url_counter(current_url)
+                # Persist pair (domain, step) counter for stable repeats across runs/URLs
+                pair_count = _inc_pair_counter(domain or "—", error_key)
 
                 # Запись в Google Sheets (одна строка на тестовый пример / nodeid), с указанием номера повтора
                 try:
@@ -959,17 +984,17 @@ def pytest_runtest_makereport(item, call):
                         ERROR_LOGGED_NODEIDS.add(item.nodeid)
                 except Exception:
                     pass
-                # Отправляем негативный алерт по расписанию (1,4,10,20,...) независимо от текущей активности
+                # Отправляем негативный алерт по расписанию (1,4,10,20,...) для пары (домен, шаг)
                 if True:
                     test_display_name = None
                     try:
                         test_display_name = form_title or getattr(item, "name", None) or item.nodeid
                     except Exception:
                         test_display_name = form_title
-                    if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(new_count):
+                    if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(pair_count):
                         # Отправим уведомление сразу по расписанию (1,4,10,20,...), дедуп по воркерам
                         try:
-                            if _claim_flag(domain or "—", f"url-{current_url}-{new_count}", kind="persist"):
+                            if _claim_flag(domain or "—", f"pair-{(domain or '—')}-{error_key}-{pair_count}", kind="persist"):
                                 details = _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else None
                                 text = _format_persistent_error_message(
                                     form_title=form_title,
@@ -978,7 +1003,7 @@ def pytest_runtest_makereport(item, call):
                                     details=details,
                                     domain=(domain or "—"),
                                     error_key=error_key,
-                                    repeats_count=new_count,
+                                    repeats_count=pair_count,
                                     test_name=test_display_name,
                                 )
                                 _send_telegram_message(text)
@@ -1014,6 +1039,7 @@ def pytest_runtest_makereport(item, call):
             except Exception:
                 was_active_setup = False
             new_count = _inc_url_counter(current_url)
+            pair_count = _inc_pair_counter(domain or "—", error_key)
             # Привязка тестов к паре (домен, шаг) и к URL для setup/teardown падений
             try:
                 dom_key = (domain or "—", error_key)
@@ -1042,11 +1068,11 @@ def pytest_runtest_makereport(item, call):
                     ERROR_LOGGED_NODEIDS.add(item.nodeid)
             except Exception:
                 pass
-            # Отправляем негативный алерт по расписанию (1,4,10,20,...) независимо от текущей активности
-            if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(new_count):
+            # Отправляем негативный алерт по расписанию (1,4,10,20,...) для пары (домен, шаг)
+            if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(pair_count):
                 # Немедленная персональная отправка и для setup/teardown
                 try:
-                    if _claim_flag(domain or "—", f"url-{current_url}-{new_count}", kind="persist"):
+                    if _claim_flag(domain or "—", f"pair-{(domain or '—')}-{error_key}-{pair_count}", kind="persist"):
                         test_display_name = None
                         try:
                             test_display_name = form_title or getattr(item, "name", None) or item.nodeid
@@ -1060,7 +1086,7 @@ def pytest_runtest_makereport(item, call):
                             details=details,
                             domain=(domain or "—"),
                             error_key=error_key,
-                            repeats_count=new_count,
+                            repeats_count=pair_count,
                             test_name=test_display_name,
                         )
                         _send_telegram_message(text)
