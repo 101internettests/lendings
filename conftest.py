@@ -991,10 +991,10 @@ def pytest_runtest_makereport(item, call):
                         test_display_name = form_title or getattr(item, "name", None) or item.nodeid
                     except Exception:
                         test_display_name = form_title
-                    if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(pair_count):
+                    if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(new_count):
                         # Отправим уведомление сразу по расписанию (1,4,10,20,...), дедуп по воркерам
                         try:
-                            if _claim_flag(domain or "—", f"pair-{(domain or '—')}-{error_key}-{pair_count}", kind="persist"):
+                            if _claim_flag(domain or "—", f"url-{current_url}-{new_count}", kind="persist"):
                                 details = _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else None
                                 text = _format_persistent_error_message(
                                     form_title=form_title,
@@ -1003,7 +1003,7 @@ def pytest_runtest_makereport(item, call):
                                     details=details,
                                     domain=(domain or "—"),
                                     error_key=error_key,
-                                    repeats_count=pair_count,
+                                    repeats_count=new_count,
                                     test_name=test_display_name,
                                 )
                                 _send_telegram_message(text)
@@ -1069,10 +1069,10 @@ def pytest_runtest_makereport(item, call):
             except Exception:
                 pass
             # Отправляем негативный алерт по расписанию (1,4,10,20,...) для пары (домен, шаг)
-            if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(pair_count):
+            if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(new_count):
                 # Немедленная персональная отправка и для setup/teardown
                 try:
-                    if _claim_flag(domain or "—", f"pair-{(domain or '—')}-{error_key}-{pair_count}", kind="persist"):
+                    if _claim_flag(domain or "—", f"url-{current_url}-{new_count}", kind="persist"):
                         test_display_name = None
                         try:
                             test_display_name = form_title or getattr(item, "name", None) or item.nodeid
@@ -1086,7 +1086,7 @@ def pytest_runtest_makereport(item, call):
                             details=details,
                             domain=(domain or "—"),
                             error_key=error_key,
-                            repeats_count=pair_count,
+                            repeats_count=new_count,
                             test_name=test_display_name,
                         )
                         _send_telegram_message(text)
