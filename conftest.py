@@ -68,6 +68,10 @@ PER_DOMAIN_THRESHOLD = int(os.getenv("AGGR_THRESHOLD_PER_DOMAIN", "5"))
 SYSTEMIC_LANDINGS_THRESHOLD = int(os.getenv("SYSTEMIC_LANDINGS_THRESHOLD", "5"))
 TIMEZONE_LABEL = os.getenv("TZ_LABEL", "MSK")
 RUN_SUMMARY_ENABLED = _env_bool("RUN_SUMMARY_ENABLED", False)
+# By default, send only ONE success summary message to avoid perceived duplicates.
+# If you want both formats, enable the short summary explicitly.
+RUN_SUMMARY_LONG_ENABLED = _env_bool("RUN_SUMMARY_LONG_ENABLED", True)
+RUN_SUMMARY_SHORT_ENABLED = _env_bool("RUN_SUMMARY_SHORT_ENABLED", False)
 # Управление URL-уровнем fixed-уведомлений (включено по умолчанию)
 URL_FIXED_ALERTS_ENABLED = _env_bool("URL_FIXED_ALERTS_ENABLED", True)
 
@@ -126,7 +130,6 @@ _RUN_LOG_PATH = Path(RUN_LOG_PATH_ENV)
 # ==== Persistent errors counter (external file) ====
 ERRORS_COUNT_PATH_ENV = os.getenv("ERRORS_COUNT_PATH", "errors_count.json").strip()
 _ERRORS_COUNT_PATH = Path(ERRORS_COUNT_PATH_ENV)
-_ERRORS_COUNT_LOCK_PATH = Path(str(_ERRORS_COUNT_PATH) + ".lock")
 _ERRORS_COUNT = {"by_domain": {}, "total": 0, "updated_at": None}
 
 
@@ -150,70 +153,15 @@ def _save_errors_counter():
         pass
 
 
-def _with_errors_counter_lock(fn, timeout_sec: float = 10.0):
-    """Simple cross-process lock using atomic lockfile create (works on Windows/Linux)."""
-    start = time.time()
-    while True:
-        try:
-            # atomic on same filesystem
-            with open(_ERRORS_COUNT_LOCK_PATH, "x", encoding="utf-8") as f:
-                try:
-                    f.write(str(os.getpid()))
-                except Exception:
-                    pass
-            break
-        except FileExistsError:
-            if (time.time() - start) >= timeout_sec:
-                # avoid deadlock: proceed without lock (best-effort)
-                return fn()
-            time.sleep(0.05)
-        except Exception:
-            return fn()
-    try:
-        return fn()
-    finally:
-        try:
-            _ERRORS_COUNT_LOCK_PATH.unlink(missing_ok=True)
-        except Exception:
-            try:
-                if _ERRORS_COUNT_LOCK_PATH.exists():
-                    _ERRORS_COUNT_LOCK_PATH.unlink()
-            except Exception:
-                pass
-
-
-def _load_errors_counter_from_disk() -> dict:
-    try:
-        if _ERRORS_COUNT_PATH.exists():
-            return json.loads(_ERRORS_COUNT_PATH.read_text(encoding="utf-8"))
-    except Exception:
-        pass
-    return {"by_domain": {}, "by_url": {}, "by_pair": {}, "total": 0, "updated_at": None}
-
-
-def _save_errors_counter_to_disk(data: dict) -> None:
-    try:
-        _ERRORS_COUNT_PATH.parent.mkdir(parents=True, exist_ok=True)
-        _ERRORS_COUNT_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-    except Exception:
-        pass
-
-
 def _inc_error_counter(domain: str, error_key: str) -> int:
     try:
-        def op():
-            global _ERRORS_COUNT
-            data = _load_errors_counter_from_disk()
-            by_domain = data.setdefault("by_domain", {})
-            domain_map = by_domain.setdefault(domain, {})
-            domain_map[error_key] = int(domain_map.get(error_key, 0)) + 1
-            data["total"] = int(data.get("total", 0)) + 1
-            data["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-            _save_errors_counter_to_disk(data)
-            _ERRORS_COUNT = data
-            return int(domain_map.get(error_key, 0))
-
-        return int(_with_errors_counter_lock(op))
+        by_domain = _ERRORS_COUNT.setdefault("by_domain", {})
+        domain_map = by_domain.setdefault(domain, {})
+        domain_map[error_key] = int(domain_map.get(error_key, 0)) + 1
+        _ERRORS_COUNT["total"] = int(_ERRORS_COUNT.get("total", 0)) + 1
+        _ERRORS_COUNT["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        _save_errors_counter()
+        return int(domain_map.get(error_key, 0))
     except Exception:
         return 0
 
@@ -225,19 +173,12 @@ def _inc_url_counter(url: str | None) -> int:
     try:
         if not url:
             return 0
-
-        def op():
-            global _ERRORS_COUNT
-            data = _load_errors_counter_from_disk()
-            by_url = data.setdefault("by_url", {})
-            by_url[url] = int(by_url.get(url, 0)) + 1
-            data["total"] = int(data.get("total", 0)) + 1
-            data["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-            _save_errors_counter_to_disk(data)
-            _ERRORS_COUNT = data
-            return int(by_url.get(url, 0))
-
-        return int(_with_errors_counter_lock(op))
+        by_url = _ERRORS_COUNT.setdefault("by_url", {})
+        by_url[url] = int(by_url.get(url, 0)) + 1
+        _ERRORS_COUNT["total"] = int(_ERRORS_COUNT.get("total", 0)) + 1
+        _ERRORS_COUNT["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        _save_errors_counter()
+        return int(by_url.get(url, 0))
     except Exception:
         return 0
 
@@ -247,19 +188,12 @@ def _inc_pair_counter(domain: str | None, step: str | None) -> int:
     try:
         if not domain or not step:
             return 0
-
-        def op():
-            global _ERRORS_COUNT
-            data = _load_errors_counter_from_disk()
-            by_pair = data.setdefault("by_pair", {})
-            dmap = by_pair.setdefault(domain, {})
-            dmap[step] = int(dmap.get(step, 0)) + 1
-            data["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-            _save_errors_counter_to_disk(data)
-            _ERRORS_COUNT = data
-            return int(dmap.get(step, 0))
-
-        return int(_with_errors_counter_lock(op))
+        by_pair = _ERRORS_COUNT.setdefault("by_pair", {})
+        dmap = by_pair.setdefault(domain, {})
+        dmap[step] = int(dmap.get(step, 0)) + 1
+        _ERRORS_COUNT["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        _save_errors_counter()
+        return int(dmap.get(step, 0))
     except Exception:
         return 0
 
@@ -271,21 +205,14 @@ def _reset_url_counter(url: str | None) -> None:
     try:
         if not url:
             return
-
-        def op():
-            global _ERRORS_COUNT
-            data = _load_errors_counter_from_disk()
-            by_url = data.setdefault("by_url", {})
-            if url in by_url:
-                try:
-                    del by_url[url]
-                except Exception:
-                    by_url[url] = 0
-            data["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-            _save_errors_counter_to_disk(data)
-            _ERRORS_COUNT = data
-
-        _with_errors_counter_lock(op)
+        by_url = _ERRORS_COUNT.setdefault("by_url", {})
+        if url in by_url:
+            try:
+                del by_url[url]
+            except Exception:
+                by_url[url] = 0
+        _ERRORS_COUNT["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        _save_errors_counter()
     except Exception:
         pass
 
@@ -295,29 +222,22 @@ def _reset_domain_url_counters(domain: str | None) -> None:
     try:
         if not domain:
             return
-
-        def op():
-            global _ERRORS_COUNT
-            data = _load_errors_counter_from_disk()
-            by_url = data.setdefault("by_url", {})
-            to_delete = []
-            for u in list(by_url.keys()):
-                try:
-                    if (urlparse(u).netloc or "") == domain:
-                        to_delete.append(u)
-                except Exception:
-                    continue
-            for u in to_delete:
-                try:
-                    del by_url[u]
-                except Exception:
-                    by_url[u] = 0
-            if to_delete:
-                data["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-                _save_errors_counter_to_disk(data)
-                _ERRORS_COUNT = data
-
-        _with_errors_counter_lock(op)
+        by_url = _ERRORS_COUNT.setdefault("by_url", {})
+        to_delete = []
+        for u in list(by_url.keys()):
+            try:
+                if (urlparse(u).netloc or "") == domain:
+                    to_delete.append(u)
+            except Exception:
+                continue
+        for u in to_delete:
+            try:
+                del by_url[u]
+            except Exception:
+                by_url[u] = 0
+        if to_delete:
+            _ERRORS_COUNT["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+            _save_errors_counter()
     except Exception:
         pass
 
@@ -862,62 +782,55 @@ def pytest_runtest_makereport(item, call):
     try:
         current_url = None
         funcargs = (item.funcargs or {})
-        # ВАЖНО для счётчиков: предпочитаем исходный URL из параметров теста,
-        # а не текущий page.url (который может стать /thanks и "сломать" счётчик).
-        page_url = None
-        param_url = None
-        # 1) Сначала явные URL-параметры (business_url, checkaddress_urls, ...)
+        # 1) Prefer live page URL if available
         try:
-            named_prefs = [
-                "business_url",
-                "business_url_second",
-                "example_url",
-                "connection_url",
-                "connect_cards_url",
-                "connect_cards_url_second",
-                "checkaddress_url",
-                "checkaddress_button_url",
-                "checkaddress_urls",
-                "undecided_url",
-                "moving_url",
-                "express_url",
-            ]
-            for name in named_prefs:
-                val = funcargs.get(name)
-                if isinstance(val, str) and val.startswith("http"):
-                    param_url = val
+            for _, v in funcargs.items():
+                u = getattr(v, "url", None)
+                if isinstance(u, str) and u.startswith("http"):
+                    current_url = u
                     break
         except Exception:
             pass
-        # 2) Любой строковый параметр, где в имени есть url
-        if not param_url:
+        # 2) Prefer specifically named URL params (business_url, etc.)
+        if not current_url:
+            try:
+                named_prefs = [
+                    "business_url",
+                    "business_url_second",
+                    "example_url",
+                    "connection_url",
+                    "connect_cards_url",
+                    "checkaddress_url",
+                    "checkaddress_button_url",
+                    "checkaddress_urls",
+                    "undecided_url",
+                    "moving_url",
+                ]
+                for name in named_prefs:
+                    val = funcargs.get(name)
+                    if isinstance(val, str) and val.startswith("http"):
+                        current_url = val
+                        break
+            except Exception:
+                pass
+        # 3) Otherwise, any param with 'url' in its name
+        if not current_url:
             try:
                 for k, v in funcargs.items():
                     if "url" in str(k).lower() and isinstance(v, str) and v.startswith("http"):
-                        param_url = v
+                        current_url = v
                         break
             except Exception:
                 pass
-        # 3) Только если параметров нет — берём live page.url
-        if not param_url:
-            try:
-                for _, v in funcargs.items():
-                    u = getattr(v, "url", None)
-                    if isinstance(u, str) and u.startswith("http"):
-                        page_url = u
-                        break
-            except Exception:
-                pass
-        # 4) Фолбэк: любой http-like строковый параметр
-        if not param_url and not page_url:
+        # 4) Fallback: any http-like string param
+        if not current_url:
             try:
                 for _, v in funcargs.items():
                     if isinstance(v, str) and v.startswith("http"):
-                        param_url = v
+                        current_url = v
                         break
             except Exception:
                 pass
-        current_url = param_url or page_url
         domain = _get_domain(current_url)
 
         form_title = None
@@ -1740,8 +1653,20 @@ def pytest_sessionfinish(session, exitstatus):
 
         # Run summary (optional)
         if RUN_SUMMARY_ENABLED:
-            _send_telegram_message(_format_run_summary())
-            _send_telegram_message(_format_short_run_summary())
+            summary_parts = []
+            try:
+                if RUN_SUMMARY_LONG_ENABLED:
+                    summary_parts.append(_format_run_summary())
+            except Exception:
+                pass
+            try:
+                if RUN_SUMMARY_SHORT_ENABLED:
+                    summary_parts.append(_format_short_run_summary())
+            except Exception:
+                pass
+            if summary_parts:
+                # Send as a single message to avoid duplicate "success" notifications.
+                _send_telegram_message("\n\n".join([p for p in summary_parts if p]))
     finally:
         _save_state()
         # Append per-run summary line for daily aggregation

@@ -30,11 +30,12 @@ class Connection:
 
 
 class Checkaddress:
-    STREET = "xpath=//input[contains(@class,'checkaddress_address_street')]"
-    HOUSE = "xpath=//input[contains(@class,'checkaddress_address_house')]"
-    PHONE = "xpath=//input[contains(@class,'checkaddress_address_phone')]"
-    BUTTON_SEND = "xpath=//input[contains(@class,'checkaddress_address_button_send')]"
-    BUTTON_CHANGE_CITY = "xpath=//button[contains(@class,'checkaddress_address_button_change_city')]"
+    STREET = "xpath=//div[@class='popup-checkaddress__wrapper']//input[contains(@class,'checkaddress_address_street')]"
+    HOUSE = "xpath=(//div[@class='popup-checkaddress__wrapper']//input[contains(@class,'checkaddress_address_house')])[1]"
+    PHONE = "xpath=(//div[@class='popup-checkaddress__wrapper']//input[contains(@class,'checkaddress_address_phone')])[1]"
+    BUTTON_SEND = "xpath=(//div[@class='popup-checkaddress__wrapper']//input[contains(@class,'checkaddress_address_button_send')])[1]"
+    BUTTON_CHANGE_CITY = "xpath=(//div[@class='popup-checkaddress__wrapper']//span[contains(@class,'checkaddress_address_button_change_city')])[1]"
+    BUTTON_CHANGE_CITY_SECOND = "xpath=(//div[@class='popup-checkaddress__wrapper']//span[contains(@class,'checkaddress_address_button_change_city')])"
     CHECKADDRESS_BUTTON_POPUP = "xpath=(//button[contains(@class,'checkaddress_address_button')])"
     CHECKADDRESS_BLOCK = "xpath=(//div[contains(@class,'checkaddress-block')])"
     BUTTON_CHANGE_CITY_BLOCK = "xpath=//span[contains(@class,'checkaddress_address_button_change_city')]"

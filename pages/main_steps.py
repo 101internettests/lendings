@@ -861,6 +861,33 @@ class MainSteps(BasePage):
                 f"\nТехнические детали: {e}"
             )
 
+    @allure.title("Кликнуть на кнопку Проверить адрес по индексу среди видимых (1-based)")
+    def click_checkaddress_popup_visible_index(self, index: int):
+        """Clicks only among buttons visible on the page (front)."""
+        try:
+            candidates = self.page.locator(Checkaddress.CHECKADDRESS_BUTTON_POPUP)
+            nodes = candidates.all()
+            visible_nodes = []
+            for n in nodes:
+                try:
+                    if n.is_visible():
+                        visible_nodes.append(n)
+                except Exception:
+                    continue
+            if index < 1 or index > len(visible_nodes):
+                raise AssertionError(
+                    f"Кнопка 'Проверить адрес' №{index} не видна на странице. Видимых: {len(visible_nodes)}"
+                )
+            visible_nodes[index - 1].click()
+        except AssertionError:
+            raise
+        except Exception as e:
+            raise AssertionError(
+                f"Не удалось кликнуть по кнопке 'Проверить адрес' №{index} среди видимых.\n"
+                "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
+
     @allure.title("Кликнуть на кнопку Переехать по индексу (1-based)")
     def click_moving_popup_index(self, index: int):
         selector = f"xpath=(//button[contains(@class,'moving_address_button')])[{index}]"
@@ -916,6 +943,27 @@ class MainSteps(BasePage):
         except Exception as e:
             raise AssertionError(
                 "Не удалось посчитать кнопки 'Проверить адрес' (попап).\n"
+                "Возможно элементы отсутствуют на странице или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
+
+    @allure.title("Посчитать количество кнопок Проверить адрес (видимые)")
+    def count_checkaddress_popup_buttons_visible(self) -> int:
+        """Counts only buttons visible on the page (front)."""
+        try:
+            candidates = self.page.locator(Checkaddress.CHECKADDRESS_BUTTON_POPUP)
+            nodes = candidates.all()
+            visible = 0
+            for n in nodes:
+                try:
+                    if n.is_visible():
+                        visible += 1
+                except Exception:
+                    continue
+            return visible
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось посчитать кнопки 'Проверить адрес' (попап, видимые).\n"
                 "Возможно элементы отсутствуют на странице или изменился селектор."
                 f"\nТехнические детали: {e}"
             )
@@ -1210,8 +1258,18 @@ class MainSteps(BasePage):
                 )
             time.sleep(1)
             try:
-                self.page.locator(Checkaddress.HOUSE).last.fill("1")
-                self._click_first_available_house()
+                house_input = self.page.locator(Checkaddress.HOUSE).last
+                # Пробуем дом 1..9 (часто некоторые номера отсутствуют в подсказках на конкретном лендинге)
+                for num in ("1", "2", "3", "4", "5", "6", "7", "8", "9"):
+                    try:
+                        house_input.fill("")  # очистить
+                        house_input.fill(num)
+                        self._click_first_available_house()
+                        break
+                    except Exception:
+                        continue
+                else:
+                    raise AssertionError("Не удалось выбрать дом: ни 1..9 не доступны в подсказках")
             except AssertionError:
                 raise
             except Exception as e:
@@ -1241,8 +1299,18 @@ class MainSteps(BasePage):
                 )
             time.sleep(1)
             try:
-                self.page.locator(Checkaddress.HOUSE).fill("2")
-                self._click_first_available_house()
+                house_input = self.page.locator(Checkaddress.HOUSE)
+                # Вариант 2: пробуем дома 2..9 (если на лендинге какие-то номера не доступны в подсказках)
+                for num in ("2", "3", "4", "5", "6", "7", "8", "9", "1"):
+                    try:
+                        house_input.fill("")  # очистить
+                        house_input.fill(num)
+                        self._click_first_available_house()
+                        break
+                    except Exception:
+                        continue
+                else:
+                    raise AssertionError("Не удалось выбрать дом: ни 2..9 (и 1) не доступны в подсказках")
             except AssertionError:
                 raise
             except Exception as e:
