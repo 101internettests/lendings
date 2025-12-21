@@ -46,7 +46,7 @@ class TestBeelineOnline:
         page.goto(beeline_online)
         domru_page = DomRuClass(page=page)
         steps = MainSteps(page=page)
-        domru_page.close_popup_location()
+        # domru_page.close_popup_location()
         steps.check_links_beeline()
 
     @allure.title("4. Выбор региона из хедера")

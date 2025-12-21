@@ -782,55 +782,77 @@ def pytest_runtest_makereport(item, call):
     try:
         current_url = None
         funcargs = (item.funcargs or {})
-        # 1) Prefer live page URL if available
+        # IMPORTANT: prefer the URL parameter of the test (the one passed to page.goto),
+        # because page.url can change after redirects / "thank you" flows and end up as just the landing.
+        param_url = None
         try:
-            for _, v in funcargs.items():
-                u = getattr(v, "url", None)
-                if isinstance(u, str) and u.startswith("http"):
-                    current_url = u
+            named_prefs = [
+                # common names across suites
+                "business_url",
+                "business_url_second",
+                "example_url",
+                "connection_url",
+                "connect_cards_url",
+                "checkaddress_url",
+                "checkaddress_button_url",
+                "checkaddress_urls",
+                "undecided_url",
+                "moving_url",
+                "express_url",
+                # generic fallback often used in parametrized suites
+                "url",
+            ]
+            for name in named_prefs:
+                val = funcargs.get(name)
+                if isinstance(val, str) and val.startswith("http"):
+                    param_url = val
                     break
         except Exception:
-            pass
-        # 2) Prefer specifically named URL params (business_url, etc.)
-        if not current_url:
-            try:
-                named_prefs = [
-                    "business_url",
-                    "business_url_second",
-                    "example_url",
-                    "connection_url",
-                    "connect_cards_url",
-                    "checkaddress_url",
-                    "checkaddress_button_url",
-                    "checkaddress_urls",
-                    "undecided_url",
-                    "moving_url",
-                ]
-                for name in named_prefs:
-                    val = funcargs.get(name)
-                    if isinstance(val, str) and val.startswith("http"):
-                        current_url = val
-                        break
-            except Exception:
-                pass
-        # 3) Otherwise, any param with 'url' in its name
-        if not current_url:
+            param_url = None
+        if not param_url:
+            # Any param with 'url' in its name
             try:
                 for k, v in funcargs.items():
                     if "url" in str(k).lower() and isinstance(v, str) and v.startswith("http"):
-                        current_url = v
+                        param_url = v
                         break
             except Exception:
-                pass
-        # 4) Fallback: any http-like string param
-        if not current_url:
+                param_url = None
+        if not param_url:
+            # Any http-like string param
             try:
                 for _, v in funcargs.items():
                     if isinstance(v, str) and v.startswith("http"):
-                        current_url = v
+                        param_url = v
                         break
             except Exception:
-                pass
+                param_url = None
+
+        page_url = None
+        # Live Playwright page URL if available (can be helpful if test didn't take URL params).
+        try:
+            page_obj = None
+            for key in ("page", "page_fixture", "page_fixture_ignore_https"):
+                v = funcargs.get(key)
+                if v is not None:
+                    page_obj = v
+                    break
+            if page_obj is None:
+                # Fallback: any arg that looks like a Playwright Page (duck-typing).
+                for _, v in funcargs.items():
+                    if v is None:
+                        continue
+                    if hasattr(v, "locator") and hasattr(v, "goto") and hasattr(v, "url"):
+                        page_obj = v
+                        break
+            if page_obj is not None:
+                u = getattr(page_obj, "url", None)
+                if isinstance(u, str) and u.startswith("http"):
+                    page_url = u
+        except Exception:
+            page_url = None
+
+        current_url = param_url or page_url
         domain = _get_domain(current_url)
 
         form_title = None

@@ -86,6 +86,6 @@ class ExpressConnection:
     BUTTON_SEND = "xpath=(//input[contains(@class,'express-connection_address_button_send')])[1]"
     BUTTON_CHANGE_CITY = "xpath=(//div[contains(@class,'express-connection_address_button_change_city')])[1]"
 
-    FORM_BUTTON = "xpath=(//button[contains(@class,'connection_address_button')])[1]"
+    FORM_BUTTON = "xpath=(//button[contains(@class,'connection_address_button')])"
 
 

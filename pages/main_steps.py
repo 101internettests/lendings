@@ -801,10 +801,59 @@ class MainSteps(BasePage):
     @allure.title("Нажать на кнопку Подключиться в хедере")
     def open_popup_express_connection_button(self):
         try:
-            self.page.locator(ExpressConnection.FORM_BUTTON).click()
+            # FORM_BUTTON может матчить несколько элементов — кликаем по первому
+            self.page.locator(ExpressConnection.FORM_BUTTON).first.click()
         except Exception as e:
             raise AssertionError(
                 "Не удалось нажать кнопку 'Подключиться' в хедере.\n"
+                "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
+
+    @allure.title("Посчитать количество кнопок 'Подключиться' (экспресс, видимые)")
+    def count_express_connection_buttons_visible(self) -> int:
+        """Считает только видимые на фронте кнопки по локатору ExpressConnection.FORM_BUTTON."""
+        try:
+            candidates = self.page.locator(ExpressConnection.FORM_BUTTON)
+            nodes = candidates.all()
+            visible = 0
+            for n in nodes:
+                try:
+                    if n.is_visible():
+                        visible += 1
+                except Exception:
+                    continue
+            return visible
+        except Exception as e:
+            raise AssertionError(
+                "Не удалось посчитать кнопки 'Подключиться' (экспресс, видимые).\n"
+                "Возможно элементы отсутствуют на странице или изменился селектор."
+                f"\nТехнические детали: {e}"
+            )
+
+    @allure.title("Кликнуть на кнопку 'Подключиться' (экспресс) по индексу среди видимых (1-based)")
+    def click_express_connection_button_visible_index(self, index: int):
+        """Кликает по индексу только среди видимых на фронте кнопок ExpressConnection.FORM_BUTTON."""
+        try:
+            candidates = self.page.locator(ExpressConnection.FORM_BUTTON)
+            nodes = candidates.all()
+            visible_nodes = []
+            for n in nodes:
+                try:
+                    if n.is_visible():
+                        visible_nodes.append(n)
+                except Exception:
+                    continue
+            if index < 1 or index > len(visible_nodes):
+                raise AssertionError(
+                    f"Кнопка 'Подключиться' (экспресс) №{index} не видна на странице. Видимых: {len(visible_nodes)}"
+                )
+            visible_nodes[index - 1].click()
+        except AssertionError:
+            raise
+        except Exception as e:
+            raise AssertionError(
+                f"Не удалось кликнуть по кнопке 'Подключиться' (экспресс) №{index} среди видимых.\n"
                 "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
                 f"\nТехнические детали: {e}"
             )
@@ -1556,16 +1605,36 @@ class MainSteps(BasePage):
     def send_popup_express_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
-                self.page.locator(ExpressConnection.STREET).type("Лен", delay=100)
-                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+                street_input = self.page.locator(ExpressConnection.STREET)
+                street_input.click()
+                street_input.fill("")
+                street_input.type("Лен", delay=100)
+                # Автокомплит иногда появляется с задержкой; ждём и кликаем по первой подсказке
+                try:
+                    self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.wait_for(state="visible", timeout=8000)
+                    self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click(timeout=8000)
+                except Exception:
+                    # Фолбэк: выбрать первую подсказку клавиатурой
+                    street_input.press("ArrowDown")
+                    street_input.press("Enter")
             except Exception as e:
                 raise AssertionError(
                     f"Не удалось выбрать улицу/подсказку в форме 'Экспресс подключение'. Детали: {e}"
                 )
             time.sleep(1)
             try:
-                self.page.locator(ExpressConnection.HOUSE).fill("1")
-                self._click_first_available_house()
+                house_input = self.page.locator(ExpressConnection.HOUSE)
+                # Пробуем дом 2, затем 3, затем 7 (часто некоторые номера отсутствуют в подсказках на конкретном лендинге)
+                for num in ("1", "2", "3", "4","5","6", "7","8","9",):
+                    try:
+                        house_input.fill("")  # очистить
+                        house_input.fill(num)
+                        self._click_first_available_house()
+                        break
+                    except Exception:
+                        continue
+                else:
+                    raise AssertionError("Не удалось выбрать дом: ни 2, ни 3, ни 4 и др. не доступны в подсказках")
             except AssertionError:
                 raise
             except Exception as e:
@@ -1587,16 +1656,36 @@ class MainSteps(BasePage):
     def send_popup_express_connection_second(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
-                self.page.locator(ExpressConnection.STREET).type("Лени", delay=200)
-                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
+                street_input = self.page.locator(ExpressConnection.STREET)
+                street_input.click()
+                street_input.fill("")
+                street_input.type("Лени", delay=200)
+                # Автокомплит иногда появляется с задержкой; ждём и кликаем по первой подсказке
+                try:
+                    self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.wait_for(state="visible", timeout=8000)
+                    self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click(timeout=8000)
+                except Exception:
+                    # Фолбэк: выбрать первую подсказку клавиатурой
+                    street_input.press("ArrowDown")
+                    street_input.press("Enter")
             except Exception as e:
                 raise AssertionError(
                     f"Не удалось выбрать улицу/подсказку в форме 'Экспресс подключение' (вариант 2). Детали: {e}"
                 )
             time.sleep(1)
             try:
-                self.page.locator(ExpressConnection.HOUSE).fill("2")
-                self._click_first_available_house()
+                house_input = self.page.locator(ExpressConnection.HOUSE)
+                # Пробуем дом 3, затем 4, затем 7 (часто некоторые номера отсутствуют в подсказках на конкретном лендинге)
+                for num in ("2", "3", "4","5","6" "7", "8"):
+                    try:
+                        house_input.fill("")  # очистить
+                        house_input.fill(num)
+                        self._click_first_available_house()
+                        break
+                    except Exception:
+                        continue
+                else:
+                    raise AssertionError("Не удалось выбрать дом: ни 3, ни 4, ни 7 не доступны в подсказках")
             except AssertionError:
                 raise
             except Exception as e:
