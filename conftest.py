@@ -378,6 +378,13 @@ def _now_str():
     except Exception:
         return f"{datetime.utcnow().strftime('%Y-%m-%d %H:%M')} ({TIMEZONE_LABEL})"
 
+
+def _utc_iso() -> str:
+    try:
+        return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    except Exception:
+        return ""
+
 # ==== Error text sanitization ====
 def _sanitize_error_text(text: str | None) -> str | None:
     """Remove internal technical suffixes from human-facing error messages."""
@@ -894,7 +901,7 @@ def pytest_runtest_makereport(item, call):
                                 # снять активность и запомнить время фикса
                                 try:
                                     entry["active"] = False
-                                    entry["last_fixed_at"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                                    entry["last_fixed_at"] = _utc_iso()
                                 except Exception:
                                     pass
                                 # Сбросить счётчики только по URL, где падала именно эта пара (домен, шаг), плюс текущий URL
@@ -1043,7 +1050,9 @@ def pytest_runtest_makereport(item, call):
                 # Теперь помечаем инцидент активным (для последующего "fixed")
                 try:
                     if (domain or "—") and error_key:
-                        _STATE.setdefault("domain_errors", {}).setdefault(domain or "—", {}).setdefault(error_key, {})["active"] = True
+                        ent = _STATE.setdefault("domain_errors", {}).setdefault(domain or "—", {}).setdefault(error_key, {})
+                        ent["active"] = True
+                        ent["last_failed_at"] = _utc_iso()
                 except Exception:
                     pass
         elif call.excinfo is not None and call.when in ("setup", "teardown"):
@@ -1130,7 +1139,9 @@ def pytest_runtest_makereport(item, call):
             # Теперь пометить активным
             try:
                 if (domain or "—") and error_key:
-                    _STATE.setdefault("domain_errors", {}).setdefault(domain or "—", {}).setdefault(error_key, {})["active"] = True
+                    ent = _STATE.setdefault("domain_errors", {}).setdefault(domain or "—", {}).setdefault(error_key, {})
+                    ent["active"] = True
+                    ent["last_failed_at"] = _utc_iso()
             except Exception:
                 pass
     except Exception:
@@ -1537,6 +1548,7 @@ def pytest_sessionfinish(session, exitstatus):
         for (domain, error_key), cnt in list(DOMAIN_ERROR_COUNTS.items()):
             entry = _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(error_key, {})
             entry["active"] = True
+            entry["last_failed_at"] = _utc_iso()
             # Сохраним URL-ы, на которых падала эта пара (домен, шаг), чтобы потом можно было сбрасывать счетчики при fixed
             try:
                 urls = sorted(list(DOMAIN_ERROR_URLS.get((domain, error_key), set())))
@@ -1559,7 +1571,8 @@ def pytest_sessionfinish(session, exitstatus):
             except Exception:
                 pass
 
-        # FIXED в конце прогона (межпрогонный): если инцидент был активен ранее, но в этом прогоне не падал — считаем исправленным
+        # FIXED в конце прогона (межпрогонный):
+        # шлём только если после последнего fixed был новый failed и в этом прогоне уже НЕ падало.
         try:
             for domain, emap in list((_STATE.get("domain_errors", {}) or {}).items()):
                 for error_key, entry in list((emap or {}).items()):
@@ -1568,6 +1581,13 @@ def pytest_sessionfinish(session, exitstatus):
                             continue
                         # Если в этом прогоне где-то падало по этой паре — не фиксируем
                         if _pair_failed_this_run(domain, error_key):
+                            continue
+                        # Защита от повторных fixed каждый прогон: fixed только если был новый failed после последнего fixed
+                        last_failed_at = str((entry or {}).get("last_failed_at") or "")
+                        last_fixed_at = str((entry or {}).get("last_fixed_at") or "")
+                        if not last_failed_at:
+                            continue
+                        if last_fixed_at and last_failed_at <= last_fixed_at:
                             continue
                         # Дедуп: одна fixed на пару (домен, шаг) за прогон
                         if not _claim_flag(domain, f"fixed-domain-step-{error_key}-end", kind="fixed"):
@@ -1580,8 +1600,15 @@ def pytest_sessionfinish(session, exitstatus):
                                 sample_url = str(urls[0])
                         except Exception:
                             sample_url = None
+                        form_title_for_msg = None
+                        try:
+                            tests = (entry or {}).get("tests") or []
+                            if isinstance(tests, list) and tests:
+                                form_title_for_msg = str(tests[0])
+                        except Exception:
+                            form_title_for_msg = None
                         msg = [
-                            f"✅ Ошибка Не выполнен шаг \"{error_key}\" автотеста формы исправлена",
+                            f"✅ Ошибка Не выполнен шаг \"{error_key}\" автотеста формы {f'[{form_title_for_msg}]' if form_title_for_msg else ''} исправлена",
                             "",
                             f"🕒 Время: {_now_str()}",
                             f"🌐 Лендинг: {domain}",
@@ -1594,7 +1621,7 @@ def pytest_sessionfinish(session, exitstatus):
                         # деактивировать и сбросить счётчики
                         try:
                             _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(error_key, {})["active"] = False
-                            _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(error_key, {})["last_fixed_at"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                            _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(error_key, {})["last_fixed_at"] = _utc_iso()
                         except Exception:
                             pass
                         try:
