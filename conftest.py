@@ -296,6 +296,32 @@ def _claim_flag(domain: str, error_key: str, kind: str = "single") -> bool:
         return False
 
 
+def _pair_fail_flag_path(domain: str, error_key: str) -> Path:
+    safe = slugify(f"{domain}-{error_key}") or "key"
+    return ALERTS_FLAG_DIR / f"seenfail-{safe}.flag"
+
+
+def _mark_pair_failed_this_run(domain: str | None, error_key: str | None) -> None:
+    """Mark that (domain, step) failed somewhere in this run (xdist-safe via shared flag dir)."""
+    try:
+        if not domain or not error_key:
+            return
+        p = _pair_fail_flag_path(domain, error_key)
+        try:
+            with open(p, "x", encoding="utf-8") as f:
+                f.write("1")
+        except FileExistsError:
+            return
+    except Exception:
+        pass
+
+
+def _pair_failed_this_run(domain: str, error_key: str) -> bool:
+    try:
+        return _pair_fail_flag_path(domain, error_key).exists()
+    except Exception:
+        return False
+
 def pytest_configure(config):
     """Ensure a shared ALERTS_RUN_ID across xdist workers and re-init flag dir."""
     try:
@@ -913,6 +939,11 @@ def pytest_runtest_makereport(item, call):
                     was_active = False
                 if current_url:
                     DOMAIN_ERROR_URLS[dom_key].add(current_url)
+                # Отметить, что пара (домен, шаг) падала в этом прогоне (для корректных fixed в конце прогона при xdist)
+                try:
+                    _mark_pair_failed_this_run(domain or "—", error_key)
+                except Exception:
+                    pass
                 ERROR_DOMAINS[error_key].add(domain or "—")
                 # Привяжем тест к паре (домен, шаг) и к URL
                 try:
@@ -1040,6 +1071,10 @@ def pytest_runtest_makereport(item, call):
                 was_active_setup = False
             new_count = _inc_url_counter(current_url)
             pair_count = _inc_pair_counter(domain or "—", error_key)
+            try:
+                _mark_pair_failed_this_run(domain or "—", error_key)
+            except Exception:
+                pass
             # Привязка тестов к паре (домен, шаг) и к URL для setup/teardown падений
             try:
                 dom_key = (domain or "—", error_key)
@@ -1502,6 +1537,20 @@ def pytest_sessionfinish(session, exitstatus):
         for (domain, error_key), cnt in list(DOMAIN_ERROR_COUNTS.items()):
             entry = _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(error_key, {})
             entry["active"] = True
+            # Сохраним URL-ы, на которых падала эта пара (домен, шаг), чтобы потом можно было сбрасывать счетчики при fixed
+            try:
+                urls = sorted(list(DOMAIN_ERROR_URLS.get((domain, error_key), set())))
+                if urls:
+                    entry_urls = entry.setdefault("urls", [])
+                    if not isinstance(entry_urls, list):
+                        entry_urls = []
+                    # добавим до 50 уникальных
+                    for u in urls:
+                        if u and u not in entry_urls:
+                            entry_urls.append(u)
+                    entry["urls"] = entry_urls[:50]
+            except Exception:
+                pass
             # Сохраняем список тестов для пары (домен, шаг) для последующего "исправлена"
             try:
                 tests = sorted(list(DOMAIN_ERROR_TESTS.get((domain, error_key), set())))[:5]
@@ -1509,6 +1558,65 @@ def pytest_sessionfinish(session, exitstatus):
                     entry["tests"] = tests
             except Exception:
                 pass
+
+        # FIXED в конце прогона (межпрогонный): если инцидент был активен ранее, но в этом прогоне не падал — считаем исправленным
+        try:
+            for domain, emap in list((_STATE.get("domain_errors", {}) or {}).items()):
+                for error_key, entry in list((emap or {}).items()):
+                    try:
+                        if not bool((entry or {}).get("active")):
+                            continue
+                        # Если в этом прогоне где-то падало по этой паре — не фиксируем
+                        if _pair_failed_this_run(domain, error_key):
+                            continue
+                        # Дедуп: одна fixed на пару (домен, шаг) за прогон
+                        if not _claim_flag(domain, f"fixed-domain-step-{error_key}-end", kind="fixed"):
+                            continue
+                        # Соберём пример URL из сохранённых в состоянии
+                        sample_url = None
+                        try:
+                            urls = (entry or {}).get("urls") or []
+                            if isinstance(urls, list) and urls:
+                                sample_url = str(urls[0])
+                        except Exception:
+                            sample_url = None
+                        msg = [
+                            f"✅ Ошибка Не выполнен шаг \"{error_key}\" автотеста формы исправлена",
+                            "",
+                            f"🕒 Время: {_now_str()}",
+                            f"🌐 Лендинг: {domain}",
+                        ]
+                        if sample_url:
+                            msg.append(f"🔗 URL: {sample_url}")
+                        if REPORT_URL:
+                            msg.append(f"🔎 Отчёт: {REPORT_URL}")
+                        _send_telegram_message("\n".join(msg))
+                        # деактивировать и сбросить счётчики
+                        try:
+                            _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(error_key, {})["active"] = False
+                            _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(error_key, {})["last_fixed_at"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                        except Exception:
+                            pass
+                        try:
+                            # сброс пары
+                            by_pair = _ERRORS_COUNT.setdefault("by_pair", {})
+                            dmap = by_pair.setdefault(domain, {})
+                            if error_key in dmap:
+                                del dmap[error_key]
+                        except Exception:
+                            pass
+                        try:
+                            # сброс URL счётчиков по сохранённым url
+                            urls = (entry or {}).get("urls") or []
+                            if isinstance(urls, list):
+                                for u in urls:
+                                    _reset_url_counter(u)
+                        except Exception:
+                            pass
+                    except Exception:
+                        continue
+        except Exception:
+            pass
 
         # Конечные fixed-оповещения по невстреченным в этом прогоне случаям отключены — только мгновенные при прохождении
 
