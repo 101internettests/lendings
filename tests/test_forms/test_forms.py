@@ -585,6 +585,7 @@ class TestForms:
         page.goto(express_url)
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
+        region_page = ChoiceRegionPage(page=page)
         with allure.step("Проверка попапа 'Вы находитесь в городе Х' и закрытие при наличии (до 10с)"):
             domru_page = DomRuClass(page=page)
             try:
@@ -592,14 +593,32 @@ class TestForms:
                     domru_page.close_popup_location()
             except Exception:
                 pass
-        with allure.step("Открыть попап"):
+        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 40с)"):
+            try:
+                def strip_xpath(sel: str) -> str:
+                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
+
+                union_xpath = (
+                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
+                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
+                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
+                )
+                page.wait_for_selector(union_xpath, state="visible", timeout=65000)
+                region_page.close_popup_super_offer_all()
+            except Exception:
+                pass
+
+        with allure.step("Отправить 1-й вариант"):
+            # Без подсчетов: всегда работаем по первой кнопке
             steps.open_popup_express_connection_button()
-        with allure.step("отправить первый вариант по кнопке"):
             steps.send_popup_express_connection()
             mts_page.check_sucess_express()
             mts_page.close_thankyou_page_express()
-        with allure.step("отправить второй вариант по кнопке"):
+
+        with allure.step("Отправить 2-й вариант"):
+            # Без подсчетов: всегда работаем по первой кнопке
             steps.open_popup_express_connection_button()
+            time.sleep(2)
             steps.button_change_city_express_connection()
             region_page = ChoiceRegionPage(page=page)
             time.sleep(2)
@@ -611,7 +630,5 @@ class TestForms:
             steps.send_popup_express_connection_second()
             mts_page.check_sucess_express()
             mts_page.close_thankyou_page_express()
-
-
 
 
