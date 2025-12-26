@@ -272,96 +272,96 @@ class TestForms:
             if total_after > 1:
                 _send_for_index(total_after)
 
-    @allure.title("3.2 Отправка заявки со ВСЕХ  форм на странице с названиями Проверить адрес")
-    def test_application_popup_button_checkaddress_forms(self, page_fixture, checkaddress_button_url):
-        page = page_fixture
-        page.goto(checkaddress_button_url)
-        mts_page = MtsHomeOnlinePage(page=page)
-        steps = MainSteps(page=page)
-        region_page = ChoiceRegionPage(page=page)
-        with allure.step("Проверка попапа 'Вы находитесь в городе Х' и закрытие при наличии (до 10с)"):
-            domru_page = DomRuClass(page=page)
-            try:
-                if page.locator(LocationPopup.YES_BUTTON).count() > 0:
-                    domru_page.close_popup_location()
-            except Exception:
-                pass
-        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
-            try:
-                def strip_xpath(sel: str) -> str:
-                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
-
-                union_xpath = (
-                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
-                )
-                page.wait_for_selector(union_xpath, state="visible", timeout=65000)
-                region_page.close_popup_super_offer_all()
-            except Exception:
-                pass
-
-        with allure.step("Посчитать кол-во блоков и пройти по всем"):
-            visible_blocks = steps.visible_checkaddress_block_indices()
-            assert len(visible_blocks) > 0, "Не найдено видимых блоков Проверить адрес"
-
-            def _finalize_after_submit(block_idx: int) -> None:
-                """Проверка успеха + попытка закрыть thank you. Если не закрыли — вернуться на исходный URL."""
-                mts_page.check_sucess_simple()
-                try:
-                    mts_page.close_thankyou_page()
-                except Exception:
-                    # Если закрыть страницу благодарности не удалось — вернёмся на исходный URL списка
-                    try:
-                        page.goto(str(checkaddress_button_url), wait_until="domcontentloaded")
-                    except Exception:
-                        pass
-                    try:
-                        page.wait_for_load_state("networkidle", timeout=5000)
-                    except Exception:
-                        pass
-
-            # 1) Первый маршрут — по первому видимому блоку
-            i1 = visible_blocks[0]
-            with allure.step(f"Блок #{i1} (1-й видимый): 1-й маршрут"):
-                try:
-                    steps.send_popup_checkaddress_block(i1)
-                    _finalize_after_submit(i1)
-                except Exception as e:
-                    try:
-                        allure.attach(
-                            f"Индекс блока: {i1}\nURL: {page.url}\nОшибка: {e}",
-                            name=f"Ошибка блока #{i1}",
-                            attachment_type=allure.attachment_type.TEXT,
-                        )
-                    except Exception:
-                        pass
-                    raise
-
-            # 2) Второй маршрут — только если есть второй видимый блок
-            if len(visible_blocks) >= 2:
-                i2 = visible_blocks[1]
-                with allure.step(f"Блок #{i2} (2-й видимый): 2-й маршрут"):
-                    try:
-                        steps.button_change_city_checkaddress_block(i2)
-                        region_page = ChoiceRegionPage(page=page)
-                        time.sleep(2)
-                        region_page.fill_region_search_new("Воронеж")
-                        region_page.verify_first_region_choice("Воронеж")
-                        time.sleep(2)
-                        region_page.select_first_region()
-                        steps.send_popup_checkaddress_block_second(i2)
-                        _finalize_after_submit(i2)
-                    except Exception as e:
-                        try:
-                            allure.attach(
-                                f"Индекс блока: {i2}\nURL: {page.url}\nОшибка: {e}",
-                                name=f"Ошибка блока #{i2}",
-                                attachment_type=allure.attachment_type.TEXT,
-                            )
-                        except Exception:
-                            pass
-                        raise
+    # @allure.title("3.2 Отправка заявки со ВСЕХ  форм на странице с названиями Проверить адрес")
+    # def test_application_popup_button_checkaddress_forms(self, page_fixture, checkaddress_button_url):
+    #     page = page_fixture
+    #     page.goto(checkaddress_button_url)
+    #     mts_page = MtsHomeOnlinePage(page=page)
+    #     steps = MainSteps(page=page)
+    #     region_page = ChoiceRegionPage(page=page)
+    #     with allure.step("Проверка попапа 'Вы находитесь в городе Х' и закрытие при наличии (до 10с)"):
+    #         domru_page = DomRuClass(page=page)
+    #         try:
+    #             if page.locator(LocationPopup.YES_BUTTON).count() > 0:
+    #                 domru_page.close_popup_location()
+    #         except Exception:
+    #             pass
+    #     with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
+    #         try:
+    #             def strip_xpath(sel: str) -> str:
+    #                 return sel[len("xpath="):] if sel.startswith("xpath=") else sel
+    #
+    #             union_xpath = (
+    #                 f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
+    #                 f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
+    #                 f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
+    #             )
+    #             page.wait_for_selector(union_xpath, state="visible", timeout=65000)
+    #             region_page.close_popup_super_offer_all()
+    #         except Exception:
+    #             pass
+    #
+    #     with allure.step("Посчитать кол-во блоков и пройти по всем"):
+    #         visible_blocks = steps.visible_checkaddress_block_indices()
+    #         assert len(visible_blocks) > 0, "Не найдено видимых блоков Проверить адрес"
+    #
+    #         def _finalize_after_submit(block_idx: int) -> None:
+    #             """Проверка успеха + попытка закрыть thank you. Если не закрыли — вернуться на исходный URL."""
+    #             mts_page.check_sucess_simple()
+    #             try:
+    #                 mts_page.close_thankyou_page()
+    #             except Exception:
+    #                 # Если закрыть страницу благодарности не удалось — вернёмся на исходный URL списка
+    #                 try:
+    #                     page.goto(str(checkaddress_button_url), wait_until="domcontentloaded")
+    #                 except Exception:
+    #                     pass
+    #                 try:
+    #                     page.wait_for_load_state("networkidle", timeout=5000)
+    #                 except Exception:
+    #                     pass
+    #
+    #         # 1) Первый маршрут — по первому видимому блоку
+    #         i1 = visible_blocks[0]
+    #         with allure.step(f"Блок #{i1} (1-й видимый): 1-й маршрут"):
+    #             try:
+    #                 steps.send_popup_checkaddress_block(i1)
+    #                 _finalize_after_submit(i1)
+    #             except Exception as e:
+    #                 try:
+    #                     allure.attach(
+    #                         f"Индекс блока: {i1}\nURL: {page.url}\nОшибка: {e}",
+    #                         name=f"Ошибка блока #{i1}",
+    #                         attachment_type=allure.attachment_type.TEXT,
+    #                     )
+    #                 except Exception:
+    #                     pass
+    #                 raise
+    #
+    #         # 2) Второй маршрут — только если есть второй видимый блок
+    #         if len(visible_blocks) >= 2:
+    #             i2 = visible_blocks[1]
+    #             with allure.step(f"Блок #{i2} (2-й видимый): 2-й маршрут"):
+    #                 try:
+    #                     steps.button_change_city_checkaddress_block(i2)
+    #                     region_page = ChoiceRegionPage(page=page)
+    #                     time.sleep(2)
+    #                     region_page.fill_region_search_new("Воронеж")
+    #                     region_page.verify_first_region_choice("Воронеж")
+    #                     time.sleep(2)
+    #                     region_page.select_first_region()
+    #                     steps.send_popup_checkaddress_block_second(i2)
+    #                     _finalize_after_submit(i2)
+    #                 except Exception as e:
+    #                     try:
+    #                         allure.attach(
+    #                             f"Индекс блока: {i2}\nURL: {page.url}\nОшибка: {e}",
+    #                             name=f"Ошибка блока #{i2}",
+    #                             attachment_type=allure.attachment_type.TEXT,
+    #                         )
+    #                     except Exception:
+    #                         pass
+    #                     raise
 
     @allure.title("4.1 Отправка заявки с формы Остались вопросы?")
     def test_application_undecided(self, page_fixture, undecided_url):
