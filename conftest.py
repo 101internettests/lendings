@@ -4,6 +4,7 @@ import allure
 import time
 import json
 import threading
+import re
 from datetime import datetime
 from urllib.parse import urlparse
 from pathlib import Path
@@ -400,6 +401,24 @@ def _sanitize_error_text(text: str | None) -> str | None:
         return cleaned
     except Exception:
         return text
+
+# ==== URL extraction from Playwright error text ====
+_ERR_URL_RE = re.compile(r"https?://[^\s\"')]+")
+
+def _extract_url_from_error_text(text: str | None) -> str | None:
+    """Try to extract the most relevant URL from Playwright error messages.
+    Useful when the test runs on one landing, but fails navigating to a different URL.
+    """
+    if not text:
+        return None
+    try:
+        matches = _ERR_URL_RE.findall(str(text))
+        if not matches:
+            return None
+        # Prefer the last mentioned URL (often the actual navigation target in call log).
+        return matches[-1]
+    except Exception:
+        return None
 
 # ==== Google Sheets error logging (optional) ====
 _GS_CLIENT = None
@@ -970,6 +989,11 @@ def pytest_runtest_makereport(item, call):
                 RUN_FAILED += 1
                 step_name = _get_last_step_name() or ""
                 error_key = step_name or type(call.excinfo.value).__name__
+                # Если в тексте ошибки есть конкретный URL (например, Page.goto ... at https://...),
+                # используем его в сообщениях/табличке вместо URL прогона (лендинга).
+                err_raw = str(call.excinfo.value) if call.excinfo else ""
+                err_url = _extract_url_from_error_text(err_raw)
+                incident_url = err_url or current_url
                 dom_key = (domain or "—", error_key)
                 DOMAIN_ERROR_COUNTS[dom_key] += 1
                 # ВАЖНО: сначала узнаём, был ли инцидент активным ДО текущего падения
@@ -978,8 +1002,8 @@ def pytest_runtest_makereport(item, call):
                     was_active = bool(_STATE.get("domain_errors", {}).get(domain or "—", {}).get(error_key, {}).get("active"))
                 except Exception:
                     was_active = False
-                if current_url:
-                    DOMAIN_ERROR_URLS[dom_key].add(current_url)
+                if incident_url:
+                    DOMAIN_ERROR_URLS[dom_key].add(incident_url)
                 # Отметить, что пара (домен, шаг) падала в этом прогоне (для корректных fixed в конце прогона при xdist)
                 try:
                     _mark_pair_failed_this_run(domain or "—", error_key)
@@ -1005,8 +1029,8 @@ def pytest_runtest_makereport(item, call):
                         if file_path:
                             DOMAIN_ERROR_FILES[dom_key].add(file_path)
                             TEST_NAME_FILES[test_display_name].add(file_path)
-                        if current_url:
-                            URL_ERROR_TESTS[current_url].add(test_display_name)
+                        if incident_url:
+                            URL_ERROR_TESTS[incident_url].add(test_display_name)
                 except Exception:
                     pass
 
@@ -1030,15 +1054,15 @@ def pytest_runtest_makereport(item, call):
                             TEST_FAIL_DOMAINS[test_display_name].add(domain)
                         if step_name:
                             TEST_FAIL_LAST_STEP[test_display_name] = step_name
-                        if current_url:
-                            TEST_FAIL_URLS[test_display_name].add(current_url)
+                        if incident_url:
+                            TEST_FAIL_URLS[test_display_name].add(incident_url)
                         if file_path:
                             TEST_NAME_FILES[test_display_name].add(file_path)
                 except Exception:
                     pass
 
                 # Persist URL-based counter (independent of step)
-                new_count = _inc_url_counter(current_url)
+                new_count = _inc_url_counter(incident_url)
                 # Persist pair (domain, step) counter for stable repeats across runs/URLs
                 pair_count = _inc_pair_counter(domain or "—", error_key)
 
@@ -1052,7 +1076,7 @@ def pytest_runtest_makereport(item, call):
                         except Exception:
                             test_name_for_log = getattr(item, "name", None) or item.nodeid
                         repeat_val = new_count if current_url else None
-                        _append_error_row(url_for_log, test_name_for_log or item.nodeid, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", repeat_val)
+                        _append_error_row(incident_url or url_for_log, test_name_for_log or item.nodeid, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", repeat_val)
                         ERROR_LOGGED_NODEIDS.add(item.nodeid)
                 except Exception:
                     pass
@@ -1066,11 +1090,11 @@ def pytest_runtest_makereport(item, call):
                     if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(new_count):
                         # Отправим уведомление сразу по расписанию (1,4,10,20,...), дедуп по воркерам
                         try:
-                            if _claim_flag(domain or "—", f"url-{current_url}-{new_count}", kind="persist"):
+                            if _claim_flag(domain or "—", f"url-{incident_url}-{new_count}", kind="persist"):
                                 details = _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else None
                                 text = _format_persistent_error_message(
                                     form_title=form_title,
-                                    url=current_url,
+                                    url=incident_url,
                                     step_name=step_name or error_key,
                                     details=details,
                                     domain=(domain or "—"),
@@ -1112,7 +1136,10 @@ def pytest_runtest_makereport(item, call):
                 was_active_setup = bool(_STATE.get("domain_errors", {}).get(domain or "—", {}).get(error_key, {}).get("active"))
             except Exception:
                 was_active_setup = False
-            new_count = _inc_url_counter(current_url)
+            err_raw = str(call.excinfo.value) if call.excinfo else ""
+            err_url = _extract_url_from_error_text(err_raw)
+            incident_url = err_url or current_url
+            new_count = _inc_url_counter(incident_url)
             pair_count = _inc_pair_counter(domain or "—", error_key)
             try:
                 _mark_pair_failed_this_run(domain or "—", error_key)
@@ -1129,8 +1156,8 @@ def pytest_runtest_makereport(item, call):
                     test_display_name = getattr(item, "name", None) or item.nodeid
                 if test_display_name:
                     DOMAIN_ERROR_TESTS[dom_key].add(test_display_name)
-                    if current_url:
-                        URL_ERROR_TESTS[current_url].add(test_display_name)
+                    if incident_url:
+                        URL_ERROR_TESTS[incident_url].add(test_display_name)
             except Exception:
                 pass
             # Log to Google Sheets once per nodeid on setup/teardown failure too, include repeat count
@@ -1142,7 +1169,7 @@ def pytest_runtest_makereport(item, call):
                         test_name_for_log = meta.get("title") or getattr(item, "name", None) or item.nodeid
                     except Exception:
                         test_name_for_log = getattr(item, "name", None) or item.nodeid
-                    _append_error_row(url_for_log, test_name_for_log or item.nodeid, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", new_count if current_url else None)
+                    _append_error_row(incident_url or url_for_log, test_name_for_log or item.nodeid, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", new_count if incident_url else None)
                     ERROR_LOGGED_NODEIDS.add(item.nodeid)
             except Exception:
                 pass
@@ -1150,7 +1177,7 @@ def pytest_runtest_makereport(item, call):
             if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(new_count):
                 # Немедленная персональная отправка и для setup/teardown
                 try:
-                    if _claim_flag(domain or "—", f"url-{current_url}-{new_count}", kind="persist"):
+                    if _claim_flag(domain or "—", f"url-{incident_url}-{new_count}", kind="persist"):
                         test_display_name = None
                         try:
                             test_display_name = form_title or getattr(item, "name", None) or item.nodeid
@@ -1159,7 +1186,7 @@ def pytest_runtest_makereport(item, call):
                         details = _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else None
                         text = _format_persistent_error_message(
                             form_title=form_title,
-                            url=current_url,
+                            url=incident_url,
                             step_name=step_name or error_key,
                             details=details,
                             domain=(domain or "—"),
