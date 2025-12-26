@@ -786,7 +786,7 @@ def pytest_runtest_makereport(item, call):
         # because page.url can change after redirects / "thank you" flows and end up as just the landing.
         param_url = None
         try:
-            named_prefs = [
+            preferred_keys = [
                 # common names across suites
                 "business_url",
                 "business_url_second",
@@ -799,34 +799,42 @@ def pytest_runtest_makereport(item, call):
                 "undecided_url",
                 "moving_url",
                 "express_url",
-                # generic fallback often used in parametrized suites
-                "url",
             ]
-            for name in named_prefs:
-                val = funcargs.get(name)
-                if isinstance(val, str) and val.startswith("http"):
-                    param_url = val
-                    break
+
+            # Collect ALL candidate URLs from funcargs and pick the most specific one.
+            # We prefer:
+            # - known preferred keys
+            # - keys containing "url"
+            # - URLs that have a non-root path and/or query (more specific than just landing "/")
+            # - longer URLs (often include city/path)
+            candidates: list[tuple[str, str]] = []
+            for k, v in funcargs.items():
+                if isinstance(v, str) and v.startswith("http"):
+                    candidates.append((str(k), v))
+
+            def _url_score(key: str, url: str) -> int:
+                score = 0
+                kl = (key or "").lower()
+                if key in preferred_keys:
+                    score += 1000
+                if "url" in kl:
+                    score += 200
+                try:
+                    p = urlparse(url)
+                    # penalize bare landing "/" and reward more specific paths
+                    if (p.path or "") not in ("", "/"):
+                        score += 150
+                    if p.query:
+                        score += 20
+                except Exception:
+                    pass
+                score += min(len(url), 300)  # tie-breaker: longer tends to be more specific
+                return score
+
+            if candidates:
+                param_url = max(candidates, key=lambda kv: _url_score(kv[0], kv[1]))[1]
         except Exception:
             param_url = None
-        if not param_url:
-            # Any param with 'url' in its name
-            try:
-                for k, v in funcargs.items():
-                    if "url" in str(k).lower() and isinstance(v, str) and v.startswith("http"):
-                        param_url = v
-                        break
-            except Exception:
-                param_url = None
-        if not param_url:
-            # Any http-like string param
-            try:
-                for _, v in funcargs.items():
-                    if isinstance(v, str) and v.startswith("http"):
-                        param_url = v
-                        break
-            except Exception:
-                param_url = None
 
         page_url = None
         # Live Playwright page URL if available (can be helpful if test didn't take URL params).
