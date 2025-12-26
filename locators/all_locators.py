@@ -37,9 +37,20 @@ class Checkaddress:
     BUTTON_CHANGE_CITY = "xpath=(//div[@class='popup-checkaddress__wrapper']//span[contains(@class,'checkaddress_address_button_change_city')])[1]"
     BUTTON_CHANGE_CITY_SECOND = "xpath=(//div[@class='popup-checkaddress__wrapper']//span[contains(@class,'checkaddress_address_button_change_city')])"
     CHECKADDRESS_BUTTON_POPUP = "xpath=(//button[contains(@class,'checkaddress_address_button')])"
-    CHECKADDRESS_BLOCK = "xpath=(//div[contains(@class,'checkaddress-block')])"
-    BUTTON_CHANGE_CITY_BLOCK = "xpath=//span[contains(@class,'checkaddress_address_button_change_city')]"
+    CHECKADDRESS_BLOCK = "xpath=(//div[contains(@id,'checkaddress')]//h2[contains(@class,'checkaddress')])"
+    CHECKADDRESS_BLOCK_SECOND = "xpath=(//div[contains(@class,'checkaddress')]//h2[contains(@class,'checkaddress')])"
+    BUTTON_CHANGE_CITY_BLOCK = "xpath=(//span[contains(@class,'checkaddress_address_button_change_city')])"
+    BUTTON_CHANGE_CITY_BLOCK_SECOND = "xpath=(//div[contains(@class,'checkaddress_address_button_change_city')])"
 
+class CheckaddressPOP:
+    STREET_FIRST = "xpath=(//input[contains(@class,'checkaddress_address_street')])[1]"
+    HOUSE_FIRST = "xpath=(//input[contains(@class,'checkaddress_address_house')])[1]"
+    PHONE_FIRST = "xpath=(//input[contains(@class,'checkaddress_address_phone')])[1]"
+    BUTTON_SEND_FIRST = "xpath=(//input[contains(@class,'checkaddress_address_button_send')])[1]"
+    STREET_SECOND = "xpath=(//input[contains(@class,'checkaddress_address_street')])[2]"
+    HOUSE_SECOND = "xpath=(//input[contains(@class,'checkaddress_address_house')])[2]"
+    PHONE_SECOND = "xpath=(//input[contains(@class,'checkaddress_address_phone')])[2]"
+    BUTTON_SEND_SECOND = "xpath=(//input[contains(@class,'checkaddress_address_button_send')])[2]"
 
 class Undecided:
     STREET = "xpath=//input[contains(@class,'undecided_address_street')]"

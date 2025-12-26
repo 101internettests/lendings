@@ -39,7 +39,7 @@ class TestRTKOHomeInternetRu:
         region_page = ChoiceRegionPage(page=page)
         rostelecom_page = RostelecomPage(page=page)
         time.sleep(15)
-        rostelecom_page.close_popup()
+        # rostelecom_page.close_popup()
         with allure.step("Выбрать СПб"):
             internet_page = MtsInternetHomeOnlinePage(page=page)
             internet_page.click_region_choice_button_new()
