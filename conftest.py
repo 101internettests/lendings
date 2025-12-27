@@ -535,11 +535,13 @@ def _format_single_error_message(form_title: str | None, url: str | None, step_n
 
 def _format_persistent_error_message(form_title: str | None, url: str | None, step_name: str | None, details: str | None, domain: str, error_key: str, repeats_count: int, test_name: str | None) -> str:
     form_part = form_title or ""
+    # Prefer deriving the landing from the actual incident URL shown in the message
+    domain_for_msg = _get_domain(url) or (domain or "—")
     msg = []
     msg.append(f"🚨 Ошибка автотеста формы {f'[{form_part}]' if form_part else ''}")
     msg.append("")
     msg.append(f"🕒 Время: {_now_str()}")
-    msg.append(f"🌐 Лендинг: {domain}")
+    msg.append(f"🌐 Лендинг: {domain_for_msg}")
     if url:
         msg.append(f"🔗 URL: {url}")
     if test_name:
