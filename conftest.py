@@ -994,7 +994,9 @@ def pytest_runtest_makereport(item, call):
                 err_raw = str(call.excinfo.value) if call.excinfo else ""
                 err_url = _extract_url_from_error_text(err_raw)
                 incident_url = err_url or current_url
-                dom_key = (domain or "—", error_key)
+                # If the failure is about navigating to another URL, show/aggregate by that domain in alerts.
+                alert_domain = _get_domain(incident_url) or (domain or "—")
+                dom_key = (alert_domain, error_key)
                 DOMAIN_ERROR_COUNTS[dom_key] += 1
                 # ВАЖНО: сначала узнаём, был ли инцидент активным ДО текущего падения
                 was_active = False
@@ -1064,7 +1066,7 @@ def pytest_runtest_makereport(item, call):
                 # Persist URL-based counter (independent of step)
                 new_count = _inc_url_counter(incident_url)
                 # Persist pair (domain, step) counter for stable repeats across runs/URLs
-                pair_count = _inc_pair_counter(domain or "—", error_key)
+                pair_count = _inc_pair_counter(alert_domain, error_key)
 
                 # Запись в Google Sheets (одна строка на тестовый пример / nodeid), с указанием номера повтора
                 try:
@@ -1090,14 +1092,14 @@ def pytest_runtest_makereport(item, call):
                     if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(new_count):
                         # Отправим уведомление сразу по расписанию (1,4,10,20,...), дедуп по воркерам
                         try:
-                            if _claim_flag(domain or "—", f"url-{incident_url}-{new_count}", kind="persist"):
+                            if _claim_flag(alert_domain, f"url-{incident_url}-{new_count}", kind="persist"):
                                 details = _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else None
                                 text = _format_persistent_error_message(
                                     form_title=form_title,
                                     url=incident_url,
                                     step_name=step_name or error_key,
                                     details=details,
-                                    domain=(domain or "—"),
+                                    domain=alert_domain,
                                     error_key=error_key,
                                     repeats_count=new_count,
                                     test_name=test_display_name,
@@ -1139,8 +1141,9 @@ def pytest_runtest_makereport(item, call):
             err_raw = str(call.excinfo.value) if call.excinfo else ""
             err_url = _extract_url_from_error_text(err_raw)
             incident_url = err_url or current_url
+            alert_domain = _get_domain(incident_url) or (domain or "—")
             new_count = _inc_url_counter(incident_url)
-            pair_count = _inc_pair_counter(domain or "—", error_key)
+            pair_count = _inc_pair_counter(alert_domain, error_key)
             try:
                 _mark_pair_failed_this_run(domain or "—", error_key)
             except Exception:
@@ -1177,7 +1180,7 @@ def pytest_runtest_makereport(item, call):
             if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(new_count):
                 # Немедленная персональная отправка и для setup/teardown
                 try:
-                    if _claim_flag(domain or "—", f"url-{incident_url}-{new_count}", kind="persist"):
+                    if _claim_flag(alert_domain, f"url-{incident_url}-{new_count}", kind="persist"):
                         test_display_name = None
                         try:
                             test_display_name = form_title or getattr(item, "name", None) or item.nodeid
@@ -1189,7 +1192,7 @@ def pytest_runtest_makereport(item, call):
                             url=incident_url,
                             step_name=step_name or error_key,
                             details=details,
-                            domain=(domain or "—"),
+                            domain=alert_domain,
                             error_key=error_key,
                             repeats_count=new_count,
                             test_name=test_display_name,
