@@ -75,6 +75,10 @@ RUN_SUMMARY_LONG_ENABLED = _env_bool("RUN_SUMMARY_LONG_ENABLED", True)
 RUN_SUMMARY_SHORT_ENABLED = _env_bool("RUN_SUMMARY_SHORT_ENABLED", False)
 # Управление URL-уровнем fixed-уведомлений (включено по умолчанию)
 URL_FIXED_ALERTS_ENABLED = _env_bool("URL_FIXED_ALERTS_ENABLED", True)
+# Repeat counter behavior
+NORMALIZE_STEP_KEYS = _env_bool("NORMALIZE_STEP_KEYS", True)
+SHOW_RUN_REPEAT_IN_ALERTS = _env_bool("SHOW_RUN_REPEAT_IN_ALERTS", True)
+RESET_ERROR_COUNTERS_ON_START = _env_bool("RESET_ERROR_COUNTERS_ON_START", False)
 
 # Default path must be writable both locally (Windows/macOS/Linux) and in CI.
 # CI can override via ALERTS_STATE_PATH.
@@ -351,6 +355,24 @@ def pytest_configure(config):
                 rid = datetime.utcnow().strftime("%Y%m%d%H%M%S")
                 os.environ["ALERTS_RUN_ID"] = rid
         _reinit_flag_dir_from_env()
+
+        # Optional: reset persistent counters once per run (master only)
+        try:
+            if RESET_ERROR_COUNTERS_ON_START and getattr(config, "workerinput", None) is None:
+                # run-scoped flag to avoid multiple resets
+                reset_flag = ALERTS_FLAG_DIR / "reset-counters.flag"
+                try:
+                    with open(reset_flag, "x", encoding="utf-8") as f:
+                        f.write("1")
+                    _ERRORS_COUNT.clear()
+                    _ERRORS_COUNT.update({"by_domain": {}, "by_url": {}, "by_pair": {}, "total": 0, "updated_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")})
+                    _save_errors_counter()
+                except FileExistsError:
+                    pass
+                except Exception:
+                    pass
+        except Exception:
+            pass
     except Exception:
         pass
 
@@ -404,6 +426,28 @@ def _sanitize_error_text(text: str | None) -> str | None:
         return cleaned
     except Exception:
         return text
+
+
+def _normalize_step_key(step_name: str | None) -> str | None:
+    """
+    Делает ключ шага стабильным для счётчиков.
+    Примеры:
+    - "Кнопка #2" -> "Кнопка #N"
+    - "Открыть город: Майкоп (idx 178) ..." -> "Открыть город: Майкоп (idx N) ..."
+    """
+    if not step_name:
+        return step_name
+    try:
+        s = str(step_name)
+        # normalize common dynamic suffixes
+        s = re.sub(r"#\s*\d+", "#N", s)
+        s = re.sub(r"\bidx\s*\d+\b", "idx N", s, flags=re.IGNORECASE)
+        s = re.sub(r"\bid\s*\d+\b", "id N", s, flags=re.IGNORECASE)
+        # collapse whitespace
+        s = re.sub(r"\s+", " ", s).strip()
+        return s
+    except Exception:
+        return step_name
 
 # ==== URL extraction from Playwright error text ====
 _ERR_URL_RE = re.compile(r"https?://[^\s\"')]+")
@@ -536,7 +580,18 @@ def _format_single_error_message(form_title: str | None, url: str | None, step_n
     return "\n".join(msg)
 
 
-def _format_persistent_error_message(form_title: str | None, url: str | None, step_name: str | None, details: str | None, domain: str, error_key: str, repeats_count: int, test_name: str | None) -> str:
+def _format_persistent_error_message(
+    form_title: str | None,
+    url: str | None,
+    step_name: str | None,
+    details: str | None,
+    domain: str,
+    error_key: str,
+    repeats_count: int,
+    test_name: str | None,
+    *,
+    run_repeats: int | None = None,
+) -> str:
     form_part = form_title or ""
     # Prefer deriving the landing from the actual incident URL shown in the message
     domain_for_msg = _get_domain(url) or (domain or "—")
@@ -552,7 +607,9 @@ def _format_persistent_error_message(form_title: str | None, url: str | None, st
     msg.append(f"❌ Ошибка: Не выполнен шаг \"{step_name or error_key}\"")
     if details:
         msg.append(f"🔎 Детали: {details}")
-    msg.append(f"🔁 Повтор: {repeats_count}")
+    if SHOW_RUN_REPEAT_IN_ALERTS and run_repeats is not None:
+        msg.append(f"🔁 Повтор (в этом прогоне): {run_repeats}")
+    msg.append(f"🔁 Повтор (накопительно): {repeats_count}")
     if REPORT_URL:
         msg.append(f"🔎 Отчёт: {REPORT_URL}")
     return "\n".join(msg)
@@ -993,7 +1050,8 @@ def pytest_runtest_makereport(item, call):
                 # Учитываем фейл
                 RUN_FAILED += 1
                 step_name = _get_last_step_name() or ""
-                error_key = step_name or type(call.excinfo.value).__name__
+                error_key_raw = step_name or type(call.excinfo.value).__name__
+                error_key = _normalize_step_key(error_key_raw) if NORMALIZE_STEP_KEYS else error_key_raw
                 # Если в тексте ошибки есть конкретный URL (например, Page.goto ... at https://...),
                 # используем его в сообщениях/табличке вместо URL прогона (лендинга).
                 err_raw = str(call.excinfo.value) if call.excinfo else ""
@@ -1106,12 +1164,13 @@ def pytest_runtest_makereport(item, call):
                                 text = _format_persistent_error_message(
                                     form_title=form_title,
                                     url=incident_url,
-                                    step_name=step_name or error_key,
+                                    step_name=step_name or error_key_raw,
                                     details=details,
                                     domain=alert_domain,
                                     error_key=error_key,
                                     repeats_count=pair_count,
                                     test_name=test_display_name,
+                                    run_repeats=int(DOMAIN_ERROR_COUNTS.get(dom_key, 0)) if SHOW_RUN_REPEAT_IN_ALERTS else None,
                                 )
                                 _send_telegram_message(text)
                         except Exception:
@@ -1140,7 +1199,8 @@ def pytest_runtest_makereport(item, call):
             except Exception:
                 pass
             step_name = _get_last_step_name() or ""
-            error_key = step_name or type(call.excinfo.value).__name__
+            error_key_raw = step_name or type(call.excinfo.value).__name__
+            error_key = _normalize_step_key(error_key_raw) if NORMALIZE_STEP_KEYS else error_key_raw
             # Узнаём состояние ДО отметки
             was_active_setup = False
             try:
@@ -1199,12 +1259,13 @@ def pytest_runtest_makereport(item, call):
                         text = _format_persistent_error_message(
                             form_title=form_title,
                             url=incident_url,
-                            step_name=step_name or error_key,
+                            step_name=step_name or error_key_raw,
                             details=details,
                             domain=alert_domain,
                             error_key=error_key,
                             repeats_count=pair_count,
                             test_name=test_display_name,
+                            run_repeats=int(DOMAIN_ERROR_COUNTS.get((alert_domain, error_key), 0)) if SHOW_RUN_REPEAT_IN_ALERTS else None,
                         )
                         _send_telegram_message(text)
                 except Exception:
