@@ -76,7 +76,9 @@ RUN_SUMMARY_SHORT_ENABLED = _env_bool("RUN_SUMMARY_SHORT_ENABLED", False)
 # Управление URL-уровнем fixed-уведомлений (включено по умолчанию)
 URL_FIXED_ALERTS_ENABLED = _env_bool("URL_FIXED_ALERTS_ENABLED", True)
 
-ALERTS_STATE_PATH_ENV = os.getenv("ALERTS_STATE_PATH", "/var/lib/jenkins/alerts_state.json").strip()
+# Default path must be writable both locally (Windows/macOS/Linux) and in CI.
+# CI can override via ALERTS_STATE_PATH.
+ALERTS_STATE_PATH_ENV = os.getenv("ALERTS_STATE_PATH", "alerts_state.json").strip()
 _STATE_FILE = Path(ALERTS_STATE_PATH_ENV)
 _STATE = {"domain_errors": {}, "systemic_errors": {}}
 
@@ -124,7 +126,8 @@ TEST_FAIL_URLS = defaultdict(set)            # key: test_name -> set(urls)
 TEST_NAME_FILES = defaultdict(set)           # key: test_name -> set(file_paths)
 
 # ==== Persistent run log for daily summaries ====
-RUN_LOG_PATH_ENV = os.getenv("RUN_LOG_PATH", "/var/lib/jenkins/run_summaries.json").strip()
+# This file is json-lines (one record per line). Keep default consistent with `tools/daily_report.py`.
+RUN_LOG_PATH_ENV = os.getenv("RUN_LOG_PATH", ".run_summaries.jsonl").strip()
 _RUN_LOG_PATH = Path(RUN_LOG_PATH_ENV)
 
 
@@ -1065,9 +1068,10 @@ def pytest_runtest_makereport(item, call):
                 except Exception:
                     pass
 
-                # Persist URL-based counter (independent of step)
+                # Persistent counters:
+                # - URL counter: how many times a конкретный URL падал (нужно для URL-fixed логики)
+                # - Pair counter: how many times падала пара (домен, шаг) вне зависимости от URL
                 new_count = _inc_url_counter(incident_url)
-                # Persist pair (domain, step) counter for stable repeats across runs/URLs
                 pair_count = _inc_pair_counter(alert_domain, error_key)
 
                 # Запись в Google Sheets (одна строка на тестовый пример / nodeid), с указанием номера повтора
@@ -1079,22 +1083,25 @@ def pytest_runtest_makereport(item, call):
                             test_name_for_log = meta.get("title") or getattr(item, "name", None) or item.nodeid
                         except Exception:
                             test_name_for_log = getattr(item, "name", None) or item.nodeid
-                        repeat_val = new_count if current_url else None
+                        # В отчёте/таблице "повтор" логичнее вести по паре (домен, шаг),
+                        # иначе при смене URL счётчик выглядит "сломано".
+                        repeat_val = pair_count if incident_url else None
                         _append_error_row(incident_url or url_for_log, test_name_for_log or item.nodeid, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", repeat_val)
                         ERROR_LOGGED_NODEIDS.add(item.nodeid)
                 except Exception:
                     pass
-                # Отправляем негативный алерт по расписанию (1,4,10,20,...) для пары (домен, шаг)
+                # Отправляем негативный алерт по расписанию (1,4,10,20,...) для пары (домен, шаг).
+                # Раньше тут ошибочно использовался URL-счётчик, из-за чего "Повтор" выглядел некорректно.
                 if True:
                     test_display_name = None
                     try:
                         test_display_name = form_title or getattr(item, "name", None) or item.nodeid
                     except Exception:
                         test_display_name = form_title
-                    if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(new_count):
+                    if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(pair_count):
                         # Отправим уведомление сразу по расписанию (1,4,10,20,...), дедуп по воркерам
                         try:
-                            if _claim_flag(alert_domain, f"url-{incident_url}-{new_count}", kind="persist"):
+                            if _claim_flag(alert_domain, f"step-{error_key}-{pair_count}", kind="persist"):
                                 details = _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else None
                                 text = _format_persistent_error_message(
                                     form_title=form_title,
@@ -1103,7 +1110,7 @@ def pytest_runtest_makereport(item, call):
                                     details=details,
                                     domain=alert_domain,
                                     error_key=error_key,
-                                    repeats_count=new_count,
+                                    repeats_count=pair_count,
                                     test_name=test_display_name,
                                 )
                                 _send_telegram_message(text)
@@ -1174,15 +1181,15 @@ def pytest_runtest_makereport(item, call):
                         test_name_for_log = meta.get("title") or getattr(item, "name", None) or item.nodeid
                     except Exception:
                         test_name_for_log = getattr(item, "name", None) or item.nodeid
-                    _append_error_row(incident_url or url_for_log, test_name_for_log or item.nodeid, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", new_count if incident_url else None)
+                    _append_error_row(incident_url or url_for_log, test_name_for_log or item.nodeid, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", pair_count if incident_url else None)
                     ERROR_LOGGED_NODEIDS.add(item.nodeid)
             except Exception:
                 pass
             # Отправляем негативный алерт по расписанию (1,4,10,20,...) для пары (домен, шаг)
-            if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(new_count):
+            if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(pair_count):
                 # Немедленная персональная отправка и для setup/teardown
                 try:
-                    if _claim_flag(alert_domain, f"url-{incident_url}-{new_count}", kind="persist"):
+                    if _claim_flag(alert_domain, f"step-{error_key}-{pair_count}", kind="persist"):
                         test_display_name = None
                         try:
                             test_display_name = form_title or getattr(item, "name", None) or item.nodeid
@@ -1196,7 +1203,7 @@ def pytest_runtest_makereport(item, call):
                             details=details,
                             domain=alert_domain,
                             error_key=error_key,
-                            repeats_count=new_count,
+                            repeats_count=pair_count,
                             test_name=test_display_name,
                         )
                         _send_telegram_message(text)

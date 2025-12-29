@@ -1235,23 +1235,56 @@ class ChoiceRegionPage(BasePage):
 
     @allure.title("Закрыть попап Выгодное предложение")
     def close_popup_super_offer_all(self):
-        # Пытаемся нажать на первую видимую кнопку закрытия
+        """
+        Закрывает попап "Выгодное спецпредложение", если он есть.
+
+        Ключевая проблема прежней реализации: на странице может быть несколько кнопок `.popup__close`,
+        и простая стратегия "кликнуть первую видимую" часто закрывает не тот попап либо не дожидается
+        исчезновения оверлея — после чего следующие клики падают как intercepted.
+        """
+        # Признаки, что нужный попап реально показан
+        offer_markers = [
+            getattr(MTSHomeOnlineMain, "SUPER_OFFER_HEADER", None),
+            getattr(MTSHomeOnlineMain, "SUPER_OFFER_HEADER_SECOND", None),
+            getattr(MTSHomeOnlineMain, "SUPER_OFFER_TEXT", None),
+        ]
+        offer_markers = [m for m in offer_markers if m]
+
+        if offer_markers and not any(self.is_visible(m, timeout_ms=800) for m in offer_markers):
+            # Попапа нет — выходим тихо (метод часто используется как "best-effort")
+            return
+
         close_buttons = [
             MTSHomeOnlineMain.SUPER_OFFER_CLOSE_MEGA,
-            MTSHomeOnlineMain.SUPER_OFFER_CLOSE,
             MTSHomeOnlineMain.SUPER_OFFER_CLOSE_HOME,
             MTSHomeOnlineMain.SUPER_OFFER_CLOSE_MORE,
+            MTSHomeOnlineMain.SUPER_OFFER_CLOSE,
             MTSHomeOnlineMain.SUPER_OFFER_CLOSE_SECOND,
             MTSHomeOnlineMain.SUPER_OFFER_CLOSE_NEW,
+            MTSHomeOnlineMain.CLOSE_MORE_SIX,
             MTSHomeOnlineMain.CLOSE_MORE,
-            MTSHomeOnlineMain.CLOSE_MORE_SIX
         ]
 
-        # Пытаемся найти и нажать первую доступную кнопку
-        for button_locator in close_buttons:
-            if self.page.locator(button_locator).is_visible():
-                self.page.locator(button_locator).click()
-                break
+        # Пытаемся закрыть и верифицируем, что маркеры попапа исчезли.
+        for btn_sel in close_buttons:
+            clicked = self.click_if_visible(btn_sel, timeout_ms=800, click_timeout_ms=3000, force=True)
+            if not clicked:
+                continue
+            if not offer_markers:
+                return
+            # Ждём исчезновения хотя бы одного маркера; если не исчез — пробуем следующую кнопку
+            if any(self.wait_hidden(m, timeout_ms=4000) for m in offer_markers):
+                return
+
+        # Fallback: многие модалки закрываются по Escape
+        try:
+            self.page.keyboard.press("Escape")
+        except Exception:
+            pass
+        if offer_markers:
+            # Если попап всё ещё видим — это реальная проблема.
+            if any(self.is_visible(m, timeout_ms=500) for m in offer_markers):
+                raise AssertionError("Не удалось закрыть попап 'Выгодное спецпредложение': оверлей/модалка осталась видимой.")
 
 
 class MTSSecondOnlinePage(BasePage):

@@ -10,67 +10,67 @@ from locators.mts.mts_home_online import MTSHomeOnlineMain
 from pages.page_beel.beeline_page import BeelineOnlinePage,  BeelineInternetOnlinePage
 
 class TestForms:
-    # @pytest.mark.skip("Ожидает доработок")
-    # @allure.title("1. Отправка заявки из  попапа Выгодное спецпредложение! по нажатию фиксированной красной кнопки звонка в правом нижнем углу")
-    # def test_application_popup_super_offer_red_button(self, page_fixture, example_url):
-    #     page = page_fixture
-    #     page.goto(example_url)
-    #     mts_page = MtsHomeOnlinePage(page=page)
-    #     steps = MainSteps(page=page)
-    #     region_page = ChoiceRegionPage(page=page)
-    #     with allure.step("Проверка попапа 'Вы находитесь в городе Х' и закрытие при наличии"):
-    #         domru_page = DomRuClass(page=page)
-    #         try:
-    #             if page.locator(LocationPopup.YES_BUTTON).count() > 0:
-    #                 domru_page.close_popup_location()
-    #         except Exception:
-    #             pass
-    #     with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 10с)"):
-    #         try:
-    #             def strip_xpath(sel: str) -> str:
-    #                 return sel[len("xpath="):] if sel.startswith("xpath=") else sel
-    #             union_xpath = (
-    #                 f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
-    #                 f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
-    #                 f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
-    #             )
-    #             page.wait_for_selector(union_xpath, state="visible", timeout=15000)
-    #             region_page.close_popup_super_offer_all()
-    #         except Exception:
-    #             pass
-    #     steps.open_popup_for_colorful_button()
-    #     steps.send_popup_profit()
-    #     mts_page.check_sucess()
-    #     # Если стартовый URL уже был страницей /submitted, шаг закрытия thankyou пропускаем
-    #     try:
-    #         base_url = (example_url or "").split("?", 1)[0].rstrip("/")
-    #         if not (base_url.endswith("/submitted") or base_url.endswith("/thanks")):
-    #             mts_page.close_thankyou_page_sec()
-    #     except Exception:
-    #         # Не блокируем тест на случай неожиданных ошибок при проверке условия
-    #         mts_page.close_thankyou_page_sec()
-    #     # try:
-    #     #     if page.locator(LocationPopup.YES_BUTTON).count() > 0:
-    #     #         domru_page.close_popup_location()
-    #     # except Exception:
-    #     #     pass
-    #     # try:
-    #     #     if page.locator(LocationPopup.CLOSE_POPUP).count() > 0:
-    #     #         domru_page.close_popup()
-    #     # except Exception:
-    #     #     pass
-    #     steps.open_popup_for_colorful_button()
-    #     steps.button_change_city_profit()
-    #     region_page = ChoiceRegionPage(page=page)
-    #     with allure.step("Выбрать Воронеж"):
-    #         time.sleep(2)
-    #         region_page.fill_region_search_new("Воронеж")
-    #         region_page.verify_first_region_choice("Воронеж")
-    #         time.sleep(2)
-    #         region_page.select_first_region()
-    #     steps.send_popup_profit_second_house()
-    #     # mts_page.check_sucess()
-    #     mts_page.close_thankyou_page()
+    @pytest.mark.skip("Ожидает доработок")
+    @allure.title("1. Отправка заявки из  попапа Выгодное спецпредложение! по нажатию фиксированной красной кнопки звонка в правом нижнем углу")
+    def test_application_popup_super_offer_red_button(self, page_fixture, example_url):
+        page = page_fixture
+        page.goto(example_url)
+        mts_page = MtsHomeOnlinePage(page=page)
+        steps = MainSteps(page=page)
+        region_page = ChoiceRegionPage(page=page)
+        with allure.step("Проверка попапа 'Вы находитесь в городе Х' и закрытие при наличии"):
+            domru_page = DomRuClass(page=page)
+            try:
+                if page.locator(LocationPopup.YES_BUTTON).count() > 0:
+                    domru_page.close_popup_location()
+            except Exception:
+                pass
+        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 10с)"):
+            try:
+                def strip_xpath(sel: str) -> str:
+                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
+                union_xpath = (
+                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
+                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
+                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
+                )
+                page.wait_for_selector(union_xpath, state="visible", timeout=15000)
+                region_page.close_popup_super_offer_all()
+            except Exception:
+                pass
+        steps.open_popup_for_colorful_button()
+        steps.send_popup_profit()
+        mts_page.check_sucess()
+        # Если стартовый URL уже был страницей /submitted, шаг закрытия thankyou пропускаем
+        try:
+            base_url = (example_url or "").split("?", 1)[0].rstrip("/")
+            if not (base_url.endswith("/submitted") or base_url.endswith("/thanks")):
+                mts_page.close_thankyou_page_sec()
+        except Exception:
+            # Не блокируем тест на случай неожиданных ошибок при проверке условия
+            mts_page.close_thankyou_page_sec()
+        # try:
+        #     if page.locator(LocationPopup.YES_BUTTON).count() > 0:
+        #         domru_page.close_popup_location()
+        # except Exception:
+        #     pass
+        # try:
+        #     if page.locator(LocationPopup.CLOSE_POPUP).count() > 0:
+        #         domru_page.close_popup()
+        # except Exception:
+        #     pass
+        steps.open_popup_for_colorful_button()
+        steps.button_change_city_profit()
+        region_page = ChoiceRegionPage(page=page)
+        with allure.step("Выбрать Воронеж"):
+            time.sleep(2)
+            region_page.fill_region_search_new("Воронеж")
+            region_page.verify_first_region_choice("Воронеж")
+            time.sleep(2)
+            region_page.select_first_region()
+        steps.send_popup_profit_second_house()
+        mts_page.check_sucess_simple()
+        mts_page.close_thankyou_page()
 
     @allure.title("2.1 Отправка заявки из попапа  по кнопке Подключить (все кнопки на странице)")
     def test_application_popup_button_connect_first(self, page_fixture, connection_url):

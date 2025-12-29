@@ -620,9 +620,9 @@ class MainSteps(BasePage):
                     f"Не удалось выбрать первую подсказку улицы. Возможные причины: подсказки не подгрузились или изменился селектор. Детали: {e}"
                 )
             time.sleep(1)
-            # Пытаемся дом 1, при неудаче — 2, затем 3
+            # Пытаемся дом 1..9 (часто некоторые номера отсутствуют в подсказках на конкретном лендинге)
             tried_any = False
-            for num in ("1", "2", "3"):
+            for num in ("1", "2", "3", "4", "5", "6", "7", "8", "9"):
                 try:
                     self.page.locator(Profit.HOUSE).fill(num)
                     self._click_first_available_house()
@@ -631,7 +631,7 @@ class MainSteps(BasePage):
                 except Exception:
                     continue
             if not tried_any:
-                raise AssertionError("Не удалось указать дом (1, 2 или 3) в форме 'Выгодное спецпредложение!'.")
+                raise AssertionError("Не удалось указать дом (1..9) в форме 'Выгодное спецпредложение!'.")
             time.sleep(1)
             try:
                 self.page.locator(Profit.PHONE).fill("99999999999")
@@ -660,8 +660,18 @@ class MainSteps(BasePage):
                 )
             time.sleep(1)
             try:
-                self.page.locator(Profit.HOUSE).fill("2")
-                self._click_first_available_house()
+                house_input = self.page.locator(Profit.HOUSE)
+                # Пробуем дом 2..9 (часто некоторые номера отсутствуют в подсказках на конкретном лендинге)
+                for num in ("2", "3", "4", "5", "6", "7", "8", "9"):
+                    try:
+                        house_input.fill("")  # очистить
+                        house_input.fill(num)
+                        self._click_first_available_house()
+                        break
+                    except Exception:
+                        continue
+                else:
+                    raise AssertionError("Не удалось указать дом (2..9) в форме 'Выгодное спецпредложение!'.")
             except AssertionError as e:
                 raise
             except Exception as e:

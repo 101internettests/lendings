@@ -19,14 +19,21 @@ class DomRuClass(BasePage):
 
     @allure.title("Ответить в всплывашке, что нахожусь в Москве")
     def close_popup_location(self):
-        try:
-            self.page.locator(LocationPopup.YES_BUTTON).click()
-        except Exception as e:
+        # Важно: этот попап может появляться не всегда. Метод должен быть безопасен для вызова "на всякий случай".
+        header_visible = self.is_visible(getattr(LocationPopup, "POPUP_HEADER", LocationPopup.CHECK_LOCATION_POPUP), timeout_ms=1500)
+        yes_visible = self.is_visible(LocationPopup.YES_BUTTON, timeout_ms=1500)
+        if not (header_visible or yes_visible):
+            return
+
+        if not self.click_if_visible(LocationPopup.YES_BUTTON, timeout_ms=1500, click_timeout_ms=4000, force=True):
+            # Попап видим, но закрыть не смогли — это уже ошибка.
             raise AssertionError(
-                "Не удалось нажать кнопку 'Да' во всплывающем окне определения города.\n"
-                "Возможно, элемент недоступен, перекрыт или изменился селектор."
-                f"\nТехнические детали: {e}"
+                "Попап определения города видим, но не удалось нажать кнопку 'Да'.\n"
+                "Возможно, элемент перекрыт, disabled или изменился селектор."
             )
+
+        # Дожидаемся, что попап действительно закрылся (иначе следующие клики часто перехватываются оверлеем)
+        self.wait_hidden(getattr(LocationPopup, "POPUP_HEADER", LocationPopup.CHECK_LOCATION_POPUP), timeout_ms=5000)
 
     @allure.title("Ответить в всплывашке, что нахожусь не в Москве")
     def choose_msk_location(self):
