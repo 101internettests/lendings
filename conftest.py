@@ -97,6 +97,10 @@ def _load_state():
 
 def _save_state():
     try:
+        try:
+            _STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
         _STATE_FILE.write_text(json.dumps(_STATE, ensure_ascii=False, indent=2), encoding="utf-8")
     except Exception:
         pass
@@ -304,8 +308,8 @@ def _claim_flag(domain: str, error_key: str, kind: str = "single") -> bool:
     except FileExistsError:
         return False
     except Exception:
-        # If anything goes wrong, don't block alerts; return True only on success
-        return False
+        # If anything goes wrong, don't block alerts (better to duplicate than to miss).
+        return True
 
 
 def _pair_fail_flag_path(domain: str, error_key: str) -> Path:
@@ -1064,17 +1068,17 @@ def pytest_runtest_makereport(item, call):
                 # ВАЖНО: сначала узнаём, был ли инцидент активным ДО текущего падения
                 was_active = False
                 try:
-                    was_active = bool(_STATE.get("domain_errors", {}).get(domain or "—", {}).get(error_key, {}).get("active"))
+                    was_active = bool(_STATE.get("domain_errors", {}).get(alert_domain, {}).get(error_key, {}).get("active"))
                 except Exception:
                     was_active = False
                 if incident_url:
                     DOMAIN_ERROR_URLS[dom_key].add(incident_url)
                 # Отметить, что пара (домен, шаг) падала в этом прогоне (для корректных fixed в конце прогона при xdist)
                 try:
-                    _mark_pair_failed_this_run(domain or "—", error_key)
+                    _mark_pair_failed_this_run(alert_domain, error_key)
                 except Exception:
                     pass
-                ERROR_DOMAINS[error_key].add(domain or "—")
+                ERROR_DOMAINS[error_key].add(alert_domain)
                 # Привяжем тест к паре (домен, шаг) и к URL
                 try:
                     test_display_name = None
@@ -1177,8 +1181,8 @@ def pytest_runtest_makereport(item, call):
                             pass
                 # Теперь помечаем инцидент активным (для последующего "fixed")
                 try:
-                    if (domain or "—") and error_key:
-                        ent = _STATE.setdefault("domain_errors", {}).setdefault(domain or "—", {}).setdefault(error_key, {})
+                    if alert_domain and error_key:
+                        ent = _STATE.setdefault("domain_errors", {}).setdefault(alert_domain, {}).setdefault(error_key, {})
                         ent["active"] = True
                         ent["last_failed_at"] = _utc_iso()
                 except Exception:
@@ -1204,22 +1208,30 @@ def pytest_runtest_makereport(item, call):
             # Узнаём состояние ДО отметки
             was_active_setup = False
             try:
-                was_active_setup = bool(_STATE.get("domain_errors", {}).get(domain or "—", {}).get(error_key, {}).get("active"))
+                # Здесь важно использовать тот же домен, что и для алертов/агрегации (alert_domain),
+                # иначе fixed в конце прогона может сработать ошибочно.
+                was_active_setup = bool(_STATE.get("domain_errors", {}).get(alert_domain, {}).get(error_key, {}).get("active"))
             except Exception:
                 was_active_setup = False
             err_raw = str(call.excinfo.value) if call.excinfo else ""
             err_url = _extract_url_from_error_text(err_raw)
             incident_url = err_url or current_url
             alert_domain = _get_domain(incident_url) or (domain or "—")
+            dom_key = (alert_domain, error_key)
+            DOMAIN_ERROR_COUNTS[dom_key] += 1
+            if incident_url:
+                try:
+                    DOMAIN_ERROR_URLS[dom_key].add(incident_url)
+                except Exception:
+                    pass
             new_count = _inc_url_counter(incident_url)
             pair_count = _inc_pair_counter(alert_domain, error_key)
             try:
-                _mark_pair_failed_this_run(domain or "—", error_key)
+                _mark_pair_failed_this_run(alert_domain, error_key)
             except Exception:
                 pass
             # Привязка тестов к паре (домен, шаг) и к URL для setup/teardown падений
             try:
-                dom_key = (domain or "—", error_key)
                 test_display_name = None
                 try:
                     meta = TEST_META.get(item.nodeid) or {}
@@ -1228,6 +1240,13 @@ def pytest_runtest_makereport(item, call):
                     test_display_name = getattr(item, "name", None) or item.nodeid
                 if test_display_name:
                     DOMAIN_ERROR_TESTS[dom_key].add(test_display_name)
+                    try:
+                        file_path = str(getattr(item, "fspath", "") or "")
+                        if file_path:
+                            DOMAIN_ERROR_FILES[dom_key].add(file_path)
+                            TEST_NAME_FILES[test_display_name].add(file_path)
+                    except Exception:
+                        pass
                     if incident_url:
                         URL_ERROR_TESTS[incident_url].add(test_display_name)
             except Exception:
@@ -1272,8 +1291,8 @@ def pytest_runtest_makereport(item, call):
                     pass
             # Теперь пометить активным
             try:
-                if (domain or "—") and error_key:
-                    ent = _STATE.setdefault("domain_errors", {}).setdefault(domain or "—", {}).setdefault(error_key, {})
+                if alert_domain and error_key:
+                    ent = _STATE.setdefault("domain_errors", {}).setdefault(alert_domain, {}).setdefault(error_key, {})
                     ent["active"] = True
                     ent["last_failed_at"] = _utc_iso()
             except Exception:
