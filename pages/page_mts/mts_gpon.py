@@ -232,7 +232,7 @@ class MtsGponHomeOnlinePage(BasePage):
 
     @allure.title("Нажать на кнопку выбора региона в футере новый")
     def click_region_choice_button_futer_gpon_new(self):
-        region_button = self.page.locator(MskMtsMainWeb.REGION_CHOICE_GPON)
+        region_button = self.page.locator(RegionChoice.TELE_REGION_CHOICE_BUTTON)
         try:
             region_button.click()
         except Exception:
