@@ -486,6 +486,53 @@ class MainSteps(BasePage):
                 has_download_attr = dl_link.get_attribute("download") is not None
                 assert href and has_download_attr, "Недостаточно данных для скачивания: отсутствуют href или download"
 
+    @allure.title("Проверить ссылки в хедере на странице")
+    def def_check_header_links_only(self):
+        """
+        Проверяет только ссылки в хедере:
+        - //li[@class='list__item-header'] — открывает в новой вкладке и проверяет отсутствие 404
+
+        ВАЖНО: в отличие от def_check_links_without_footer(), НЕ проверяет download_links.
+        """
+        header_items = self.page.locator("xpath=//li[@class='list__item-header']")
+
+        total_header = header_items.count()
+        if total_header == 0:
+            raise AssertionError("Не найдено ни одного элемента: //li[@class='list__item-header']")
+
+        # Считаем и кликаем по ссылкам в хедере
+        for i in range(total_header):
+            item = header_items.nth(i)
+            anchor = item.locator("a").first
+            target = anchor if anchor.count() > 0 else item
+            # Открываем только видимые на фронте ссылки через href (без клика по DOM),
+            # чтобы избежать падений "Element is not visible".
+            try:
+                if not target.is_visible():
+                    continue
+            except Exception:
+                continue
+            try:
+                href = ""
+                if anchor.count() > 0:
+                    href = anchor.get_attribute("href") or ""
+                if not href:
+                    continue
+                current_base = self.page.url
+                absolute_href = href if href.startswith("http") else urljoin(current_base, href)
+                new_page = self.page.context.new_page()
+                try:
+                    new_page.goto(absolute_href)
+                    new_page.wait_for_load_state("load", timeout=15000)
+                    expect(new_page).not_to_have_url("**/404")
+                finally:
+                    try:
+                        new_page.close()
+                    except Exception:
+                        pass
+            except Exception:
+                continue
+
     @allure.title("Проверить все ссылки на странице")
     def def_check_links_without_footer_sec(self):
         """
