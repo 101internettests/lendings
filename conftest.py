@@ -863,6 +863,27 @@ def pytest_runtest_makereport(item, call):
             # Не мешаем основному ходу, если метаданные не удалось собрать
             pass
 
+    # IMPORTANT: pytest "skip" is not a failure.
+    # If a test is skipped (via @pytest.mark.skip, pytest.skip in fixtures, etc),
+    # do not treat it as failed for counters/alerts/Google Sheets logging.
+    try:
+        if call.excinfo is not None:
+            try:
+                skip_exc = getattr(getattr(pytest, "skip", None), "Exception", None)
+                if skip_exc is not None and call.excinfo.errisinstance(skip_exc):
+                    return
+            except Exception:
+                # Fallback: be conservative if we can't introspect the exception type
+                tname = ""
+                try:
+                    tname = str(getattr(call.excinfo, "typename", "") or "")
+                except Exception:
+                    tname = ""
+                if tname == "Skipped":
+                    return
+    except Exception:
+        pass
+
     # Update counters and possibly send immediate alerts on failure
     try:
         current_url = None
