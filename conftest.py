@@ -6,6 +6,7 @@ import json
 import threading
 import re
 from datetime import datetime
+import hashlib
 from urllib.parse import urlparse
 from pathlib import Path
 from collections import defaultdict
@@ -84,7 +85,7 @@ RESET_ERROR_COUNTERS_ON_START = _env_bool("RESET_ERROR_COUNTERS_ON_START", False
 # CI can override via ALERTS_STATE_PATH.
 ALERTS_STATE_PATH_ENV = os.getenv("ALERTS_STATE_PATH", "alerts_state.json").strip()
 _STATE_FILE = Path(ALERTS_STATE_PATH_ENV)
-_STATE = {"domain_errors": {}, "systemic_errors": {}}
+_STATE = {"domain_errors": {}, "systemic_errors": {}, "test_errors": {}}
 
 def _load_state():
     global _STATE
@@ -92,7 +93,7 @@ def _load_state():
         if _STATE_FILE.exists():
             _STATE = json.loads(_STATE_FILE.read_text(encoding="utf-8"))
     except Exception:
-        _STATE = {"domain_errors": {}, "systemic_errors": {}}
+        _STATE = {"domain_errors": {}, "systemic_errors": {}, "test_errors": {}}
 
 
 def _save_state():
@@ -107,6 +108,15 @@ def _save_state():
 
 
 _load_state()
+try:
+    # Backward-compat: older state files may not have new keys.
+    if not isinstance(_STATE, dict):
+        _STATE = {"domain_errors": {}, "systemic_errors": {}, "test_errors": {}}
+    _STATE.setdefault("domain_errors", {})
+    _STATE.setdefault("systemic_errors", {})
+    _STATE.setdefault("test_errors", {})
+except Exception:
+    pass
 
 
 # ==== Run-time aggregation structures ====
@@ -142,7 +152,7 @@ _RUN_LOG_PATH = Path(RUN_LOG_PATH_ENV)
 # ==== Persistent errors counter (external file) ====
 ERRORS_COUNT_PATH_ENV = os.getenv("ERRORS_COUNT_PATH", "errors_count.json").strip()
 _ERRORS_COUNT_PATH = Path(ERRORS_COUNT_PATH_ENV)
-_ERRORS_COUNT = {"by_domain": {}, "total": 0, "updated_at": None}
+_ERRORS_COUNT = {"by_domain": {}, "by_test": {}, "total": 0, "updated_at": None}
 
 
 def _load_errors_counter():
@@ -154,7 +164,7 @@ def _load_errors_counter():
             _save_errors_counter()
     except Exception:
         # keep in-memory defaults if file is unreadable
-        _ERRORS_COUNT = {"by_domain": {}, "total": 0, "updated_at": None}
+        _ERRORS_COUNT = {"by_domain": {}, "by_test": {}, "total": 0, "updated_at": None}
 
 
 def _save_errors_counter():
@@ -208,6 +218,39 @@ def _inc_pair_counter(domain: str | None, step: str | None) -> int:
         return int(dmap.get(step, 0))
     except Exception:
         return 0
+
+
+def _inc_test_counter(domain: str | None, test_name: str | None) -> int:
+    """Increment persistent counter for a specific (domain, test) incident across runs."""
+    try:
+        if not domain or not test_name:
+            return 0
+        by_test = _ERRORS_COUNT.setdefault("by_test", {})
+        dmap = by_test.setdefault(domain, {})
+        dmap[test_name] = int(dmap.get(test_name, 0)) + 1
+        _ERRORS_COUNT["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        _save_errors_counter()
+        return int(dmap.get(test_name, 0))
+    except Exception:
+        return 0
+
+
+def _reset_test_counter(domain: str | None, test_name: str | None) -> None:
+    """Reset/remove persistent error counter for a specific (domain, test)."""
+    try:
+        if not domain or not test_name:
+            return
+        by_test = _ERRORS_COUNT.setdefault("by_test", {})
+        dmap = by_test.setdefault(domain, {})
+        if test_name in dmap:
+            try:
+                del dmap[test_name]
+            except Exception:
+                dmap[test_name] = 0
+        _ERRORS_COUNT["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        _save_errors_counter()
+    except Exception:
+        pass
 
 
 _load_errors_counter()
@@ -369,7 +412,7 @@ def pytest_configure(config):
                     with open(reset_flag, "x", encoding="utf-8") as f:
                         f.write("1")
                     _ERRORS_COUNT.clear()
-                    _ERRORS_COUNT.update({"by_domain": {}, "by_url": {}, "by_pair": {}, "total": 0, "updated_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")})
+                    _ERRORS_COUNT.update({"by_domain": {}, "by_url": {}, "by_pair": {}, "by_test": {}, "total": 0, "updated_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")})
                     _save_errors_counter()
                 except FileExistsError:
                     pass
@@ -396,6 +439,44 @@ def pytest_configure_node(node):
         node.workerinput["alerts_run_id"] = rid
     except Exception:
         pass
+
+
+def _safe_flag_key(domain: str, name: str) -> str:
+    """Generate a short filesystem-friendly key (avoid very long filenames from test titles)."""
+    try:
+        base = slugify(f"{domain}-{name}") or "key"
+        base = base[:80]
+        h = hashlib.md5(f"{domain}|{name}".encode("utf-8"), usedforsecurity=False).hexdigest()[:8]
+        return f"{base}-{h}"
+    except Exception:
+        return slugify(f"{domain}-{name}") or "key"
+
+
+def _test_fail_flag_path(domain: str, test_name: str) -> Path:
+    safe = _safe_flag_key(domain, test_name)
+    return ALERTS_FLAG_DIR / f"seenfailtest-{safe}.flag"
+
+
+def _mark_test_failed_this_run(domain: str | None, test_name: str | None) -> None:
+    """Mark that (domain, test) failed somewhere in this run (xdist-safe via shared flag dir)."""
+    try:
+        if not domain or not test_name:
+            return
+        p = _test_fail_flag_path(domain, test_name)
+        try:
+            with open(p, "x", encoding="utf-8") as f:
+                f.write("1")
+        except FileExistsError:
+            return
+    except Exception:
+        pass
+
+
+def _test_failed_this_run(domain: str, test_name: str) -> bool:
+    try:
+        return _test_fail_flag_path(domain, test_name).exists()
+    except Exception:
+        return False
 
 
 def _now_str():
@@ -614,6 +695,64 @@ def _format_persistent_error_message(
     if SHOW_RUN_REPEAT_IN_ALERTS and run_repeats is not None:
         msg.append(f"🔁 Повтор (в этом прогоне): {run_repeats}")
     msg.append(f"🔁 Повтор (накопительно): {repeats_count}")
+    if REPORT_URL:
+        msg.append(f"🔎 Отчёт: {REPORT_URL}")
+    return "\n".join(msg)
+
+
+def _format_persistent_test_message(
+    form_title: str | None,
+    url: str | None,
+    test_name: str,
+    details: str | None,
+    domain: str,
+    repeats_count: int,
+    *,
+    last_step: str | None = None,
+    run_repeats: int | None = None,
+) -> str:
+    """Persistent failure message keyed by TEST (not by step)."""
+    form_part = form_title or ""
+    domain_for_msg = _get_domain(url) or (domain or "—")
+    msg: list[str] = []
+    msg.append(f"🚨 Ошибка автотеста формы {f'[{form_part}]' if form_part else ''}")
+    msg.append("")
+    msg.append(f"🕒 Время: {_now_str()}")
+    msg.append(f"🌐 Лендинг: {domain_for_msg}")
+    if url:
+        msg.append(f"🔗 URL: {url}")
+    msg.append(f"🧪 Тест: {test_name}")
+    if last_step:
+        msg.append(f"❌ Ошибка: Не выполнен шаг \"{last_step}\"")
+    if details:
+        msg.append(f"🔎 Детали: {details}")
+    if SHOW_RUN_REPEAT_IN_ALERTS and run_repeats is not None:
+        msg.append(f"🔁 Повтор (в этом прогоне): {run_repeats}")
+    msg.append(f"🔁 Повтор (накопительно): {repeats_count}")
+    if REPORT_URL:
+        msg.append(f"🔎 Отчёт: {REPORT_URL}")
+    return "\n".join(msg)
+
+
+def _format_fixed_test_message(
+    domain: str,
+    test_name: str,
+    sample_url: str | None = None,
+    *,
+    form_title: str | None = None,
+    last_step: str | None = None,
+) -> str:
+    form_part = form_title or test_name or ""
+    msg: list[str] = []
+    if last_step:
+        msg.append(f"✅ Ошибка автотеста формы {f'[{form_part}]' if form_part else ''} исправлена (шаг \"{last_step}\")")
+    else:
+        msg.append(f"✅ Ошибка автотеста формы {f'[{form_part}]' if form_part else ''} исправлена")
+    msg.append("")
+    msg.append(f"🕒 Время: {_now_str()}")
+    msg.append(f"🌐 Лендинг: {domain}")
+    if sample_url:
+        msg.append(f"🔗 URL: {sample_url}")
     if REPORT_URL:
         msg.append(f"🔎 Отчёт: {REPORT_URL}")
     return "\n".join(msg)
@@ -1001,72 +1140,8 @@ def pytest_runtest_makereport(item, call):
                 if item.nodeid not in _PASSED_NODEIDS:
                     RUN_PASSED += 1
                     _PASSED_NODEIDS.add(item.nodeid)
-                    # FIXED только для конкретной пары (домен, шаг), если она была активна и теперь прошла
-                    try:
-                        step_name_ok = _get_last_step_name() or ""
-                        if domain and step_name_ok:
-                            entry = _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(step_name_ok, {})
-                            was_active_fix = bool(entry.get("active"))
-                            if was_active_fix:
-                                # дедуп: один fixed на (домен, шаг) за прогон
-                                if _claim_flag(domain, f"fixed-domain-step-{step_name_ok}", kind="fixed"):
-                                    form_title_for_msg = None
-                                    test_display_name = None
-                                    try:
-                                        meta = TEST_META.get(item.nodeid) or {}
-                                        form_title_for_msg = meta.get("title")
-                                        test_display_name = form_title_for_msg or getattr(item, "name", None) or item.nodeid
-                                    except Exception:
-                                        test_display_name = getattr(item, "name", None) or item.nodeid
-                                    sample_url = None
-                                    try:
-                                        urls = sorted(list(DOMAIN_ERROR_URLS.get((domain, step_name_ok), set())))
-                                        if urls:
-                                            sample_url = urls[0]
-                                    except Exception:
-                                        sample_url = None
-                                    if not sample_url:
-                                        sample_url = current_url or None
-                                    msg = [
-                                        f"✅ Ошибка Не выполнен шаг \"{step_name_ok}\" автотеста формы {f'[{form_title_for_msg}]' if form_title_for_msg else ''} исправлена",
-                                        "",
-                                        f"🕒 Время: {_now_str()}",
-                                        f"🌐 Лендинг: {domain}",
-                                    ]
-                                    if sample_url:
-                                        msg.append(f"🔗 URL: {sample_url}")
-                                    if REPORT_URL:
-                                        msg.append(f"🔎 Отчёт: {REPORT_URL}")
-                                    _send_telegram_message("\n".join(msg))
-                                # снять активность и запомнить время фикса
-                                try:
-                                    entry["active"] = False
-                                    entry["last_fixed_at"] = _utc_iso()
-                                except Exception:
-                                    pass
-                                # Сбросить счётчики только по URL, где падала именно эта пара (домен, шаг), плюс текущий URL
-                                try:
-                                    urls_to_reset = list(DOMAIN_ERROR_URLS.get((domain, step_name_ok), set()))
-                                    if current_url:
-                                        urls_to_reset.append(current_url)
-                                    seen = set()
-                                    for u in urls_to_reset:
-                                        if not u or u in seen:
-                                            continue
-                                        seen.add(u)
-                                        _reset_url_counter(u)
-                                    # Сбросить счётчик пары (домен, шаг), чтобы следующий фейл снова был "1"
-                                    try:
-                                        by_pair = _ERRORS_COUNT.setdefault("by_pair", {})
-                                        dmap = by_pair.setdefault(domain, {})
-                                        if step_name_ok in dmap:
-                                            del dmap[step_name_ok]
-                                    except Exception:
-                                        pass
-                                except Exception:
-                                    pass
-                    except Exception:
-                        pass
+                    # FIXED по тесту отправляем только в конце прогона (pytest_sessionfinish),
+                    # чтобы не было ложных "упал -> сразу исправился" при параметризации/параллели.
             else:
                 # Если ранее считали как passed на call-этапе, корректируем
                 if item.nodeid in _PASSED_NODEIDS:
@@ -1152,10 +1227,10 @@ def pytest_runtest_makereport(item, call):
                     pass
 
                 # Persistent counters:
-                # - URL counter: how many times a конкретный URL падал (нужно для URL-fixed логики)
-                # - Pair counter: how many times падала пара (домен, шаг) вне зависимости от URL
+                # - URL counter: как часто падал конкретный URL (опционально)
+                # - Test counter: как часто падал конкретный тест на домене (основная логика алертов)
                 new_count = _inc_url_counter(incident_url)
-                pair_count = _inc_pair_counter(alert_domain, error_key)
+                test_repeats = _inc_test_counter(alert_domain, test_display_name or form_title or item.nodeid)
 
                 # Запись в Google Sheets (одна строка на тестовый пример / nodeid), с указанием номера повтора
                 try:
@@ -1168,44 +1243,49 @@ def pytest_runtest_makereport(item, call):
                             test_name_for_log = getattr(item, "name", None) or item.nodeid
                         # В отчёте/таблице "повтор" логичнее вести по паре (домен, шаг),
                         # иначе при смене URL счётчик выглядит "сломано".
-                        repeat_val = pair_count if incident_url else None
+                        repeat_val = test_repeats if incident_url else None
                         _append_error_row(incident_url or url_for_log, test_name_for_log or item.nodeid, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", repeat_val)
                         ERROR_LOGGED_NODEIDS.add(item.nodeid)
                 except Exception:
                     pass
-                # Отправляем негативный алерт по расписанию (1,4,10,20,...) для пары (домен, шаг).
-                # Раньше тут ошибочно использовался URL-счётчик, из-за чего "Повтор" выглядел некорректно.
-                if True:
-                    test_display_name = None
-                    try:
-                        test_display_name = form_title or getattr(item, "name", None) or item.nodeid
-                    except Exception:
-                        test_display_name = form_title
-                    if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(pair_count):
-                        # Отправим уведомление сразу по расписанию (1,4,10,20,...), дедуп по воркерам
-                        try:
-                            if _claim_flag(alert_domain, f"step-{error_key}-{pair_count}", kind="persist"):
-                                details = _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else None
-                                text = _format_persistent_error_message(
-                                    form_title=form_title,
-                                    url=incident_url,
-                                    step_name=step_name or error_key_raw,
-                                    details=details,
-                                    domain=alert_domain,
-                                    error_key=error_key,
-                                    repeats_count=pair_count,
-                                    test_name=test_display_name,
-                                    run_repeats=int(DOMAIN_ERROR_COUNTS.get(dom_key, 0)) if SHOW_RUN_REPEAT_IN_ALERTS else None,
-                                )
-                                _send_telegram_message(text)
-                        except Exception:
-                            pass
-                # Теперь помечаем инцидент активным (для последующего "fixed")
+                # Отправляем негативный алерт по расписанию (1,4,10,20,...) для ТЕСТА.
                 try:
-                    if alert_domain and error_key:
-                        ent = _STATE.setdefault("domain_errors", {}).setdefault(alert_domain, {}).setdefault(error_key, {})
-                        ent["active"] = True
-                        ent["last_failed_at"] = _utc_iso()
+                    test_key_name = test_display_name or form_title or item.nodeid
+                    # отметим, что этот тест падал в этом прогоне (для корректного fixed в конце прогона)
+                    _mark_test_failed_this_run(alert_domain, test_key_name)
+                except Exception:
+                    test_key_name = test_display_name or form_title or item.nodeid
+
+                if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(int(test_repeats)):
+                    try:
+                        if _claim_flag(alert_domain, f"test-{_safe_flag_key(alert_domain, test_key_name)}-{int(test_repeats)}", kind="persist_test"):
+                            details = _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else None
+                            text = _format_persistent_test_message(
+                                form_title=form_title,
+                                url=incident_url,
+                                test_name=test_key_name,
+                                details=details,
+                                domain=alert_domain,
+                                repeats_count=int(test_repeats),
+                                last_step=step_name or error_key_raw,
+                                run_repeats=int(TEST_FAIL_COUNTS.get(test_key_name, 0)) if SHOW_RUN_REPEAT_IN_ALERTS else None,
+                            )
+                            _send_telegram_message(text)
+                    except Exception:
+                        pass
+
+                # Теперь помечаем тест активным (для последующего "fixed")
+                try:
+                    test_ent = _STATE.setdefault("test_errors", {}).setdefault(alert_domain, {}).setdefault(test_key_name, {})
+                    test_ent["active"] = True
+                    test_ent["last_failed_at"] = _utc_iso()
+                    test_ent["last_step"] = step_name or error_key_raw
+                    if incident_url:
+                        urls = test_ent.setdefault("urls", [])
+                        if isinstance(urls, list):
+                            if incident_url not in urls:
+                                urls.append(incident_url)
+                            test_ent["urls"] = urls[-50:]
                 except Exception:
                     pass
         elif call.excinfo is not None and call.when in ("setup", "teardown"):
@@ -1246,9 +1326,9 @@ def pytest_runtest_makereport(item, call):
                 except Exception:
                     pass
             new_count = _inc_url_counter(incident_url)
-            pair_count = _inc_pair_counter(alert_domain, error_key)
             try:
-                _mark_pair_failed_this_run(alert_domain, error_key)
+                # setup/teardown failure also counts as "test failed this run"
+                pass
             except Exception:
                 pass
             # Привязка тестов к паре (домен, шаг) и к URL для setup/teardown падений
@@ -1281,41 +1361,53 @@ def pytest_runtest_makereport(item, call):
                         test_name_for_log = meta.get("title") or getattr(item, "name", None) or item.nodeid
                     except Exception:
                         test_name_for_log = getattr(item, "name", None) or item.nodeid
-                    _append_error_row(incident_url or url_for_log, test_name_for_log or item.nodeid, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", pair_count if incident_url else None)
+                    test_key_name = test_name_for_log or item.nodeid
+                    test_repeats = _inc_test_counter(alert_domain, test_key_name)
+                    _append_error_row(incident_url or url_for_log, test_key_name, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", test_repeats if incident_url else None)
                     ERROR_LOGGED_NODEIDS.add(item.nodeid)
             except Exception:
                 pass
-            # Отправляем негативный алерт по расписанию (1,4,10,20,...) для пары (домен, шаг)
-            if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(pair_count):
-                # Немедленная персональная отправка и для setup/teardown
+            # TG alert + mark active by TEST (setup/teardown)
+            try:
+                test_key_name = form_title or getattr(item, "name", None) or item.nodeid
+            except Exception:
+                test_key_name = form_title or item.nodeid
+            try:
+                _mark_test_failed_this_run(alert_domain, test_key_name)
+            except Exception:
+                pass
+            try:
+                # test_repeats may be set above if we logged; recompute if needed
+                test_repeats = int(_inc_test_counter(alert_domain, test_key_name))
+            except Exception:
+                test_repeats = 0
+            if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(int(test_repeats)):
                 try:
-                    if _claim_flag(alert_domain, f"step-{error_key}-{pair_count}", kind="persist"):
-                        test_display_name = None
-                        try:
-                            test_display_name = form_title or getattr(item, "name", None) or item.nodeid
-                        except Exception:
-                            test_display_name = form_title
+                    if _claim_flag(alert_domain, f"test-{_safe_flag_key(alert_domain, test_key_name)}-{int(test_repeats)}", kind="persist_test"):
                         details = _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else None
-                        text = _format_persistent_error_message(
+                        text = _format_persistent_test_message(
                             form_title=form_title,
                             url=incident_url,
-                            step_name=step_name or error_key_raw,
+                            test_name=test_key_name,
                             details=details,
                             domain=alert_domain,
-                            error_key=error_key,
-                            repeats_count=pair_count,
-                            test_name=test_display_name,
-                            run_repeats=int(DOMAIN_ERROR_COUNTS.get((alert_domain, error_key), 0)) if SHOW_RUN_REPEAT_IN_ALERTS else None,
+                            repeats_count=int(test_repeats),
+                            last_step=step_name or error_key_raw,
                         )
                         _send_telegram_message(text)
                 except Exception:
                     pass
-            # Теперь пометить активным
             try:
-                if alert_domain and error_key:
-                    ent = _STATE.setdefault("domain_errors", {}).setdefault(alert_domain, {}).setdefault(error_key, {})
-                    ent["active"] = True
-                    ent["last_failed_at"] = _utc_iso()
+                test_ent = _STATE.setdefault("test_errors", {}).setdefault(alert_domain, {}).setdefault(test_key_name, {})
+                test_ent["active"] = True
+                test_ent["last_failed_at"] = _utc_iso()
+                test_ent["last_step"] = step_name or error_key_raw
+                if incident_url:
+                    urls = test_ent.setdefault("urls", [])
+                    if isinstance(urls, list):
+                        if incident_url not in urls:
+                            urls.append(incident_url)
+                        test_ent["urls"] = urls[-50:]
             except Exception:
                 pass
     except Exception:
@@ -1717,101 +1809,52 @@ def pytest_sessionfinish(session, exitstatus):
 
         # Массовая логика удалена
 
-        # Mark active per-domain errors seen this run
-        seen_pairs = {(d, ek) for (d, ek) in DOMAIN_ERROR_COUNTS.keys()}
-        for (domain, error_key), cnt in list(DOMAIN_ERROR_COUNTS.items()):
-            entry = _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(error_key, {})
-            entry["active"] = True
-            entry["last_failed_at"] = _utc_iso()
-            # Сохраним URL-ы, на которых падала эта пара (домен, шаг), чтобы потом можно было сбрасывать счетчики при fixed
-            try:
-                urls = sorted(list(DOMAIN_ERROR_URLS.get((domain, error_key), set())))
-                if urls:
-                    entry_urls = entry.setdefault("urls", [])
-                    if not isinstance(entry_urls, list):
-                        entry_urls = []
-                    # добавим до 50 уникальных
-                    for u in urls:
-                        if u and u not in entry_urls:
-                            entry_urls.append(u)
-                    entry["urls"] = entry_urls[:50]
-            except Exception:
-                pass
-            # Сохраняем список тестов для пары (домен, шаг) для последующего "исправлена"
-            try:
-                tests = sorted(list(DOMAIN_ERROR_TESTS.get((domain, error_key), set())))[:5]
-                if tests:
-                    entry["tests"] = tests
-            except Exception:
-                pass
-
-        # FIXED в конце прогона (межпрогонный):
-        # шлём только если после последнего fixed был новый failed и в этом прогоне уже НЕ падало.
+        # FIXED по тесту в конце прогона (межпрогонный):
+        # шлём только если после последнего fixed был новый failed и в этом прогоне этот тест уже НЕ падал.
         try:
-            for domain, emap in list((_STATE.get("domain_errors", {}) or {}).items()):
-                for error_key, entry in list((emap or {}).items()):
+            for domain, tmap in list((_STATE.get("test_errors", {}) or {}).items()):
+                for test_name, entry in list((tmap or {}).items()):
                     try:
                         if not bool((entry or {}).get("active")):
                             continue
-                        # Если в этом прогоне где-то падало по этой паре — не фиксируем
-                        if _pair_failed_this_run(domain, error_key):
+                        if _test_failed_this_run(domain, test_name):
                             continue
-                        # Защита от повторных fixed каждый прогон: fixed только если был новый failed после последнего fixed
                         last_failed_at = str((entry or {}).get("last_failed_at") or "")
                         last_fixed_at = str((entry or {}).get("last_fixed_at") or "")
                         if not last_failed_at:
                             continue
                         if last_fixed_at and last_failed_at <= last_fixed_at:
                             continue
-                        # Дедуп: одна fixed на пару (домен, шаг) за прогон
-                        if not _claim_flag(domain, f"fixed-domain-step-{error_key}-end", kind="fixed"):
+                        if not _claim_flag(domain, f"fixed-test-{_safe_flag_key(domain, test_name)}-end", kind="fixed_test"):
                             continue
-                        # Соберём пример URL из сохранённых в состоянии
                         sample_url = None
                         try:
                             urls = (entry or {}).get("urls") or []
                             if isinstance(urls, list) and urls:
-                                sample_url = str(urls[0])
+                                sample_url = str(urls[-1])
                         except Exception:
                             sample_url = None
-                        form_title_for_msg = None
+                        last_step = None
                         try:
-                            tests = (entry or {}).get("tests") or []
-                            if isinstance(tests, list) and tests:
-                                form_title_for_msg = str(tests[0])
+                            last_step = str((entry or {}).get("last_step") or "") or None
                         except Exception:
-                            form_title_for_msg = None
-                        msg = [
-                            f"✅ Ошибка Не выполнен шаг \"{error_key}\" автотеста формы {f'[{form_title_for_msg}]' if form_title_for_msg else ''} исправлена",
-                            "",
-                            f"🕒 Время: {_now_str()}",
-                            f"🌐 Лендинг: {domain}",
-                        ]
-                        if sample_url:
-                            msg.append(f"🔗 URL: {sample_url}")
-                        if REPORT_URL:
-                            msg.append(f"🔎 Отчёт: {REPORT_URL}")
-                        _send_telegram_message("\n".join(msg))
-                        # деактивировать и сбросить счётчики
+                            last_step = None
+                        msg = _format_fixed_test_message(
+                            domain=domain,
+                            test_name=test_name,
+                            sample_url=sample_url,
+                            form_title=test_name,
+                            last_step=last_step,
+                        )
+                        _send_telegram_message(msg)
+                        # деактивировать и сбросить счётчик по тесту
                         try:
-                            _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(error_key, {})["active"] = False
-                            _STATE.setdefault("domain_errors", {}).setdefault(domain, {}).setdefault(error_key, {})["last_fixed_at"] = _utc_iso()
+                            _STATE.setdefault("test_errors", {}).setdefault(domain, {}).setdefault(test_name, {})["active"] = False
+                            _STATE.setdefault("test_errors", {}).setdefault(domain, {}).setdefault(test_name, {})["last_fixed_at"] = _utc_iso()
                         except Exception:
                             pass
                         try:
-                            # сброс пары
-                            by_pair = _ERRORS_COUNT.setdefault("by_pair", {})
-                            dmap = by_pair.setdefault(domain, {})
-                            if error_key in dmap:
-                                del dmap[error_key]
-                        except Exception:
-                            pass
-                        try:
-                            # сброс URL счётчиков по сохранённым url
-                            urls = (entry or {}).get("urls") or []
-                            if isinstance(urls, list):
-                                for u in urls:
-                                    _reset_url_counter(u)
+                            _reset_test_counter(domain, test_name)
                         except Exception:
                             pass
                     except Exception:
