@@ -655,18 +655,22 @@ class MainSteps(BasePage):
     def send_popup_profit(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
-                self.page.locator(Profit.STREET).type("Лен", delay=100)
+                street = self.page.locator(Profit.STREET)
+                street.click()
+                # fill быстрее, чем type с delay; дальше ждём подсказку явным ожиданием
+                street.fill("Лен")
             except Exception as e:
                 raise AssertionError(
                     f"Не удалось ввести улицу в форму 'Выгодное спецпредложение!'. Возможные причины: поле недоступно/не найдено. Детали: {e}"
                 )
             try:
+                # Дождаться появления подсказок вместо fixed sleep
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).wait_for(state="visible", timeout=7000)
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
             except Exception as e:
                 raise AssertionError(
                     f"Не удалось выбрать первую подсказку улицы. Возможные причины: подсказки не подгрузились или изменился селектор. Детали: {e}"
                 )
-            time.sleep(1)
             # Пытаемся дом 1..9 (часто некоторые номера отсутствуют в подсказках на конкретном лендинге)
             tried_any = False
             for num in ("1", "2", "3", "4", "5", "6", "7", "8", "9"):
@@ -679,33 +683,32 @@ class MainSteps(BasePage):
                     continue
             if not tried_any:
                 raise AssertionError("Не удалось указать дом (1..9) в форме 'Выгодное спецпредложение!'.")
-            time.sleep(1)
             try:
                 self.page.locator(Profit.PHONE).fill("99999999999")
             except Exception as e:
                 raise AssertionError(
                     f"Не удалось ввести телефон в форму 'Выгодное спецпредложение!'. Детали: {e}"
                 )
-            time.sleep(1)
             try:
                 self.page.locator(Profit.BUTTON_SEND).click()
             except Exception as e:
                 raise AssertionError(
                     f"Не удалось отправить форму 'Выгодное спецпредложение!'. Кнопка недоступна или не найдена. Детали: {e}"
                 )
-            time.sleep(4)
 
     @allure.title("Отправить заявку в попап 'Выгодное спецпредложение!' с домом 2")
     def send_popup_profit_second_house(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
-                self.page.locator(Profit.STREET).type("Лен", delay=100)
+                street = self.page.locator(Profit.STREET)
+                street.click()
+                street.fill("Лен")
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).wait_for(state="visible", timeout=7000)
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
             except Exception as e:
                 raise AssertionError(
                     f"Не удалось выбрать улицу/подсказку в форме 'Выгодное спецпредложение!'. Детали: {e}"
                 )
-            time.sleep(1)
             try:
                 house_input = self.page.locator(Profit.HOUSE)
                 # Пробуем дом 2..9 (часто некоторые номера отсутствуют в подсказках на конкретном лендинге)
@@ -725,7 +728,6 @@ class MainSteps(BasePage):
                 raise AssertionError(
                     f"Не удалось указать дом (вариант 2) в форме 'Выгодное спецпредложение!'. Детали: {e}"
                 )
-            time.sleep(1)
             try:
                 self.page.locator(Profit.PHONE).fill("99999999999")
                 self.page.locator(Profit.BUTTON_SEND).click()
@@ -733,7 +735,6 @@ class MainSteps(BasePage):
                 raise AssertionError(
                     f"Не удалось отправить форму 'Выгодное спецпредложение!' (дом 2). Детали: {e}"
                 )
-            time.sleep(4)
 
     def _click_first_available_house(self):
         try:
@@ -1373,7 +1374,7 @@ class MainSteps(BasePage):
     def send_popup_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
-                self.page.locator(Connection.STREET).fill('Лен')
+                self.page.locator(Connection.STREET).last.fill('Лен')
                 # self.page.locator(Connection.STREET).type("Лен", delay=50)
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
             except Exception as e:
@@ -1383,7 +1384,7 @@ class MainSteps(BasePage):
             try:
                 house_input = self.page.locator(Connection.HOUSE).first
                 # Пробуем дом 2, затем 1, затем 3
-                for num in ("2", "1", "3"):
+                for num in ("1", "3"):
                     try:
                         house_input.fill("")  # очистить
                         house_input.fill(num)

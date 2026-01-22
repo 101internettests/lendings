@@ -999,6 +999,24 @@ class MtsHomeOnlinePage(BasePage):
 
 
 class ChoiceRegionPage(BasePage):
+    def _wait_region_results_visible(self, timeout: int = 7000) -> None:
+        """Дождаться появления результатов в списке городов (без fixed sleep)."""
+        candidates = [
+            RegionChoice.FIRST_CHOICE,
+            "xpath=(//a[contains(@class,'region_item')])[1]",
+            "xpath=(//table[@class='city_list']//tbody//tr//td//a)[1]",
+            "xpath=(//div[contains(@class,'city_list')]//a)[1]",
+            "xpath=(//*[contains(@class,'region-search')]//a)[1]",
+        ]
+        for selector in candidates:
+            try:
+                loc = self.page.locator(selector).first
+                # Не делаем loc.count() (дорого и иногда "висит"), сразу ждём видимость.
+                loc.wait_for(state="visible", timeout=timeout)
+                return
+            except Exception:
+                continue
+
     @allure.title("Ввести текст в поле поиска региона")
     def fill_region_search(self, search_text):
         city_input = self.page.locator(RegionChoice.CITY_INPUT)
@@ -1009,7 +1027,11 @@ class ChoiceRegionPage(BasePage):
                 "Не удалось ввести текст в поле поиска региона.\n"
                 "Возможно, поле недоступно, скрыто или изменился селектор."
             )
-        time.sleep(2)
+        # Вместо fixed sleep — ждём появления результатов
+        try:
+            self._wait_region_results_visible(timeout=7000)
+        except Exception:
+            pass
 
     @allure.title("Ввести текст в поле поиска региона")
     def fill_region_search_new(self, search_text):
@@ -1021,7 +1043,11 @@ class ChoiceRegionPage(BasePage):
                 "Не удалось ввести текст в поле поиска региона (новая версия).\n"
                 "Возможно, поле недоступно, скрыто или изменился селектор."
             )
-        time.sleep(2)
+        # Вместо fixed sleep — ждём появления результатов
+        try:
+            self._wait_region_results_visible(timeout=7000)
+        except Exception:
+            pass
 
     @allure.title("Ввести текст в поле поиска региона")
     def fill_region_search_RTK(self, search_text):
@@ -1050,6 +1076,14 @@ class ChoiceRegionPage(BasePage):
                 if loc.count() == 0:
                     continue
                 loc.wait_for(state="visible", timeout=7000)
+                # Раньше expected_text никак не использовался; это могло маскировать неверный выбор города.
+                try:
+                    if expected_text:
+                        expect(loc).to_contain_text(str(expected_text), timeout=2000)
+                except Exception:
+                    raise AssertionError(
+                        f"Первый вариант региона не содержит ожидаемый текст '{expected_text}' или элемент недоступен."
+                    )
                 return loc
             except Exception:
                 continue
@@ -1082,7 +1116,12 @@ class ChoiceRegionPage(BasePage):
                 if loc.count() == 0:
                     continue
                 loc.click()
-                time.sleep(2)
+                # Вместо fixed sleep: обычно после выбора попап закрывается/инпут скрывается
+                try:
+                    self.page.locator(RegionChoice.NEW_CITY_INPUT).wait_for(state="hidden", timeout=7000)
+                except Exception:
+                    # Некоторые лендинги не скрывают инпут (или селектор другой) — не валим тест.
+                    pass
                 return
             except Exception:
                 continue
