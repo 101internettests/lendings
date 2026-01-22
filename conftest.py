@@ -988,6 +988,14 @@ def pytest_runtest_makereport(item, call):
     """
     Хук для перехвата ошибок и добавления информации о статус коде в Allure отчет
     """
+    # If the test is marked as skipped, it must never be treated as a failure for alerts/sheets/counters.
+    # This also prevents "last_step" leakage from previous tests in the same worker thread.
+    try:
+        if getattr(item, "get_closest_marker", None) is not None:
+            if item.get_closest_marker("skip") is not None:
+                return
+    except Exception:
+        pass
     # Фиксируем метаданные для тестов: на падениях (любой стадии) и на успешном выполнении call-этапа
     if (call.excinfo is not None and call.when in ("call", "setup", "teardown")) or (call.excinfo is None and call.when == "call"):
         try:
