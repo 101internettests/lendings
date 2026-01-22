@@ -316,6 +316,13 @@ try:
 except Exception:
     pass
 
+# Per-run worker logs (xdist): workers append failures here; master aggregates on sessionfinish.
+_FAILED_TESTS_DIR = ALERTS_FLAG_DIR / "failed_tests"
+try:
+    _FAILED_TESTS_DIR.mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
+
 
 def _reinit_flag_dir_from_env():
     """Re-initialize the flag directory based on current env (shared across xdist workers)."""
@@ -402,6 +409,13 @@ def pytest_configure(config):
                 rid = datetime.utcnow().strftime("%Y%m%d%H%M%S")
                 os.environ["ALERTS_RUN_ID"] = rid
         _reinit_flag_dir_from_env()
+        # Recreate per-run dirs after reinit (important for xdist workers)
+        try:
+            global _FAILED_TESTS_DIR
+            _FAILED_TESTS_DIR = ALERTS_FLAG_DIR / "failed_tests"
+            _FAILED_TESTS_DIR.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
 
         # Optional: reset persistent counters once per run (master only)
         try:
@@ -450,6 +464,32 @@ def _safe_flag_key(domain: str, name: str) -> str:
         return f"{base}-{h}"
     except Exception:
         return slugify(f"{domain}-{name}") or "key"
+
+
+def _worker_id() -> str:
+    try:
+        return os.getenv("PYTEST_XDIST_WORKER") or "master"
+    except Exception:
+        return "master"
+
+
+def _append_failed_test_record(domain: str, test_name: str, *, url: str | None, last_step: str | None, details: str | None) -> None:
+    """Append one failure record for this run (worker-safe). Master later aggregates for fixed logic."""
+    try:
+        rec = {
+            "ts": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "domain": domain,
+            "test": test_name,
+            "url": url or "",
+            "step": last_step or "",
+            "details": (_sanitize_error_text(details) or "")[:2000],
+            "worker": _worker_id(),
+        }
+        p = _FAILED_TESTS_DIR / f"{_worker_id()}.jsonl"
+        with p.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
 
 
 def _test_fail_flag_path(domain: str, test_name: str) -> Path:
@@ -726,8 +766,6 @@ def _format_persistent_test_message(
         msg.append(f"❌ Ошибка: Не выполнен шаг \"{last_step}\"")
     if details:
         msg.append(f"🔎 Детали: {details}")
-    if SHOW_RUN_REPEAT_IN_ALERTS and run_repeats is not None:
-        msg.append(f"🔁 Повтор (в этом прогоне): {run_repeats}")
     msg.append(f"🔁 Повтор (накопительно): {repeats_count}")
     if REPORT_URL:
         msg.append(f"🔎 Отчёт: {REPORT_URL}")
@@ -1156,7 +1194,9 @@ def pytest_runtest_makereport(item, call):
                 # используем его в сообщениях/табличке вместо URL прогона (лендинга).
                 err_raw = str(call.excinfo.value) if call.excinfo else ""
                 err_url = _extract_url_from_error_text(err_raw)
-                incident_url = err_url or current_url
+                # Prefer URL from error text (often the real failing navigation target),
+                # else use the test URL (param/page), else marker URL.
+                incident_url = err_url or current_url or url_for_log
                 # If the failure is about navigating to another URL, show/aggregate by that domain in alerts.
                 alert_domain = _get_domain(incident_url) or (domain or "—")
                 dom_key = (alert_domain, error_key)
@@ -1253,6 +1293,13 @@ def pytest_runtest_makereport(item, call):
                     test_key_name = test_display_name or form_title or item.nodeid
                     # отметим, что этот тест падал в этом прогоне (для корректного fixed в конце прогона)
                     _mark_test_failed_this_run(alert_domain, test_key_name)
+                    _append_failed_test_record(
+                        alert_domain,
+                        test_key_name,
+                        url=incident_url or url_for_log,
+                        last_step=step_name or error_key_raw,
+                        details=str(call.excinfo.value) if call.excinfo else None,
+                    )
                 except Exception:
                     test_key_name = test_display_name or form_title or item.nodeid
 
@@ -1262,13 +1309,12 @@ def pytest_runtest_makereport(item, call):
                             details = _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else None
                             text = _format_persistent_test_message(
                                 form_title=form_title,
-                                url=incident_url,
+                                url=incident_url or url_for_log,
                                 test_name=test_key_name,
                                 details=details,
                                 domain=alert_domain,
                                 repeats_count=int(test_repeats),
                                 last_step=step_name or error_key_raw,
-                                run_repeats=int(TEST_FAIL_COUNTS.get(test_key_name, 0)) if SHOW_RUN_REPEAT_IN_ALERTS else None,
                             )
                             _send_telegram_message(text)
                     except Exception:
@@ -1280,11 +1326,12 @@ def pytest_runtest_makereport(item, call):
                     test_ent["active"] = True
                     test_ent["last_failed_at"] = _utc_iso()
                     test_ent["last_step"] = step_name or error_key_raw
-                    if incident_url:
+                    if incident_url or url_for_log:
                         urls = test_ent.setdefault("urls", [])
                         if isinstance(urls, list):
-                            if incident_url not in urls:
-                                urls.append(incident_url)
+                            u = incident_url or url_for_log
+                            if u and u not in urls:
+                                urls.append(u)
                             test_ent["urls"] = urls[-50:]
                 except Exception:
                     pass
@@ -1316,7 +1363,8 @@ def pytest_runtest_makereport(item, call):
                 was_active_setup = False
             err_raw = str(call.excinfo.value) if call.excinfo else ""
             err_url = _extract_url_from_error_text(err_raw)
-            incident_url = err_url or current_url
+            # Prefer URL from error text, else the most relevant test URL (param/page), else marker URL.
+            incident_url = err_url or current_url or url_for_log
             alert_domain = _get_domain(incident_url) or (domain or "—")
             dom_key = (alert_domain, error_key)
             DOMAIN_ERROR_COUNTS[dom_key] += 1
@@ -1374,6 +1422,13 @@ def pytest_runtest_makereport(item, call):
                 test_key_name = form_title or item.nodeid
             try:
                 _mark_test_failed_this_run(alert_domain, test_key_name)
+                _append_failed_test_record(
+                    alert_domain,
+                    test_key_name,
+                    url=incident_url or url_for_log,
+                    last_step=step_name or error_key_raw,
+                    details=str(call.excinfo.value) if call.excinfo else None,
+                )
             except Exception:
                 pass
             try:
@@ -1387,7 +1442,7 @@ def pytest_runtest_makereport(item, call):
                         details = _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else None
                         text = _format_persistent_test_message(
                             form_title=form_title,
-                            url=incident_url,
+                            url=incident_url or url_for_log,
                             test_name=test_key_name,
                             details=details,
                             domain=alert_domain,
@@ -1402,11 +1457,12 @@ def pytest_runtest_makereport(item, call):
                 test_ent["active"] = True
                 test_ent["last_failed_at"] = _utc_iso()
                 test_ent["last_step"] = step_name or error_key_raw
-                if incident_url:
+                if incident_url or url_for_log:
                     urls = test_ent.setdefault("urls", [])
                     if isinstance(urls, list):
-                        if incident_url not in urls:
-                            urls.append(incident_url)
+                        u = incident_url or url_for_log
+                        if u and u not in urls:
+                            urls.append(u)
                         test_ent["urls"] = urls[-50:]
             except Exception:
                 pass
@@ -1807,17 +1863,66 @@ def pytest_sessionfinish(session, exitstatus):
         if not ALERTS_ENABLED:
             return
 
+        # xdist: only master should send fixed/summary and persist shared state,
+        # workers already sent failure alerts and wrote run-scoped records.
+        try:
+            if getattr(session.config, "workerinput", None) is not None:
+                return
+        except Exception:
+            pass
+
         # Массовая логика удалена
 
         # FIXED по тесту в конце прогона (межпрогонный):
         # шлём только если после последнего fixed был новый failed и в этом прогоне этот тест уже НЕ падал.
         try:
+            # First, merge "failed tests this run" from worker jsonl logs into persistent state.
+            failed_this_run: set[tuple[str, str]] = set()
+            try:
+                for fp in sorted(_FAILED_TESTS_DIR.glob("*.jsonl")):
+                    try:
+                        with fp.open("r", encoding="utf-8") as f:
+                            for line in f:
+                                line = (line or "").strip()
+                                if not line:
+                                    continue
+                                try:
+                                    rec = json.loads(line)
+                                except Exception:
+                                    continue
+                                d = str(rec.get("domain") or "").strip() or "—"
+                                t = str(rec.get("test") or "").strip()
+                                if not t:
+                                    continue
+                                failed_this_run.add((d, t))
+                                try:
+                                    ent = _STATE.setdefault("test_errors", {}).setdefault(d, {}).setdefault(t, {})
+                                    ent["active"] = True
+                                    ent["last_failed_at"] = _utc_iso()
+                                    step = str(rec.get("step") or "").strip()
+                                    if step:
+                                        ent["last_step"] = step
+                                    u = str(rec.get("url") or "").strip()
+                                    if u:
+                                        urls = ent.setdefault("urls", [])
+                                        if isinstance(urls, list):
+                                            if u not in urls:
+                                                urls.append(u)
+                                            ent["urls"] = urls[-50:]
+                                except Exception:
+                                    pass
+                    except Exception:
+                        continue
+            except Exception:
+                failed_this_run = set()
+
             for domain, tmap in list((_STATE.get("test_errors", {}) or {}).items()):
                 for test_name, entry in list((tmap or {}).items()):
                     try:
                         if not bool((entry or {}).get("active")):
                             continue
-                        if _test_failed_this_run(domain, test_name):
+                        # Prefer master-aggregated failures; fallback to flag check
+                        if (domain, test_name) in failed_this_run or _test_failed_this_run(domain, test_name):
                             continue
                         last_failed_at = str((entry or {}).get("last_failed_at") or "")
                         last_fixed_at = str((entry or {}).get("last_fixed_at") or "")
