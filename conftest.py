@@ -455,6 +455,41 @@ def pytest_configure_node(node):
         pass
 
 
+def _get_test_counter(domain: str | None, test_name: str | None) -> int:
+    """Get current persistent counter for a specific (domain, test)."""
+    try:
+        if not domain or not test_name:
+            return 0
+        by_test = _ERRORS_COUNT.get("by_test", {}) or {}
+        dmap = by_test.get(domain, {}) or {}
+        return int(dmap.get(test_name, 0))
+    except Exception:
+        return 0
+
+
+def _test_id(item) -> str:
+    """Unique test id for alerting/counters. Use nodeid to avoid collisions across same allure.title."""
+    try:
+        return str(getattr(item, "nodeid", "") or getattr(item, "name", "") or "")
+    except Exception:
+        return ""
+
+
+def _test_display_name(item, form_title: str | None) -> str:
+    """Human-friendly name for messages/sheets."""
+    try:
+        return str(form_title or getattr(item, "name", None) or getattr(item, "nodeid", None) or "—")
+    except Exception:
+        return str(form_title or "—")
+
+
+def _short_id(text: str, n: int = 8) -> str:
+    try:
+        return hashlib.md5(text.encode("utf-8"), usedforsecurity=False).hexdigest()[:n]
+    except Exception:
+        return "id"
+
+
 def _safe_flag_key(domain: str, name: str) -> str:
     """Generate a short filesystem-friendly key (avoid very long filenames from test titles)."""
     try:
@@ -1300,7 +1335,9 @@ def pytest_runtest_makereport(item, call):
                 # - URL counter: как часто падал конкретный URL (опционально)
                 # - Test counter: как часто падал конкретный тест на домене (основная логика алертов)
                 new_count = _inc_url_counter(incident_url)
-                test_repeats = _inc_test_counter(alert_domain, test_display_name or form_title or item.nodeid)
+                test_key_id = _test_id(item) or (test_display_name or form_title or item.nodeid)
+                test_disp = _test_display_name(item, form_title)
+                test_repeats = _inc_test_counter(alert_domain, test_key_id)
 
                 # Запись в Google Sheets (одна строка на тестовый пример / nodeid), с указанием номера повтора
                 try:
@@ -1314,13 +1351,14 @@ def pytest_runtest_makereport(item, call):
                         # В отчёте/таблице "повтор" логичнее вести по паре (домен, шаг),
                         # иначе при смене URL счётчик выглядит "сломано".
                         repeat_val = test_repeats if incident_url else None
-                        _append_error_row(incident_url or url_for_log, test_name_for_log or item.nodeid, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", repeat_val)
+                        sheet_name = f"{(test_name_for_log or test_disp)} [{_short_id(test_key_id)}]"
+                        _append_error_row(incident_url or url_for_log, sheet_name, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", repeat_val)
                         ERROR_LOGGED_NODEIDS.add(item.nodeid)
                 except Exception:
                     pass
                 # Отправляем негативный алерт по расписанию (1,4,10,20,...) для ТЕСТА.
                 try:
-                    test_key_name = test_display_name or form_title or item.nodeid
+                    test_key_name = test_key_id
                     # отметим, что этот тест падал в этом прогоне (для корректного fixed в конце прогона)
                     _mark_test_failed_this_run(alert_domain, test_key_name)
                     _append_failed_test_record(
@@ -1331,7 +1369,7 @@ def pytest_runtest_makereport(item, call):
                         details=str(call.excinfo.value) if call.excinfo else None,
                     )
                 except Exception:
-                    test_key_name = test_display_name or form_title or item.nodeid
+                    test_key_name = test_key_id
 
                 if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(int(test_repeats)):
                     try:
@@ -1340,7 +1378,7 @@ def pytest_runtest_makereport(item, call):
                             text = _format_persistent_test_message(
                                 form_title=form_title,
                                 url=incident_url or url_for_log,
-                                test_name=test_key_name,
+                                test_name=test_disp,
                                 details=details,
                                 domain=alert_domain,
                                 repeats_count=int(test_repeats),
@@ -1356,6 +1394,7 @@ def pytest_runtest_makereport(item, call):
                     test_ent["active"] = True
                     test_ent["last_failed_at"] = _utc_iso()
                     test_ent["last_step"] = step_name or error_key_raw
+                    test_ent["display_name"] = test_disp
                     if incident_url or url_for_log:
                         urls = test_ent.setdefault("urls", [])
                         if isinstance(urls, list):
@@ -1439,17 +1478,21 @@ def pytest_runtest_makereport(item, call):
                         test_name_for_log = meta.get("title") or getattr(item, "name", None) or item.nodeid
                     except Exception:
                         test_name_for_log = getattr(item, "name", None) or item.nodeid
-                    test_key_name = test_name_for_log or item.nodeid
-                    test_repeats = _inc_test_counter(alert_domain, test_key_name)
-                    _append_error_row(incident_url or url_for_log, test_key_name, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", test_repeats if incident_url else None)
+                    test_key_id = _test_id(item) or (test_name_for_log or item.nodeid)
+                    test_disp = _test_display_name(item, form_title)
+                    test_repeats = _inc_test_counter(alert_domain, test_key_id)
+                    sheet_name = f"{(test_name_for_log or test_disp)} [{_short_id(test_key_id)}]"
+                    _append_error_row(incident_url or url_for_log, sheet_name, _sanitize_error_text(str(call.excinfo.value)) if call.excinfo else "", test_repeats if incident_url else None)
                     ERROR_LOGGED_NODEIDS.add(item.nodeid)
             except Exception:
                 pass
             # TG alert + mark active by TEST (setup/teardown)
             try:
-                test_key_name = form_title or getattr(item, "name", None) or item.nodeid
+                test_key_name = _test_id(item) or (form_title or getattr(item, "name", None) or item.nodeid)
+                test_disp = _test_display_name(item, form_title)
             except Exception:
-                test_key_name = form_title or item.nodeid
+                test_key_name = _test_id(item) or (form_title or item.nodeid)
+                test_disp = _test_display_name(item, form_title)
             try:
                 _mark_test_failed_this_run(alert_domain, test_key_name)
                 _append_failed_test_record(
@@ -1462,8 +1505,10 @@ def pytest_runtest_makereport(item, call):
             except Exception:
                 pass
             try:
-                # test_repeats may be set above if we logged; recompute if needed
-                test_repeats = int(_inc_test_counter(alert_domain, test_key_name))
+                # IMPORTANT: do not increment twice on setup/teardown
+                test_repeats = int(_get_test_counter(alert_domain, test_key_name))
+                if test_repeats <= 0:
+                    test_repeats = int(_inc_test_counter(alert_domain, test_key_name))
             except Exception:
                 test_repeats = 0
             if (not SUPPRESS_PERSISTENT_ALERTS) and _should_notify_persistent(int(test_repeats)):
@@ -1473,7 +1518,7 @@ def pytest_runtest_makereport(item, call):
                         text = _format_persistent_test_message(
                             form_title=form_title,
                             url=incident_url or url_for_log,
-                            test_name=test_key_name,
+                            test_name=test_disp,
                             details=details,
                             domain=alert_domain,
                             repeats_count=int(test_repeats),
@@ -1487,6 +1532,7 @@ def pytest_runtest_makereport(item, call):
                 test_ent["active"] = True
                 test_ent["last_failed_at"] = _utc_iso()
                 test_ent["last_step"] = step_name or error_key_raw
+                test_ent["display_name"] = test_disp
                 if incident_url or url_for_log:
                     urls = test_ent.setdefault("urls", [])
                     if isinstance(urls, list):
@@ -1974,11 +2020,16 @@ def pytest_sessionfinish(session, exitstatus):
                             last_step = str((entry or {}).get("last_step") or "") or None
                         except Exception:
                             last_step = None
+                        display = None
+                        try:
+                            display = str((entry or {}).get("display_name") or "").strip() or None
+                        except Exception:
+                            display = None
                         msg = _format_fixed_test_message(
                             domain=domain,
-                            test_name=test_name,
+                            test_name=(display or test_name),
                             sample_url=sample_url,
-                            form_title=test_name,
+                            form_title=(display or test_name),
                             last_step=last_step,
                         )
                         _send_telegram_message(msg)

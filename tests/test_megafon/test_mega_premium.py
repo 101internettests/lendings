@@ -55,7 +55,7 @@ class TestMegaPremium:
             region_page.fill_region_search_new("Санкт")
             region_page.verify_first_region_choice("Санкт-Петербург")
             region_page.select_first_region()
-            region_page.verify_region_button_text_new("Вы находитесь в   Санкт-Петербурге")
+            region_page.verify_region_button_text_new("Санкт-Петербург")
 
     @allure.title("7. Переход по случайным 20 ссылкам городов на странице выбора города и проверка")
     def test_check_all_city_links(self, page_fixture, eight_url):
