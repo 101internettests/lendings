@@ -1143,7 +1143,37 @@ def pytest_runtest_makereport(item, call):
         except Exception:
             page_url = None
 
-        current_url = param_url or page_url
+        def _best_context_url(*vals: str | None) -> str | None:
+            """Pick the most specific URL among candidates (prefer non-root path / query)."""
+            try:
+                candidates = [v for v in vals if isinstance(v, str) and v.startswith("http")]
+                if not candidates:
+                    return None
+
+                def _score(u: str) -> int:
+                    score = 0
+                    try:
+                        p = urlparse(u)
+                        if (p.path or "") not in ("", "/"):
+                            score += 150
+                        if p.query:
+                            score += 20
+                    except Exception:
+                        pass
+                    score += min(len(u), 300)
+                    return score
+
+                return max(candidates, key=_score)
+            except Exception:
+                # Fallback to first non-empty
+                for v in vals:
+                    if isinstance(v, str) and v.startswith("http"):
+                        return v
+                return None
+
+        # Prefer the most specific URL: sometimes the test param is just a base domain,
+        # while page.url contains a city/path (more useful for alerts).
+        current_url = _best_context_url(param_url, page_url)
         domain = _get_domain(current_url)
 
         form_title = None
