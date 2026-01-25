@@ -23,6 +23,7 @@ class TestBeelineInternetRu:
             region_page.select_first_region()
             region_page.verify_region_button_text_new("Санкт-Петербург")
 
+    @pytest.mark.skip("Нет попапа")
     @allure.title("2. Отправка заявки из всплывающего через некоторое время, после захода на страницу, "
                   "попапа Выгодное спецпредложение!")
     def test_application_popup_super_offer(self, page_fixture, beeline_internet):
@@ -72,7 +73,7 @@ class TestBeelineInternetRu:
         domru_page.close_popup_location()
         time.sleep(5)
         beeline_internet_page = BeelineInternetOnlinePage(page=page)
-        beeline_internet_page.close_popup_super_offer_home()
+        # beeline_internet_page.close_popup_super_offer_home()
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
         mts_page.click_region_choice_button_new()

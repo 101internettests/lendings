@@ -1827,7 +1827,7 @@ class MainSteps(BasePage):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
                 street_input = self.page.locator(ExpressConnection.STREET)
-                street_input.click()
+                # street_input.click()
                 street_input.fill("")
                 street_input.type("Лен", delay=100)
                 # Автокомплит иногда появляется с задержкой; ждём и кликаем по первой подсказке
@@ -1897,7 +1897,7 @@ class MainSteps(BasePage):
             try:
                 house_input = self.page.locator(ExpressConnection.HOUSE)
                 # Пробуем дом 3, затем 4, затем 7 (часто некоторые номера отсутствуют в подсказках на конкретном лендинге)
-                for num in ("2", "3", "4","5","6" "7", "8"):
+                for num in ("2", "3", "4", "5", "6", "7", "8", "9", "1"):
                     try:
                         house_input.fill("")  # очистить
                         house_input.fill(num)
