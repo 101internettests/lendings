@@ -23,13 +23,12 @@ class TestMolMainRegionPage:
         mts_page.check_sucess()
         mts_page.close_thankyou_page()
 
-    # @pytest.mark.skip("Не хочет корректно проверять на сайте")
-    # @allure.title("3. Переход по всем ссылкам на странице домашнего интернета")
-    # def test_check_all_pages(self, page_fixture, base_url):
-    #     page = page_fixture
-    #     page.goto(base_url)
-    #     steps = MainSteps(page=page)
-    #     steps.def_check_header_links_only()
+    @allure.title("3. Переход по всем ссылкам на странице домашнего интернета")
+    def test_check_all_pages(self, page_fixture, base_url):
+        page = page_fixture
+        page.goto(base_url)
+        steps = MainSteps(page=page)
+        steps.def_check_header_links_only()
 
     @allure.title("4.1. Выбор региона СПб из хедера")
     def test_choose_region_header_spb(self, page_fixture, base_url):

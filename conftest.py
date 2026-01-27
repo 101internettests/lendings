@@ -323,6 +323,12 @@ try:
 except Exception:
     pass
 
+_EXECUTED_TESTS_DIR = ALERTS_FLAG_DIR / "executed_tests"
+try:
+    _EXECUTED_TESTS_DIR.mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
+
 
 def _reinit_flag_dir_from_env():
     """Re-initialize the flag directory based on current env (shared across xdist workers)."""
@@ -414,6 +420,12 @@ def pytest_configure(config):
             global _FAILED_TESTS_DIR
             _FAILED_TESTS_DIR = ALERTS_FLAG_DIR / "failed_tests"
             _FAILED_TESTS_DIR.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+        try:
+            global _EXECUTED_TESTS_DIR
+            _EXECUTED_TESTS_DIR = ALERTS_FLAG_DIR / "executed_tests"
+            _EXECUTED_TESTS_DIR.mkdir(parents=True, exist_ok=True)
         except Exception:
             pass
 
@@ -521,6 +533,23 @@ def _append_failed_test_record(domain: str, test_name: str, *, url: str | None, 
             "worker": _worker_id(),
         }
         p = _FAILED_TESTS_DIR / f"{_worker_id()}.jsonl"
+        with p.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
+def _append_executed_test_record(domain: str, test_name: str, *, url: str | None) -> None:
+    """Record that (domain, test) was actually executed in this run (for correct fixed logic)."""
+    try:
+        rec = {
+            "ts": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "domain": domain,
+            "test": test_name,
+            "url": url or "",
+            "worker": _worker_id(),
+        }
+        p = _EXECUTED_TESTS_DIR / f"{_worker_id()}.jsonl"
         with p.open("a", encoding="utf-8") as f:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     except Exception:
@@ -1253,6 +1282,11 @@ def pytest_runtest_makereport(item, call):
                     _PASSED_NODEIDS.add(item.nodeid)
                     # FIXED по тесту отправляем только в конце прогона (pytest_sessionfinish),
                     # чтобы не было ложных "упал -> сразу исправился" при параметризации/параллели.
+                    try:
+                        # Mark executed (pass) for correct fixed logic in master
+                        _append_executed_test_record(domain or "—", _test_id(item) or item.nodeid, url=current_url or url_for_log)
+                    except Exception:
+                        pass
             else:
                 # Если ранее считали как passed на call-этапе, корректируем
                 if item.nodeid in _PASSED_NODEIDS:
@@ -1369,6 +1403,7 @@ def pytest_runtest_makereport(item, call):
                     test_key_name = test_key_id
                     # отметим, что этот тест падал в этом прогоне (для корректного fixed в конце прогона)
                     _mark_test_failed_this_run(alert_domain, test_key_name)
+                    _append_executed_test_record(alert_domain, test_key_name, url=incident_url or url_for_log)
                     _append_failed_test_record(
                         alert_domain,
                         test_key_name,
@@ -1503,6 +1538,7 @@ def pytest_runtest_makereport(item, call):
                 test_disp = _test_display_name(item, form_title)
             try:
                 _mark_test_failed_this_run(alert_domain, test_key_name)
+                _append_executed_test_record(alert_domain, test_key_name, url=incident_url or url_for_log)
                 _append_failed_test_record(
                     alert_domain,
                     test_key_name,
@@ -1962,6 +1998,7 @@ def pytest_sessionfinish(session, exitstatus):
         try:
             # First, merge "failed tests this run" from worker jsonl logs into persistent state.
             failed_this_run: set[tuple[str, str]] = set()
+            executed_this_run: set[tuple[str, str]] = set()
             try:
                 for fp in sorted(_FAILED_TESTS_DIR.glob("*.jsonl")):
                     try:
@@ -2000,10 +2037,36 @@ def pytest_sessionfinish(session, exitstatus):
             except Exception:
                 failed_this_run = set()
 
+            # Also load "executed tests this run" (so we don't "fix" tests that weren't run)
+            try:
+                for fp in sorted(_EXECUTED_TESTS_DIR.glob("*.jsonl")):
+                    try:
+                        with fp.open("r", encoding="utf-8") as f:
+                            for line in f:
+                                line = (line or "").strip()
+                                if not line:
+                                    continue
+                                try:
+                                    rec = json.loads(line)
+                                except Exception:
+                                    continue
+                                d = str(rec.get("domain") or "").strip() or "—"
+                                t = str(rec.get("test") or "").strip()
+                                if not t:
+                                    continue
+                                executed_this_run.add((d, t))
+                    except Exception:
+                        continue
+            except Exception:
+                executed_this_run = set()
+
             for domain, tmap in list((_STATE.get("test_errors", {}) or {}).items()):
                 for test_name, entry in list((tmap or {}).items()):
                     try:
                         if not bool((entry or {}).get("active")):
+                            continue
+                        # Fixed is meaningful only if the test actually ran in this run.
+                        if (domain, test_name) not in executed_this_run:
                             continue
                         # Prefer master-aggregated failures; fallback to flag check
                         if (domain, test_name) in failed_this_run or _test_failed_this_run(domain, test_name):
