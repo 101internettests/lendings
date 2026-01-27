@@ -1647,7 +1647,7 @@ class MainSteps(BasePage):
                 raise
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось указать дом (вариант 2) в блоке 'Проверить адрес' (индекс {index}). Детали: {e}"
+                    f"Не удалось указать дом (вариант 2) в блоке 'Проверить адрес' (индекс {index}). "
                 )
             time.sleep(1)
             try:
@@ -1656,7 +1656,7 @@ class MainSteps(BasePage):
                 self.page.locator(CheckaddressPOP.BUTTON_SEND_SECOND).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось отправить форму в блоке 'Проверить адрес' (индекс {index}, вариант 2). Детали: {e}"
+                    f"Не удалось отправить форму в блоке 'Проверить адрес' (индекс {index}."
                 )
             time.sleep(4)
 
@@ -1668,7 +1668,7 @@ class MainSteps(BasePage):
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click(timeout=10000)
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось выбрать улицу/подсказку в форме 'Не определились с тарифом?' (индекс {index}). Детали: {e}"
+                    f"Не удалось выбрать улицу/подсказку в форме 'Не определились с тарифом?' (индекс {index})."
                 )
             time.sleep(1)
             try:
@@ -1678,7 +1678,7 @@ class MainSteps(BasePage):
                 raise
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось указать дом в форме 'Не определились с тарифом?' (индекс {index}). Детали: {e}"
+                    f"Не удалось указать дом в форме 'Не определились с тарифом?' (индекс {index})."
                 )
             time.sleep(1)
             try:
@@ -1687,7 +1687,7 @@ class MainSteps(BasePage):
                 self.page.locator(Undecided.BUTTON_SEND).nth(index - 1).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось отправить форму 'Не определились с тарифом?' (индекс {index}). Детали: {e}"
+                    f"Не удалось отправить форму 'Не определились с тарифом?' (индекс {index})."
                 )
             time.sleep(4)
 
@@ -1699,7 +1699,7 @@ class MainSteps(BasePage):
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось выбрать улицу/подсказку в форме 'Не определились с тарифом?' (индекс {index}). Детали: {e}"
+                    f"Не удалось выбрать улицу/подсказку в форме 'Не определились с тарифом?' (индекс {index})."
                 )
             time.sleep(1)
             try:
@@ -1709,7 +1709,7 @@ class MainSteps(BasePage):
                 raise
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось указать дом (вариант 2) в форме 'Не определились с тарифом?' (индекс {index}). Детали: {e}"
+                    f"Не удалось указать дом (вариант 2) в форме 'Не определились с тарифом?' (индекс {index})."
                 )
             time.sleep(1)
             try:
@@ -1718,7 +1718,7 @@ class MainSteps(BasePage):
                 self.page.locator(Undecided.BUTTON_SEND).nth(index - 1).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось отправить форму 'Не определились с тарифом?' (индекс {index}, вариант 2). Детали: {e}"
+                    "Не удалось отправить форму 'Не определились с тарифом?' (индекс {index}, вариант 2)."
                 )
             time.sleep(4)
 
@@ -1731,7 +1731,7 @@ class MainSteps(BasePage):
                 self.page.locator(Undecided.BUTTON_SEND).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось отправить форму 'Не определились с тарифом?' (короткая версия). Детали: {e}"
+                    "Не удалось отправить форму 'Не определились с тарифом?' (короткая версия)."
                 )
             time.sleep(4)
 
@@ -1742,21 +1742,21 @@ class MainSteps(BasePage):
                 self.page.locator(Business.FULL_ADDRESS).last.type("Тестадрес", delay=100)
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось ввести адрес в форме Бизнес. Детали: {e}"
+                    "Не удалось ввести адрес в форме Бизнес"
                 )
             time.sleep(1)
             try:
                 self.page.locator(Business.PHONE).last.fill("99999999999")
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось ввести телефон в форме Бизнес. Детали: {e}"
+                    "Не удалось ввести телефон в форме Бизнес"
                 )
             time.sleep(1)
             try:
                 self.page.locator(Business.BUTTON_SEND).last.click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось отправить форму Бизнес. Кнопка недоступна или не найдена. Детали: {e}"
+                    "Не удалось отправить форму Бизнес. Кнопка недоступна или не найдена"
                 )
             time.sleep(1)
 
@@ -1768,7 +1768,7 @@ class MainSteps(BasePage):
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось выбрать улицу/подсказку в форме 'Переезд'. Детали: {e}"
+                    "Не удалось выбрать улицу/подсказку в форме 'Переезд'"
                 )
             time.sleep(1)
             try:
@@ -1778,7 +1778,7 @@ class MainSteps(BasePage):
                 raise
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось указать дом в форме 'Переезд'. Детали: {e}"
+                    "Не удалось указать дом в форме 'Переезд'"
                 )
             time.sleep(1)
             try:
@@ -1787,7 +1787,7 @@ class MainSteps(BasePage):
                 self.page.locator(Moving.BUTTON_SEND).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось отправить форму 'Переезд'. Детали: {e}"
+                    "Не удалось отправить форму 'Переезд'."
                 )
             time.sleep(4)
 
@@ -1799,7 +1799,7 @@ class MainSteps(BasePage):
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось выбрать улицу/подсказку в форме 'Переезд' (вариант 2). Детали: {e}"
+                    "Не удалось выбрать улицу/подсказку в форме 'Переезд' (вариант 2)."
                 )
             time.sleep(1)
             try:
@@ -1809,7 +1809,7 @@ class MainSteps(BasePage):
                 raise
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось указать дом (вариант 2) в форме 'Переезд'. Детали: {e}"
+                    "Не удалось указать дом (вариант 2) в форме 'Переезд'."
                 )
             time.sleep(1)
             try:
@@ -1818,7 +1818,7 @@ class MainSteps(BasePage):
                 self.page.locator(Moving.BUTTON_SEND).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось отправить форму 'Переезд' (вариант 2). Детали: {e}"
+                    "Не удалось отправить форму 'Переезд' (вариант 2)."
                 )
             time.sleep(4)
 
@@ -1840,7 +1840,7 @@ class MainSteps(BasePage):
                     street_input.press("Enter")
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось выбрать улицу/подсказку в форме 'Экспресс подключение'. Детали: {e}"
+                    "Не удалось выбрать улицу/подсказку в форме 'Экспресс подключение'."
                 )
             time.sleep(1)
             try:
@@ -1860,7 +1860,7 @@ class MainSteps(BasePage):
                 raise
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось указать дом в форме 'Экспресс подключение'. Детали: {e}"
+                    "Не удалось указать дом в форме 'Экспресс подключение'."
                 )
             time.sleep(1)
             try:
@@ -1869,7 +1869,7 @@ class MainSteps(BasePage):
                 self.page.locator(ExpressConnection.BUTTON_SEND).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось отправить форму 'Экспресс подключение'. Детали: {e}"
+                    "Не удалось отправить форму 'Экспресс подключение'."
                 )
             time.sleep(2)
 
@@ -1891,7 +1891,7 @@ class MainSteps(BasePage):
                     street_input.press("Enter")
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось выбрать улицу/подсказку в форме 'Экспресс подключение' (вариант 2). Детали: {e}"
+                    "Не удалось выбрать улицу/подсказку в форме 'Экспресс подключение' (вариант 2)."
                 )
             time.sleep(1)
             try:
@@ -1911,7 +1911,7 @@ class MainSteps(BasePage):
                 raise
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось указать дом (вариант 2) в форме 'Экспресс подключение'. Детали: {e}"
+                    f"Не удалось указать дом (вариант 2) в форме 'Экспресс подключение'."
                 )
             time.sleep(1)
             try:
@@ -1920,7 +1920,7 @@ class MainSteps(BasePage):
                 self.page.locator(ExpressConnection.BUTTON_SEND).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось отправить форму 'Экспресс подключение' (вариант 2). Детали: {e}"
+                    "Не удалось отправить форму 'Экспресс подключение' (вариант 2)."
                 )
             time.sleep(2)
 
