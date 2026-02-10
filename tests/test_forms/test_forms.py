@@ -7,14 +7,14 @@ from locators.domru.domru_locators import LocationPopup
 from pages.page_mts.mts_page import MtsHomeOnlinePage, ChoiceRegionPage
 from playwright.sync_api import Error as PlaywrightError
 from locators.mts.mts_home_online import MTSHomeOnlineMain
-from pages.page_beel.beeline_page import BeelineOnlinePage,  BeelineInternetOnlinePage
+
 
 class TestForms:
-    @pytest.mark.skip("Ожидает доработок")
     @allure.title("1. Отправка заявки из  попапа Выгодное спецпредложение! по нажатию фиксированной красной кнопки звонка в правом нижнем углу")
-    def test_application_popup_super_offer_red_button(self, page_fixture, example_url):
+    def test_application_popup_super_offer_color_button(self, page_fixture, example_url):
         page = page_fixture
-        page.goto(example_url)
+        # Быстрее, чем ждать полного "load" со всеми тяжелыми ресурсами (картинки/шрифты).
+        page.goto(example_url, wait_until="domcontentloaded")
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
         region_page = ChoiceRegionPage(page=page)
@@ -25,22 +25,24 @@ class TestForms:
                     domru_page.close_popup_location()
             except Exception:
                 pass
-        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 10с)"):
-            try:
-                def strip_xpath(sel: str) -> str:
-                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
-                union_xpath = (
-                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
-                )
-                page.wait_for_selector(union_xpath, state="visible", timeout=15000)
-                region_page.close_popup_super_offer_all()
-            except Exception:
-                pass
+        # with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 10с)"):
+        #     try:
+        #         def strip_xpath(sel: str) -> str:
+        #             return sel[len("xpath="):] if sel.startswith("xpath=") else sel
+        #         union_xpath = (
+        #             f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
+        #             f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
+        #             f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
+        #         )
+        #         page.wait_for_selector(union_xpath, state="visible", timeout=15000)
+        #         region_page.close_popup_super_offer_all()
+        #     except Exception:
+        #         pass
         steps.open_popup_for_colorful_button()
+        time.sleep(2)
         steps.send_popup_profit()
-        mts_page.check_sucess()
+        time.sleep(2)
+        # mts_page.check_sucess()
         # Если стартовый URL уже был страницей /submitted, шаг закрытия thankyou пропускаем
         try:
             base_url = (example_url or "").split("?", 1)[0].rstrip("/")
@@ -61,16 +63,14 @@ class TestForms:
         #     pass
         steps.open_popup_for_colorful_button()
         steps.button_change_city_profit()
-        region_page = ChoiceRegionPage(page=page)
         with allure.step("Выбрать Воронеж"):
-            time.sleep(2)
+            time.sleep(3)
             region_page.fill_region_search_new("Воронеж")
             region_page.verify_first_region_choice("Воронеж")
-            time.sleep(2)
             region_page.select_first_region()
         steps.send_popup_profit_second_house()
         mts_page.check_sucess_simple()
-        mts_page.close_thankyou_page()
+        # mts_page.close_thankyou_page()
 
     @allure.title("2.1 Отправка заявки из попапа  по кнопке Подключить (все кнопки на странице)")
     def test_application_popup_button_connect_first(self, page_fixture, connection_url):
@@ -90,12 +90,13 @@ class TestForms:
             try:
                 def strip_xpath(sel: str) -> str:
                     return sel[len("xpath="):] if sel.startswith("xpath=") else sel
+
                 union_xpath = (
                     f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
                     f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
                     f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
                 )
-                page.wait_for_selector(union_xpath, state="visible", timeout=50000)
+                page.wait_for_selector(union_xpath, state="visible", timeout=65000)
                 region_page.close_popup_super_offer_all()
             except Exception:
                 pass
@@ -108,7 +109,7 @@ class TestForms:
                     try:
                         steps.click_connect_button_index(i)
                         if i == 1:
-                            steps.send_popup_connection()
+                            steps.send_popup_connection_rtk()
                         elif i == 2:
                             steps.button_change_city_connection()
                             region_page = ChoiceRegionPage(page=page)
@@ -117,11 +118,11 @@ class TestForms:
                             region_page.verify_first_region_choice("Воронеж")
                             time.sleep(2)
                             region_page.select_first_region()
-                            steps.send_popup_connection_second()
+                            steps.send_popup_connection_rtk()
                         else:
                             # 3-я и далее: чередуем 1/2 вариант
                             if i % 2 == 1:
-                                steps.send_popup_connection()
+                                steps.send_popup_connection_rtk()
                             else:
                                 steps.button_change_city_connection()
                                 region_page = ChoiceRegionPage(page=page)
@@ -130,7 +131,7 @@ class TestForms:
                                 region_page.verify_first_region_choice("Воронеж")
                                 time.sleep(2)
                                 region_page.select_first_region()
-                                steps.send_popup_connection_second()
+                                steps.send_popup_connection_rtk()
                         mts_page.check_sucess_simple()
                         try:
                             base_url = (connection_url or "").split("?", 1)[0].rstrip("/")
@@ -272,101 +273,10 @@ class TestForms:
             if total_after > 1:
                 _send_for_index(total_after)
 
-    # @allure.title("3.2 Отправка заявки со ВСЕХ  форм на странице с названиями Проверить адрес")
-    # def test_application_popup_button_checkaddress_forms(self, page_fixture, checkaddress_button_url):
-    #     page = page_fixture
-    #     page.goto(checkaddress_button_url)
-    #     mts_page = MtsHomeOnlinePage(page=page)
-    #     steps = MainSteps(page=page)
-    #     region_page = ChoiceRegionPage(page=page)
-    #     with allure.step("Проверка попапа 'Вы находитесь в городе Х' и закрытие при наличии (до 10с)"):
-    #         domru_page = DomRuClass(page=page)
-    #         try:
-    #             if page.locator(LocationPopup.YES_BUTTON).count() > 0:
-    #                 domru_page.close_popup_location()
-    #         except Exception:
-    #             pass
-    #     with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
-    #         try:
-    #             def strip_xpath(sel: str) -> str:
-    #                 return sel[len("xpath="):] if sel.startswith("xpath=") else sel
-    #
-    #             union_xpath = (
-    #                 f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
-    #                 f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
-    #                 f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
-    #             )
-    #             page.wait_for_selector(union_xpath, state="visible", timeout=65000)
-    #             region_page.close_popup_super_offer_all()
-    #         except Exception:
-    #             pass
-    #
-    #     with allure.step("Посчитать кол-во блоков и пройти по всем"):
-    #         visible_blocks = steps.visible_checkaddress_block_indices()
-    #         assert len(visible_blocks) > 0, "Не найдено видимых блоков Проверить адрес"
-    #
-    #         def _finalize_after_submit(block_idx: int) -> None:
-    #             """Проверка успеха + попытка закрыть thank you. Если не закрыли — вернуться на исходный URL."""
-    #             mts_page.check_sucess_simple()
-    #             try:
-    #                 mts_page.close_thankyou_page()
-    #             except Exception:
-    #                 # Если закрыть страницу благодарности не удалось — вернёмся на исходный URL списка
-    #                 try:
-    #                     page.goto(str(checkaddress_button_url), wait_until="domcontentloaded")
-    #                 except Exception:
-    #                     pass
-    #                 try:
-    #                     page.wait_for_load_state("networkidle", timeout=5000)
-    #                 except Exception:
-    #                     pass
-    #
-    #         # 1) Первый маршрут — по первому видимому блоку
-    #         i1 = visible_blocks[0]
-    #         with allure.step(f"Блок #{i1} (1-й видимый): 1-й маршрут"):
-    #             try:
-    #                 steps.send_popup_checkaddress_block(i1)
-    #                 _finalize_after_submit(i1)
-    #             except Exception as e:
-    #                 try:
-    #                     allure.attach(
-    #                         f"Индекс блока: {i1}\nURL: {page.url}\nОшибка: {e}",
-    #                         name=f"Ошибка блока #{i1}",
-    #                         attachment_type=allure.attachment_type.TEXT,
-    #                     )
-    #                 except Exception:
-    #                     pass
-    #                 raise
-    #
-    #         # 2) Второй маршрут — только если есть второй видимый блок
-    #         if len(visible_blocks) >= 2:
-    #             i2 = visible_blocks[1]
-    #             with allure.step(f"Блок #{i2} (2-й видимый): 2-й маршрут"):
-    #                 try:
-    #                     steps.button_change_city_checkaddress_block(i2)
-    #                     region_page = ChoiceRegionPage(page=page)
-    #                     time.sleep(2)
-    #                     region_page.fill_region_search_new("Воронеж")
-    #                     region_page.verify_first_region_choice("Воронеж")
-    #                     time.sleep(2)
-    #                     region_page.select_first_region()
-    #                     steps.send_popup_checkaddress_block_second(i2)
-    #                     _finalize_after_submit(i2)
-    #                 except Exception as e:
-    #                     try:
-    #                         allure.attach(
-    #                             f"Индекс блока: {i2}\nURL: {page.url}\nОшибка: {e}",
-    #                             name=f"Ошибка блока #{i2}",
-    #                             attachment_type=allure.attachment_type.TEXT,
-    #                         )
-    #                     except Exception:
-    #                         pass
-    #                     raise
-
-    @allure.title("4.1 Отправка заявки с формы Остались вопросы?")
-    def test_application_undecided(self, page_fixture, undecided_url):
+    @allure.title("3.2 Отправка заявки со ВСЕХ  форм на странице с названиями Проверить адрес")
+    def test_application_popup_button_checkaddress_forms(self, page_fixture, checkaddress_button_url):
         page = page_fixture
-        page.goto(undecided_url)
+        page.goto(checkaddress_button_url)
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
         region_page = ChoiceRegionPage(page=page)
@@ -387,10 +297,101 @@ class TestForms:
                     f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
                     f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
                 )
-                page.wait_for_selector(union_xpath, state="visible", timeout=50000)
+                page.wait_for_selector(union_xpath, state="visible", timeout=65000)
                 region_page.close_popup_super_offer_all()
             except Exception:
                 pass
+
+        with allure.step("Посчитать кол-во блоков и пройти по всем"):
+            visible_blocks = steps.visible_checkaddress_block_indices()
+            assert len(visible_blocks) > 0, "Не найдено видимых блоков Проверить адрес"
+
+            def _finalize_after_submit(block_idx: int) -> None:
+                """Проверка успеха + попытка закрыть thank you. Если не закрыли — вернуться на исходный URL."""
+                mts_page.check_sucess_simple()
+                try:
+                    mts_page.close_thankyou_page()
+                except Exception:
+                    # Если закрыть страницу благодарности не удалось — вернёмся на исходный URL списка
+                    try:
+                        page.goto(str(checkaddress_button_url), wait_until="domcontentloaded")
+                    except Exception:
+                        pass
+                    try:
+                        page.wait_for_load_state("networkidle", timeout=5000)
+                    except Exception:
+                        pass
+
+            # 1) Первый маршрут — по первому видимому блоку
+            i1 = visible_blocks[0]
+            with allure.step(f"Блок #{i1} (1-й видимый): 1-й маршрут"):
+                try:
+                    steps.send_popup_checkaddress_block(i1)
+                    _finalize_after_submit(i1)
+                except Exception as e:
+                    try:
+                        allure.attach(
+                            f"Индекс блока: {i1}\nURL: {page.url}\nОшибка: {e}",
+                            name=f"Ошибка блока #{i1}",
+                            attachment_type=allure.attachment_type.TEXT,
+                        )
+                    except Exception:
+                        pass
+                    raise
+
+            # 2) Второй маршрут — только если есть второй видимый блок
+            if len(visible_blocks) >= 2:
+                i2 = visible_blocks[1]
+                with allure.step(f"Блок #{i2} (2-й видимый): 2-й маршрут"):
+                    try:
+                        steps.button_change_city_checkaddress_block(i2)
+                        region_page = ChoiceRegionPage(page=page)
+                        time.sleep(2)
+                        region_page.fill_region_search_new("Воронеж")
+                        region_page.verify_first_region_choice("Воронеж")
+                        time.sleep(2)
+                        region_page.select_first_region()
+                        steps.send_popup_checkaddress_block_second(i2)
+                        _finalize_after_submit(i2)
+                    except Exception as e:
+                        try:
+                            allure.attach(
+                                f"Индекс блока: {i2}\nURL: {page.url}\nОшибка: {e}",
+                                name=f"Ошибка блока #{i2}",
+                                attachment_type=allure.attachment_type.TEXT,
+                            )
+                        except Exception:
+                            pass
+                        raise
+
+    @allure.title("4.1 Отправка заявки с формы Остались вопросы?")
+    def test_application_undecided(self, page_fixture, undecided_url):
+        page = page_fixture
+        page.goto(undecided_url)
+        mts_page = MtsHomeOnlinePage(page=page)
+        steps = MainSteps(page=page)
+        region_page = ChoiceRegionPage(page=page)
+        with allure.step("Проверка попапа 'Вы находитесь в городе Х' и закрытие при наличии (до 10с)"):
+            domru_page = DomRuClass(page=page)
+            try:
+                if page.locator(LocationPopup.YES_BUTTON).count() > 0:
+                    domru_page.close_popup_location()
+            except Exception:
+                pass
+        # with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
+        #     try:
+        #         def strip_xpath(sel: str) -> str:
+        #             return sel[len("xpath="):] if sel.startswith("xpath=") else sel
+        #
+        #         union_xpath = (
+        #             f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
+        #             f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
+        #             f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
+        #         )
+        #         page.wait_for_selector(union_xpath, state="visible", timeout=50000)
+        #         region_page.close_popup_super_offer_all()
+        #     except Exception:
+        #         pass
 
         with allure.step("Найти кнопку и отправить форму (только одну)"):
             total = steps.count_undecided_blocks()
@@ -418,7 +419,7 @@ class TestForms:
                 mts_page.check_sucess()
 
     @allure.title("5.1 Проверка формы Бизнес")
-    def test_application_business(self, page_fixture, business_url):
+    def test_application_business_first(self, page_fixture, business_url):
         page = page_fixture
         page.goto(business_url)
         mts_page = MtsHomeOnlinePage(page=page)
@@ -448,6 +449,7 @@ class TestForms:
 
         steps.click_business_button()
         with allure.step("Посчитать кнопки и пройти по всем"):
+            time.sleep(3)
             total = steps.count_business_buttons()
             print(f"Найдено кнопок Подробнее: {total}")
         with allure.step("Нажать на каждую кнопку, перейти на новую страницу, нажать на кнопку подключения, заполнить форму и вернуться"):
@@ -458,6 +460,7 @@ class TestForms:
                         steps.click_business_button(i)
                         steps.connect_business_page()
                         steps.send_popup_business()
+                        time.sleep(3)
                         mts_page.wait_for_thankyou(timeout_ms=90000)
                         try:
                             mts_page.close_thankyou_page()

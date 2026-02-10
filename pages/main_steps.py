@@ -661,7 +661,7 @@ class MainSteps(BasePage):
                 street.fill("Лен")
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось ввести улицу в форму 'Выгодное спецпредложение!'. Возможные причины: поле недоступно/не найдено. Детали: {e}"
+                    "Не удалось ввести улицу в форму 'Выгодное спецпредложение!'. Возможные причины: поле недоступно/не найдено."
                 )
             try:
                 # Дождаться появления подсказок вместо fixed sleep
@@ -669,7 +669,7 @@ class MainSteps(BasePage):
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось выбрать первую подсказку улицы. Возможные причины: подсказки не подгрузились или изменился селектор. Детали: {e}"
+                    "Не удалось выбрать первую подсказку улицы. Возможные причины: подсказки не подгрузились или изменился селектор."
                 )
             # Пытаемся дом 1..9 (часто некоторые номера отсутствуют в подсказках на конкретном лендинге)
             tried_any = False
@@ -687,13 +687,13 @@ class MainSteps(BasePage):
                 self.page.locator(Profit.PHONE).fill("99999999999")
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось ввести телефон в форму 'Выгодное спецпредложение!'. Детали: {e}"
+                    "Не удалось ввести телефон в форму 'Выгодное спецпредложение!'."
                 )
             try:
                 self.page.locator(Profit.BUTTON_SEND).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось отправить форму 'Выгодное спецпредложение!'. Кнопка недоступна или не найдена. Детали: {e}"
+                    "Не удалось отправить форму 'Выгодное спецпредложение!'. Кнопка недоступна или не найдена."
                 )
 
     @allure.title("Отправить заявку в попап 'Выгодное спецпредложение!' с домом 2")
@@ -707,7 +707,7 @@ class MainSteps(BasePage):
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось выбрать улицу/подсказку в форме 'Выгодное спецпредложение!'. Детали: {e}"
+                    "Не удалось выбрать улицу/подсказку в форме 'Выгодное спецпредложение!'."
                 )
             try:
                 house_input = self.page.locator(Profit.HOUSE)
@@ -726,14 +726,14 @@ class MainSteps(BasePage):
                 raise
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось указать дом (вариант 2) в форме 'Выгодное спецпредложение!'. Детали: {e}"
+                    "Не удалось указать дом (вариант 2) в форме 'Выгодное спецпредложение!'."
                 )
             try:
                 self.page.locator(Profit.PHONE).fill("99999999999")
                 self.page.locator(Profit.BUTTON_SEND).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось отправить форму 'Выгодное спецпредложение!' (дом 2). Детали: {e}"
+                    "Не удалось отправить форму 'Выгодное спецпредложение!' (дом 2)."
                 )
 
     def _click_first_available_house(self):
@@ -872,7 +872,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 "Не удалось нажать кнопку 'Изменить город' в блоке 'Проверить адрес'.\n"
                 "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Нажать на кнопку Изменить город")
@@ -883,7 +882,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 "Не удалось нажать кнопку 'Изменить город' в блоке 'Переезд'.\n"
                 "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Нажать на кнопку Изменить город")
@@ -894,7 +892,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 "Не удалось нажать кнопку 'Изменить город' в форме 'Экспресс подключение'.\n"
                 "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Нажать на кнопку Изменить город в блоке 'Остались вопросы?' по индексу (1-based)")
@@ -905,7 +902,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 f"Не удалось нажать кнопку 'Изменить город' в блоке 'Остались вопросы?' (индекс {index}).\n"
                 "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Нажать на кнопку Изменить город в блоке 'Проверить адрес' по индексу (1-based)")
@@ -920,7 +916,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 f"Не удалось нажать кнопку 'Изменить город' в блоке 'Проверить адрес' (индекс {index}).\n"
                 "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Закрыть попап")
@@ -931,7 +926,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 "Не удалось закрыть попап.\n"
                 "Возможно попап перекрыл экран, кнопка закрытия пропала или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Нажать на плавающую красную кнопку с телефоном в правом нижнем углу")
@@ -942,7 +936,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 "Не удалось нажать на плавающую красную кнопку (телефон) в правом нижнем углу.\n"
                 "Возможно элемент перекрыт попапом, скрыт или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Нажать на кнопку Подключиться в хедере")
@@ -954,7 +947,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 "Не удалось нажать кнопку 'Подключиться' в хедере.\n"
                 "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Проверить что окно открыто")
@@ -977,7 +969,6 @@ class MainSteps(BasePage):
         except Exception as e:
             raise AssertionError(
                 "Окно 'Экспресс подключение' не открылось: поле 'Улица' не найдено/не видно.\n"
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Посчитать количество кнопок 'Подключиться' (экспресс, видимые)")
@@ -998,7 +989,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 "Не удалось посчитать кнопки 'Подключиться' (экспресс, видимые).\n"
                 "Возможно элементы отсутствуют на странице или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Кликнуть на кнопку 'Подключиться' (экспресс) по индексу среди видимых (1-based)")
@@ -1025,7 +1015,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 f"Не удалось кликнуть по кнопке 'Подключиться' (экспресс) №{index} среди видимых.\n"
                 "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Кликнуть на кнопку Подключить по индексу (1-based)")
@@ -1037,7 +1026,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 f"Не удалось кликнуть по кнопке 'Подключить' №{index}.\n"
                 "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Кликнуть на кнопку Подключить по индексу (1-based)")
@@ -1065,7 +1053,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 f"Не удалось кликнуть по кнопке 'Подключить' (карточка) №{index} среди видимых.\n"
                 "Возможно элемент пропал или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Кликнуть на кнопку Проверить адрес по индексу (1-based)")
@@ -1077,7 +1064,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 f"Не удалось кликнуть по кнопке 'Проверить адрес' №{index}.\n"
                 "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Кликнуть на кнопку Проверить адрес по индексу среди видимых (1-based)")
@@ -1104,7 +1090,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 f"Не удалось кликнуть по кнопке 'Проверить адрес' №{index} среди видимых.\n"
                 "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Кликнуть на кнопку Переехать по индексу (1-based)")
@@ -1116,7 +1101,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 f"Не удалось кликнуть по кнопке 'Переехать' №{index}.\n"
                 "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Посчитать количество кнопок Подключить")
@@ -1127,7 +1111,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 "Не удалось посчитать кнопки 'Подключить'.\n"
                 "Возможно элементы отсутствуют на странице или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Посчитать количество кнопок Подключить")
@@ -1152,7 +1135,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 "Не удалось посчитать кнопки 'Подключить' в карточках (видимые).\n"
                 "Возможно элементы отсутствуют на странице или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Посчитать количество кнопок Проверить адрес")
@@ -1163,7 +1145,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 "Не удалось посчитать кнопки 'Проверить адрес' (попап).\n"
                 "Возможно элементы отсутствуют на странице или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Посчитать количество кнопок Проверить адрес (видимые)")
@@ -1184,7 +1165,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 "Не удалось посчитать кнопки 'Проверить адрес' (попап, видимые).\n"
                 "Возможно элементы отсутствуют на странице или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Посчитать количество блоков Проверить адрес")
@@ -1195,7 +1175,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 "Не удалось посчитать блоки 'Проверить адрес'.\n"
                 "Возможно элементы отсутствуют на странице или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Получить индексы видимых блоков 'Проверить адрес' (1-based)")
@@ -1245,7 +1224,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 "Не удалось посчитать блоки формы 'Остались вопросы?'.\n"
                 "Возможно элементы отсутствуют на странице или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Посчитать количество кнопок Переехать")
@@ -1256,7 +1234,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 "Не удалось посчитать кнопки 'Переехать'.\n"
                 "Возможно элементы отсутствуют на странице или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Посчитать количество кнопок Подробнее на странице бизнеса")
@@ -1288,7 +1265,6 @@ class MainSteps(BasePage):
             raise AssertionError(
                 "Не удалось посчитать кнопки 'Подробнее' на странице бизнеса (видимые).\n"
                 "Возможно элементы отсутствуют на странице или изменился селектор."
-                f"\nТехнические детали: {e}"
             )
 
     @allure.title("Клик по бизнес-кнопке: хедер или 'Подробнее' по индексу")
@@ -1379,7 +1355,7 @@ class MainSteps(BasePage):
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось выбрать улицу/подсказку в форме 'Заявка на подключение'. Детали: {e}"
+                    "Не удалось выбрать улицу/подсказку в форме 'Заявка на подключение'."
                 )
             try:
                 house_input = self.page.locator(Connection.HOUSE).first
@@ -1400,14 +1376,14 @@ class MainSteps(BasePage):
                 raise
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось указать дом в форме 'Заявка на подключение'. Детали: {e}"
+                    "Не удалось указать дом в форме 'Заявка на подключение'."
                 )
             try:
                 self.page.locator(Connection.PHONE).first.fill("99999999999")
                 self.page.locator(Connection.BUTTON_SEND).first.click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось отправить форму 'Заявка на подключение'. Детали: {e}"
+                    "Не удалось отправить форму 'Заявка на подключение'."
                 )
             time.sleep(4)
 
@@ -1420,7 +1396,7 @@ class MainSteps(BasePage):
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось выбрать улицу/подсказку в форме 'Заявка на подключение'. Детали: {e}"
+                    "Не удалось выбрать улицу/подсказку в форме 'Заявка на подключение'."
                 )
             try:
                 house_input = self.page.locator(Connection.HOUSE_LAST).last
@@ -1441,7 +1417,7 @@ class MainSteps(BasePage):
                 raise
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось указать дом в форме 'Заявка на подключение'. Детали: {e}"
+                    "Не удалось указать дом в форме 'Заявка на подключение'."
                 )
             try:
                 self.page.locator(Connection.NAME_LAST).last.fill("Тест")
@@ -1449,7 +1425,7 @@ class MainSteps(BasePage):
                 self.page.locator(Connection.BUTTON_SEND_LAST).last.click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось отправить форму 'Заявка на подключение'. Детали: {e}"
+                    "Не удалось отправить форму 'Заявка на подключение'."
                 )
             time.sleep(4)
 
@@ -1461,7 +1437,7 @@ class MainSteps(BasePage):
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось выбрать улицу/подсказку в форме 'Заявка на подключение' (вариант 2). Детали: {e}"
+                    "Не удалось выбрать улицу/подсказку в форме 'Заявка на подключение' (вариант 2)."
                 )
             time.sleep(1)
             try:
@@ -1481,7 +1457,7 @@ class MainSteps(BasePage):
                 raise
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось указать дом (вариант 2) в форме 'Заявка на подключение'. Детали: {e}"
+                    "Не удалось указать дом (вариант 2) в форме 'Заявка на подключение'."
                 )
             time.sleep(1)
             try:
@@ -1490,7 +1466,7 @@ class MainSteps(BasePage):
                 self.page.locator(Connection.BUTTON_SEND).last.click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось отправить форму 'Заявка на подключение' (вариант 2). Детали: {e}"
+                    "Не удалось отправить форму 'Заявка на подключение' (вариант 2)."
                 )
             time.sleep(4)
 
@@ -1502,7 +1478,7 @@ class MainSteps(BasePage):
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось выбрать улицу/подсказку в форме 'Проверить адрес'. Детали: {e}"
+                    "Не удалось выбрать улицу/подсказку в форме 'Проверить адрес'."
                 )
             time.sleep(1)
             try:
@@ -1522,7 +1498,7 @@ class MainSteps(BasePage):
                 raise
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось указать дом в форме 'Проверить адрес'. Детали: {e}"
+                    "Не удалось указать дом в форме 'Проверить адрес'."
                 )
             time.sleep(1)
             try:
@@ -1531,7 +1507,7 @@ class MainSteps(BasePage):
                 self.page.locator(Checkaddress.BUTTON_SEND).last.click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось отправить форму 'Проверить адрес'. Детали: {e}"
+                    "Не удалось отправить форму 'Проверить адрес'."
                 )
             time.sleep(4)
 
@@ -1543,7 +1519,7 @@ class MainSteps(BasePage):
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось выбрать улицу/подсказку в форме 'Проверить адрес' (вариант 2). Детали: {e}"
+                    "Не удалось выбрать улицу/подсказку в форме 'Проверить адрес' (вариант 2)."
                 )
             time.sleep(1)
             try:
@@ -1563,7 +1539,7 @@ class MainSteps(BasePage):
                 raise
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось указать дом (вариант 2) в форме 'Проверить адрес'. Детали: {e}"
+                    "Не удалось указать дом (вариант 2) в форме 'Проверить адрес'."
                 )
             time.sleep(1)
             try:
@@ -1572,7 +1548,7 @@ class MainSteps(BasePage):
                 self.page.locator(Checkaddress.BUTTON_SEND).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось отправить форму 'Проверить адрес' (вариант 2). Детали: {e}"
+                    "Не удалось отправить форму 'Проверить адрес' (вариант 2)."
                 )
             time.sleep(4)
 
@@ -1585,7 +1561,7 @@ class MainSteps(BasePage):
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось выбрать улицу/подсказку в блоке 'Проверить адрес' (индекс {index}). Детали: {e}"
+                    "Не удалось выбрать улицу/подсказку в блоке 'Проверить адрес' (индекс {index})."
                 )
             time.sleep(1)
             try:
@@ -1605,7 +1581,7 @@ class MainSteps(BasePage):
                 raise
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось указать дом в блоке 'Проверить адрес' (индекс {index}). Детали: {e}"
+                    "Не удалось указать дом в блоке 'Проверить адрес' (индекс {index})."
                 )
             time.sleep(1)
             try:
@@ -1614,7 +1590,7 @@ class MainSteps(BasePage):
                 self.page.locator(CheckaddressPOP.BUTTON_SEND_FIRST).click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось отправить форму в блоке 'Проверить адрес' (индекс {index}). Детали: {e}"
+                    "Не удалось отправить форму в блоке 'Проверить адрес' (индекс {index})."
                 )
             time.sleep(4)
 
@@ -1627,7 +1603,7 @@ class MainSteps(BasePage):
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click()
             except Exception as e:
                 raise AssertionError(
-                    f"Не удалось выбрать улицу/подсказку в блоке 'Проверить адрес' (индекс {index}). Детали: {e}"
+                    "Не удалось выбрать улицу/подсказку в блоке 'Проверить адрес' (индекс {index})."
                 )
             time.sleep(1)
             try:
