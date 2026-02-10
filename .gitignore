@@ -7,3 +7,6 @@
 __pycache__
 .vscode
 .venv
+/errors_count.json
+.alerts_state.json
+.run_summaries.jsonl
