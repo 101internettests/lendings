@@ -96,7 +96,7 @@ class TestForms:
                     f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
                     f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
                 )
-                page.wait_for_selector(union_xpath, state="visible", timeout=65000)
+                page.wait_for_selector(union_xpath, state="visible", timeout=50000)
                 region_page.close_popup_super_offer_all()
             except Exception:
                 pass

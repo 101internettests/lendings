@@ -822,9 +822,11 @@ def _format_persistent_test_message(
     msg.append(f"🚨 Ошибка автотеста формы {f'[{form_part}]' if form_part else ''}")
     msg.append("")
     msg.append(f"🕒 Время: {_now_str()}")
-    msg.append(f"🌐 Лендинг: {domain_for_msg}")
+    # Show the failing URL (more useful than just the landing domain).
     if url:
-        msg.append(f"🔗 URL: {url}")
+        msg.append(f"🌐 URL: {url}")
+    else:
+        msg.append(f"🌐 Лендинг: {domain_for_msg}")
     msg.append(f"🧪 Тест: {test_name}")
     if last_step:
         msg.append(f"❌ Ошибка: Не выполнен шаг \"{last_step}\"")
@@ -852,9 +854,10 @@ def _format_fixed_test_message(
         msg.append(f"✅ Ошибка автотеста формы {f'[{form_part}]' if form_part else ''} исправлена")
     msg.append("")
     msg.append(f"🕒 Время: {_now_str()}")
-    msg.append(f"🌐 Лендинг: {domain}")
     if sample_url:
-        msg.append(f"🔗 URL: {sample_url}")
+        msg.append(f"🌐 URL: {sample_url}")
+    else:
+        msg.append(f"🌐 Лендинг: {domain}")
     if REPORT_URL:
         msg.append(f"🔎 Отчёт: {REPORT_URL}")
     return "\n".join(msg)

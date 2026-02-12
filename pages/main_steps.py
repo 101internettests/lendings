@@ -1390,16 +1390,40 @@ class MainSteps(BasePage):
     @allure.title("Отправить заявку в попап 'Заявка на подключение'")
     def send_popup_connection_rtk(self):
         with allure.step("Заполнить попап и отправить заявку"):
+            def _pick_first_visible(loc, *, visible_timeout: int = 500):
+                """Вернуть первый видимый элемент из locator'а (то, что реально видно пользователю)."""
+                try:
+                    total = loc.count()
+                except Exception:
+                    total = 0
+                for idx in range(total):
+                    try:
+                        el = loc.nth(idx)
+                        if el.is_visible(timeout=visible_timeout):
+                            return el
+                    except Exception:
+                        continue
+                # Фолбэк: если определить видимость не удалось, попробуем первый
+                try:
+                    return loc.first
+                except Exception:
+                    return loc
+
             try:
-                self.page.locator(Connection.STREET_LAST).last.fill('Лен')
+                street_input = _pick_first_visible(self.page.locator(Connection.STREET_LAST))
+                street_input.fill('Лен')
                 # self.page.locator(Connection.STREET).type("Лен", delay=50)
+                try:
+                    self.page.locator(MTSHomeOnlineMain.FIRST_STREET).wait_for(state="visible", timeout=7000)
+                except Exception:
+                    pass
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
             except Exception as e:
                 raise AssertionError(
                     "Не удалось выбрать улицу/подсказку в форме 'Заявка на подключение'."
                 )
             try:
-                house_input = self.page.locator(Connection.HOUSE_LAST).last
+                house_input = _pick_first_visible(self.page.locator(Connection.HOUSE_LAST))
                 # Пробуем дом 2, затем 1, затем 3
                 for num in ("2", "1", "3"):
                     try:
@@ -1420,9 +1444,11 @@ class MainSteps(BasePage):
                     "Не удалось указать дом в форме 'Заявка на подключение'."
                 )
             try:
-                self.page.locator(Connection.NAME_LAST).last.fill("Тест")
-                self.page.locator(Connection.PHONE_LAST).last.fill("99999999999")
-                self.page.locator(Connection.BUTTON_SEND_LAST).last.click()
+                # self.page.locator(Connection.NAME_LAST).last.fill("Тест")
+                phone_input = _pick_first_visible(self.page.locator(Connection.PHONE_LAST))
+                phone_input.fill("99999999999")
+                send_btn = _pick_first_visible(self.page.locator(Connection.BUTTON_SEND_LAST))
+                send_btn.click(timeout=3000)
             except Exception as e:
                 raise AssertionError(
                     "Не удалось отправить форму 'Заявка на подключение'."
