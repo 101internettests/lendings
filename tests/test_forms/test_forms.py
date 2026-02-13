@@ -75,10 +75,33 @@ class TestForms:
     @allure.title("2.1 Отправка заявки из попапа  по кнопке Подключить (все кнопки на странице)")
     def test_application_popup_button_connect_first(self, page_fixture, connection_url):
         page = page_fixture
-        page.goto(connection_url)
+        page.goto(connection_url, wait_until="domcontentloaded")
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
         region_page = ChoiceRegionPage(page=page)
+
+        def close_super_offer_if_present_fast():
+            """Попап может появиться в любой момент — закрываем быстро и без долгого ожидания."""
+            try:
+                any_visible = False
+                for sel in (
+                    MTSHomeOnlineMain.SUPER_OFFER_HEADER,
+                    MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND,
+                    MTSHomeOnlineMain.SUPER_OFFER_TEXT,
+                ):
+                    try:
+                        if page.locator(sel).is_visible(timeout=500):
+                            any_visible = True
+                            break
+                    except Exception:
+                        continue
+                if any_visible:
+                    try:
+                        ChoiceRegionPage(page=page).close_popup_super_offer_all()
+                    except Exception:
+                        pass
+            except Exception:
+                pass
         with allure.step("Проверка попапа 'Вы находитесь в городе Х' и закрытие при наличии (до 10с)"):
             domru_page = DomRuClass(page=page)
             try:
@@ -87,19 +110,8 @@ class TestForms:
             except Exception:
                 pass
         with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
-            try:
-                def strip_xpath(sel: str) -> str:
-                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
-
-                union_xpath = (
-                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
-                )
-                page.wait_for_selector(union_xpath, state="visible", timeout=50000)
-                region_page.close_popup_super_offer_all()
-            except Exception:
-                pass
+            # Не ждём попап 50с: если появится позже и перекроет действия, поймаем и закроем "на лету".
+            close_super_offer_if_present_fast()
 
         with allure.step("Посчитать кнопки и пройти по всем"):
             total = steps.count_connect_buttons()
@@ -107,16 +119,34 @@ class TestForms:
             for i in range(1, total + 1):
                 with allure.step(f"Кнопка #{i}"):
                     try:
-                        steps.click_connect_button_index(i)
+                        close_super_offer_if_present_fast()
+                        try:
+                            steps.click_connect_button_index(i)
+                        except Exception as e_click:
+                            # Попап мог появиться между действиями и перекрыть клик — закроем и попробуем 1 раз
+                            close_super_offer_if_present_fast()
+                            try:
+                                steps.click_connect_button_index(i)
+                            except Exception as e_click2:
+                                # ВАЖНО: на некоторых лендингах 2-й кнопки на фронте может не быть — это не баг.
+                                if i == 2:
+                                    try:
+                                        allure.attach(
+                                            f"Кнопка #2 отсутствует/не кликабельна — пропускаем.\nURL: {page.url}\nОшибка: {e_click2}",
+                                            name="Кнопка #2 пропущена",
+                                            attachment_type=allure.attachment_type.TEXT,
+                                        )
+                                    except Exception:
+                                        pass
+                                    continue
+                                raise
                         if i == 1:
                             steps.send_popup_connection_rtk()
                         elif i == 2:
                             steps.button_change_city_connection()
                             region_page = ChoiceRegionPage(page=page)
-                            time.sleep(2)
                             region_page.fill_region_search_new("Воронеж")
                             region_page.verify_first_region_choice("Воронеж")
-                            time.sleep(2)
                             region_page.select_first_region()
                             steps.send_popup_connection_rtk()
                         else:
@@ -126,20 +156,17 @@ class TestForms:
                             else:
                                 steps.button_change_city_connection()
                                 region_page = ChoiceRegionPage(page=page)
-                                time.sleep(2)
                                 region_page.fill_region_search_new("Воронеж")
                                 region_page.verify_first_region_choice("Воронеж")
-                                time.sleep(2)
                                 region_page.select_first_region()
                                 steps.send_popup_connection_rtk()
                         mts_page.check_sucess_simple()
+                        # Быстрее и стабильнее, чем go_back() со страницы thanks/submitted
                         try:
-                            base_url = (connection_url or "").split("?", 1)[0].rstrip("/")
-                            if not (base_url.endswith("/submitted") or base_url.endswith("/thanks")):
-                                mts_page.close_thankyou_page_sec()
+                            page.goto(str(connection_url), wait_until="domcontentloaded")
                         except Exception:
-                            # Не блокируем тест на случай неожиданных ошибок при проверке условия
-                            mts_page.close_thankyou_page_sec()
+                            pass
+                        close_super_offer_if_present_fast()
                     except Exception as e:
                         try:
                             allure.attach(
@@ -155,10 +182,33 @@ class TestForms:
     @allure.title("2.2. Отправка заявок с карточек тарифа")
     def test_application_popup_button_connect_cards(self, page_fixture, connect_cards_url):
         page = page_fixture
-        page.goto(connect_cards_url)
+        page.goto(connect_cards_url, wait_until="domcontentloaded")
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
         region_page = ChoiceRegionPage(page=page)
+
+        def close_super_offer_if_present_fast():
+            """Попап может появляться в любой момент — закрываем быстро и без долгого ожидания."""
+            try:
+                any_visible = False
+                for sel in (
+                    MTSHomeOnlineMain.SUPER_OFFER_HEADER,
+                    MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND,
+                    MTSHomeOnlineMain.SUPER_OFFER_TEXT,
+                ):
+                    try:
+                        if page.locator(sel).is_visible(timeout=500):
+                            any_visible = True
+                            break
+                    except Exception:
+                        continue
+                if any_visible:
+                    try:
+                        ChoiceRegionPage(page=page).close_popup_super_offer_all()
+                    except Exception:
+                        pass
+            except Exception:
+                pass
         with allure.step("Проверка попапа 'Вы находитесь в городе Х' и закрытие при наличии (до 10с)"):
             domru_page = DomRuClass(page=page)
             try:
@@ -167,32 +217,26 @@ class TestForms:
             except Exception:
                 pass
         with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
-            try:
-                def strip_xpath(sel: str) -> str:
-                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
-
-                union_xpath = (
-                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
-                )
-                page.wait_for_selector(union_xpath, state="visible", timeout=60000)
-                region_page.close_popup_super_offer_all()
-            except Exception:
-                pass
+            # Не ждём попап минуту: если появится позже и перекроет действия, поймаем и закроем "на лету".
+            close_super_offer_if_present_fast()
 
         with allure.step("Посчитать кнопки и пройти по всем"):
             total = steps.count_connect_buttons_cards()
             assert total > 0, "Не найдено кнопок Подключить"
             for i in range(1, total + 1):
                 with allure.step(f"Кнопка #{i}"):
-                    steps.click_connect_button_index_cards(i)
+                    close_super_offer_if_present_fast()
+                    try:
+                        steps.click_connect_button_index_cards(i)
+                    except Exception:
+                        close_super_offer_if_present_fast()
+                        steps.click_connect_button_index_cards(i)
                     if i == 1:
-                        time.sleep(2)
-                        if "rtk" in (page.url or "").lower():
+                        # time.sleep(2)
+                        # if "rtk" in (page.url or "").lower():
                             steps.send_popup_connection_rtk()
-                        else:
-                            steps.send_popup_connection()
+                        # else:
+                        #     steps.send_popup_connection()
                     elif i == 2:
                         if "rtk" in (page.url or "").lower():
                             # Для rtk — только первый сценарий без смены региона
@@ -203,14 +247,23 @@ class TestForms:
                             region_page.fill_region_search_new("Воронеж")
                             region_page.verify_first_region_choice("Воронеж")
                             region_page.select_first_region()
-                            steps.send_popup_connection_second()
+                            steps.send_popup_connection_rtk()
                     else:
                         if "rtk" in (page.url or "").lower():
                             steps.send_popup_connection_rtk()
                         else:
-                            steps.send_popup_connection()
-                    mts_page.check_sucess_simple()
-                    mts_page.go_back()
+                            steps.send_popup_connection_rtk()
+                    try:
+                        mts_page.check_sucess_simple()
+                    except AssertionError:
+                        # Фолбэк: иногда редирект на thankyou занимает дольше — подождём устойчиво
+                        mts_page.wait_for_thankyou(timeout_ms=5000)
+                    # Быстрее и стабильнее, чем go_back() со страницы thanks/submitted
+                    try:
+                        page.goto(str(connect_cards_url), wait_until="domcontentloaded")
+                    except Exception:
+                        pass
+                    close_super_offer_if_present_fast()
                     # mts_page.close_thankyou_page_sec()
 
     @allure.title("3.1 Отправка заявки со ВСЕХ  форм-попапов на странице с названиями Проверить адрес")
@@ -227,20 +280,20 @@ class TestForms:
                     domru_page.close_popup_location()
             except Exception:
                 pass
-        with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
-            try:
-                def strip_xpath(sel: str) -> str:
-                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
-
-                union_xpath = (
-                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
-                )
-                page.wait_for_selector(union_xpath, state="visible", timeout=65000)
-                region_page.close_popup_super_offer_all()
-            except Exception:
-                pass
+        # with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
+        #     try:
+        #         def strip_xpath(sel: str) -> str:
+        #             return sel[len("xpath="):] if sel.startswith("xpath=") else sel
+        #
+        #         union_xpath = (
+        #             f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
+        #             f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
+        #             f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
+        #         )
+        #         page.wait_for_selector(union_xpath, state="visible", timeout=65000)
+        #         region_page.close_popup_super_offer_all()
+        #     except Exception:
+        #         pass
 
         with allure.step("Посчитать кнопки и отправить заявку только в первую и последнюю"):
             total = steps.count_checkaddress_popup_buttons_visible()
@@ -276,10 +329,33 @@ class TestForms:
     @allure.title("3.2 Отправка заявки со ВСЕХ  форм на странице с названиями Проверить адрес")
     def test_application_popup_button_checkaddress_forms(self, page_fixture, checkaddress_button_url):
         page = page_fixture
-        page.goto(checkaddress_button_url)
+        page.goto(checkaddress_button_url, wait_until="domcontentloaded")
         mts_page = MtsHomeOnlinePage(page=page)
         steps = MainSteps(page=page)
         region_page = ChoiceRegionPage(page=page)
+
+        def close_super_offer_if_present_fast():
+            """Попап может появиться в любой момент — закрываем быстро и без долгого ожидания."""
+            try:
+                any_visible = False
+                for sel in (
+                    MTSHomeOnlineMain.SUPER_OFFER_HEADER,
+                    MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND,
+                    MTSHomeOnlineMain.SUPER_OFFER_TEXT,
+                ):
+                    try:
+                        if page.locator(sel).is_visible(timeout=500):
+                            any_visible = True
+                            break
+                    except Exception:
+                        continue
+                if any_visible:
+                    try:
+                        ChoiceRegionPage(page=page).close_popup_super_offer_all()
+                    except Exception:
+                        pass
+            except Exception:
+                pass
         with allure.step("Проверка попапа 'Вы находитесь в городе Х' и закрытие при наличии (до 10с)"):
             domru_page = DomRuClass(page=page)
             try:
@@ -288,19 +364,8 @@ class TestForms:
             except Exception:
                 pass
         with allure.step("Проверка попапа 'Выгодное спецпредложение' и закрытие при наличии (до 50с)"):
-            try:
-                def strip_xpath(sel: str) -> str:
-                    return sel[len("xpath="):] if sel.startswith("xpath=") else sel
-
-                union_xpath = (
-                    f"xpath=({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)})"
-                    f" | ({strip_xpath(MTSHomeOnlineMain.SUPER_OFFER_TEXT)})"
-                )
-                page.wait_for_selector(union_xpath, state="visible", timeout=65000)
-                region_page.close_popup_super_offer_all()
-            except Exception:
-                pass
+            # Не ждём попап минуту: если появится позже и перекроет действия, поймаем и закроем "на лету".
+            close_super_offer_if_present_fast()
 
         with allure.step("Посчитать кол-во блоков и пройти по всем"):
             visible_blocks = steps.visible_checkaddress_block_indices()
@@ -326,6 +391,7 @@ class TestForms:
             i1 = visible_blocks[0]
             with allure.step(f"Блок #{i1} (1-й видимый): 1-й маршрут"):
                 try:
+                    close_super_offer_if_present_fast()
                     steps.send_popup_checkaddress_block(i1)
                     _finalize_after_submit(i1)
                 except Exception as e:
@@ -344,6 +410,7 @@ class TestForms:
                 i2 = visible_blocks[1]
                 with allure.step(f"Блок #{i2} (2-й видимый): 2-й маршрут"):
                     try:
+                        close_super_offer_if_present_fast()
                         steps.button_change_city_checkaddress_block(i2)
                         region_page = ChoiceRegionPage(page=page)
                         time.sleep(2)

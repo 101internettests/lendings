@@ -1456,6 +1456,47 @@ class MainSteps(BasePage):
             time.sleep(4)
 
     @allure.title("Отправить заявку в попап 'Заявка на подключение'")
+    def send_popup_connection_rtk_cards(self):
+        with allure.step("Заполнить попап и отправить заявку"):
+            try:
+                self.page.locator(Connection.STREET_LAST).last.fill('Лен')
+                # self.page.locator(Connection.STREET).type("Лен", delay=50)
+                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось выбрать улицу/подсказку в форме 'Заявка на подключение'."
+                )
+            try:
+                house_input = self.page.locator(Connection.HOUSE_LAST).last
+                # Пробуем дом 2, затем 1, затем 3
+                for num in ("2", "1", "3"):
+                    try:
+                        house_input.fill("")  # очистить
+                        house_input.fill(num)
+                        self._click_first_available_house()
+                        break
+                    except Exception:
+                        # переходим к следующему номеру
+                        continue
+                else:
+                    # ни один номер не сработал
+                    raise AssertionError("Не удалось выбрать дом: ни 2, ни 1, ни 3 не доступны в подсказках")
+            except AssertionError as e:
+                raise
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось указать дом в форме 'Заявка на подключение'."
+                )
+            try:
+                self.page.locator(Connection.NAME_LAST).last.fill("Тест")
+                self.page.locator(Connection.PHONE_LAST).last.fill("99999999999")
+                self.page.locator(Connection.BUTTON_SEND_LAST).last.click()
+            except Exception as e:
+                raise AssertionError(
+                    "Не удалось отправить форму 'Заявка на подключение'."
+                )
+            time.sleep(4)
+    @allure.title("Отправить заявку в попап 'Заявка на подключение'")
     def send_popup_connection_second(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
