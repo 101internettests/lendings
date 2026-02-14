@@ -1019,12 +1019,27 @@ class MainSteps(BasePage):
 
     @allure.title("Кликнуть на кнопку Подключить по индексу (1-based)")
     def click_connect_button_index(self, index: int):
-        selector = f"(//button[contains(@class,'connection_address_button')])[{index}]"
+        """Кликает по индексу только среди видимых на фронте кнопок Connection.CONNECT_BUTTON."""
         try:
-            self.page.locator(selector).click()
-        except Exception as e:
+            candidates = self.page.locator(Connection.CONNECT_BUTTON)
+            nodes = candidates.all()
+            visible_nodes = []
+            for n in nodes:
+                try:
+                    if n.is_visible():
+                        visible_nodes.append(n)
+                except Exception:
+                    continue
+            if index < 1 or index > len(visible_nodes):
+                raise AssertionError(
+                    f"Кнопка 'Подключить' №{index} не видна на странице. Видимых: {len(visible_nodes)}"
+                )
+            visible_nodes[index - 1].click(timeout=3000)
+        except AssertionError:
+            raise
+        except Exception:
             raise AssertionError(
-                f"Не удалось кликнуть по кнопке 'Подключить' №{index}.\n"
+                f"Не удалось кликнуть по кнопке 'Подключить' №{index} среди видимых.\n"
                 "Возможно попап перекрыл экран, элемент пропал или изменился селектор."
             )
 
@@ -1105,11 +1120,21 @@ class MainSteps(BasePage):
 
     @allure.title("Посчитать количество кнопок Подключить")
     def count_connect_buttons(self) -> int:
+        # Считаем только видимые на фронте кнопки "Подключить" (скрытые игнорируем)
         try:
-            return self.page.locator(Connection.CONNECT_BUTTON).count()
-        except Exception as e:
+            candidates = self.page.locator(Connection.CONNECT_BUTTON)
+            nodes = candidates.all()
+            visible = 0
+            for n in nodes:
+                try:
+                    if n.is_visible():
+                        visible += 1
+                except Exception:
+                    continue
+            return visible
+        except Exception:
             raise AssertionError(
-                "Не удалось посчитать кнопки 'Подключить'.\n"
+                "Не удалось посчитать кнопки 'Подключить' (видимые).\n"
                 "Возможно элементы отсутствуют на странице или изменился селектор."
             )
 
