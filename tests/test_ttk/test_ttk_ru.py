@@ -109,7 +109,7 @@ class TestTTKRyOnline:
             region_page.select_first_region()
             region_page.verify_region_button_text_new("Екатеринбург")
             time.sleep(3)
-        with allure.step("Выбрать click_region_choice_button_beeline"):
+        with allure.step("Выбрать Барнаул"):
             mts_page.click_region_choice_button_futer_new()
             region_page.fill_region_search_new("Барн")
             region_page.verify_first_region_choice("Барнаул")
