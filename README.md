@@ -98,6 +98,17 @@ ERRORS_COUNT_PATH=/var/lib/jenkins/errors_count.json
 
 Логика реализована в `conftest.py`.
 
+### Transport: direct vs proxy
+
+- По умолчанию используется прямой транспорт (`BOT_TOKEN` + `CHAT_ID`).
+- Для переключения на proxy задайте:
+  - `USE_TELEGRAM_PROXY=true`
+  - `TELEGRAM_PROXY_URL`
+  - `TELEGRAM_PROXY_AUTH_SECRET`
+  - `TELEGRAM_PROXY_CREDS`
+- При `USE_TELEGRAM_PROXY=true` и отсутствии обязательных `TELEGRAM_PROXY_*`
+  выводится fail-fast сообщение в логи, без печати секретов.
+
 ### Что считается “ошибкой” и “исправлением”
 
 - **Падение теста** → отправляется уведомление в TG по расписанию повторов (см. ниже).
