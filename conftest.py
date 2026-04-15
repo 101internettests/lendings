@@ -5,6 +5,7 @@ import time
 import json
 import threading
 import re
+import requests
 from datetime import datetime
 import hashlib
 from urllib.parse import urlparse
@@ -64,6 +65,7 @@ def _env_bool(name: str, default: bool = False) -> bool:
     return default
 
 ALERTS_ENABLED = _env_bool("ALERTS_ENABLED", True)
+USE_TELEGRAM_PROXY = _env_bool("USE_TELEGRAM_PROXY", False)
 SUPPRESS_PERSISTENT_ALERTS = _env_bool("SUPPRESS_PERSISTENT_ALERTS", False)
 REPORT_URL = os.getenv("REPORT_URL")
 PER_DOMAIN_THRESHOLD = int(os.getenv("AGGR_THRESHOLD_PER_DOMAIN", "5"))
@@ -80,6 +82,12 @@ URL_FIXED_ALERTS_ENABLED = _env_bool("URL_FIXED_ALERTS_ENABLED", True)
 NORMALIZE_STEP_KEYS = _env_bool("NORMALIZE_STEP_KEYS", True)
 SHOW_RUN_REPEAT_IN_ALERTS = _env_bool("SHOW_RUN_REPEAT_IN_ALERTS", True)
 RESET_ERROR_COUNTERS_ON_START = _env_bool("RESET_ERROR_COUNTERS_ON_START", False)
+try:
+    TELEGRAM_PROXY_TIMEOUT_SEC = float(os.getenv("TELEGRAM_PROXY_TIMEOUT_SEC", "15"))
+except Exception:
+    TELEGRAM_PROXY_TIMEOUT_SEC = 15.0
+
+_PROXY_MISSING_ENV_LOGGED = False
 
 # Default path must be writable both locally (Windows/macOS/Linux) and in CI.
 # CI can override via ALERTS_STATE_PATH.
@@ -741,13 +749,84 @@ def _get_last_step_name() -> str | None:
         return None
 
 
-def _send_telegram_message(text: str) -> None:
-    if not ALERTS_ENABLED:
-        return
+def _get_proxy_transport_env() -> tuple[str, str, str] | None:
+    global _PROXY_MISSING_ENV_LOGGED
+
+    proxy_url = (os.getenv("TELEGRAM_PROXY_URL") or "").strip()
+    auth_secret = (os.getenv("TELEGRAM_PROXY_AUTH_SECRET") or "").strip()
+    creds = (os.getenv("TELEGRAM_PROXY_CREDS") or "").strip()
+
+    missing = []
+    if not proxy_url:
+        missing.append("TELEGRAM_PROXY_URL")
+    if not auth_secret:
+        missing.append("TELEGRAM_PROXY_AUTH_SECRET")
+    if not creds:
+        missing.append("TELEGRAM_PROXY_CREDS")
+
+    if missing:
+        if not _PROXY_MISSING_ENV_LOGGED:
+            print(f"[TELEGRAM][proxy] Missing required env vars: {', '.join(missing)}")
+            _PROXY_MISSING_ENV_LOGGED = True
+        return None
+    return proxy_url, auth_secret, creds
+
+
+def _send_telegram_message_direct(text: str) -> None:
     try:
+        if not bot or not chat_id:
+            return
         bot.send_message(chat_id, text)
     except Exception:
         pass
+
+
+def _send_telegram_message_via_proxy(text: str) -> None:
+    proxy_env = _get_proxy_transport_env()
+    if not proxy_env:
+        return
+
+    proxy_url, auth_secret, creds = proxy_env
+    try:
+        response = requests.post(
+            proxy_url,
+            headers={
+                "Content-Type": "application/json",
+                "X-Authentication": auth_secret,
+            },
+            json={
+                "title": "Runtime alert",
+                "text": text,
+                "creds": creds,
+                "parse_mode": "HTML",
+                "disable_notification": False,
+            },
+            timeout=TELEGRAM_PROXY_TIMEOUT_SEC,
+        )
+    except requests.Timeout:
+        print(f"[TELEGRAM][proxy] Request timeout after {TELEGRAM_PROXY_TIMEOUT_SEC}s")
+        return
+    except requests.RequestException as exc:
+        print(f"[TELEGRAM][proxy] Transport error: {exc}")
+        return
+    except Exception as exc:
+        print(f"[TELEGRAM][proxy] Unexpected error: {exc}")
+        return
+
+    if 200 <= response.status_code < 300:
+        return
+
+    body = (response.text or "").strip().replace("\n", " ")
+    print(f"[TELEGRAM][proxy] Request failed (status={response.status_code}): {body[:180]}")
+
+
+def _send_telegram_message(text: str) -> None:
+    if not ALERTS_ENABLED:
+        return
+    if USE_TELEGRAM_PROXY:
+        _send_telegram_message_via_proxy(text)
+    else:
+        _send_telegram_message_direct(text)
 
 
 def _format_single_error_message(form_title: str | None, url: str | None, step_name: str | None, details: str | None) -> str:
