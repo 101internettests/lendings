@@ -5,6 +5,7 @@ import time
 import json
 import threading
 import re
+import html
 import requests
 from datetime import datetime
 import hashlib
@@ -795,8 +796,8 @@ def _send_telegram_message_via_proxy(text: str) -> None:
                 "X-Authentication": auth_secret,
             },
             json={
-                "title": "Runtime alert",
-                "text": text,
+                "title": html.escape("Runtime alert"),
+                "text": html.escape(text),
                 "creds": creds,
                 "parse_mode": "HTML",
                 "disable_notification": False,
@@ -2240,5 +2241,4 @@ def pytest_sessionfinish(session, exitstatus):
             # do not break the session finish on logging errors
             pass
         return
-
 
