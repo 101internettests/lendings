@@ -87,6 +87,23 @@ try:
     TELEGRAM_PROXY_TIMEOUT_SEC = float(os.getenv("TELEGRAM_PROXY_TIMEOUT_SEC", "15"))
 except Exception:
     TELEGRAM_PROXY_TIMEOUT_SEC = 15.0
+try:
+    PAGE_NAVIGATION_TIMEOUT_MS = int(os.getenv("PAGE_NAVIGATION_TIMEOUT_MS", "45000"))
+except Exception:
+    PAGE_NAVIGATION_TIMEOUT_MS = 45000
+try:
+    PAGE_ACTION_TIMEOUT_MS = int(os.getenv("PAGE_ACTION_TIMEOUT_MS", "30000"))
+except Exception:
+    PAGE_ACTION_TIMEOUT_MS = 30000
+try:
+    STABLE_GOTO_RETRIES = int(os.getenv("STABLE_GOTO_RETRIES", "1"))
+except Exception:
+    STABLE_GOTO_RETRIES = 1
+try:
+    STABLE_GOTO_RETRY_SLEEP_SEC = float(os.getenv("STABLE_GOTO_RETRY_SLEEP_SEC", "0.6"))
+except Exception:
+    STABLE_GOTO_RETRY_SLEEP_SEC = 0.6
+STABLE_GOTO_ENABLED = _env_bool("STABLE_GOTO_ENABLED", True)
 
 _PROXY_MISSING_ENV_LOGGED = False
 
@@ -2002,6 +2019,53 @@ def msk_rtk_online_home_tariffs():
     return "https://moskva.rtk-ru.online/all-tariffs"
 
 
+def _is_navigation_timeout_error(exc: Exception) -> bool:
+    text = str(exc).lower()
+    markers = (
+        "timeout",
+        "timed out",
+        "net::err_timed_out",
+        "navigation timeout",
+        "page.goto",
+    )
+    return any(marker in text for marker in markers)
+
+
+def _attach_stable_goto(page) -> None:
+    """
+    Lightweight retry wrapper around page.goto for transient navigation timeouts.
+    Business checks remain unchanged; only flaky transport/load behavior is softened.
+    """
+    if not STABLE_GOTO_ENABLED:
+        return
+
+    original_goto = page.goto
+    attempts = max(1, STABLE_GOTO_RETRIES + 1)
+
+    def _stable_goto(url, *args, **kwargs):
+        for attempt in range(attempts):
+            call_kwargs = dict(kwargs)
+            if attempt > 0:
+                # Retry in lighter mode when initial full-load navigation timed out.
+                call_kwargs.setdefault("wait_until", "domcontentloaded")
+                call_kwargs.setdefault("timeout", PAGE_NAVIGATION_TIMEOUT_MS)
+            try:
+                return original_goto(url, *args, **call_kwargs)
+            except PlaywrightError as exc:
+                if not _is_navigation_timeout_error(exc) or attempt == attempts - 1:
+                    raise
+                try:
+                    time.sleep(STABLE_GOTO_RETRY_SLEEP_SEC)
+                except Exception:
+                    pass
+
+    try:
+        page.goto = _stable_goto
+    except Exception:
+        # If Playwright object forbids attribute override, keep default behavior.
+        pass
+
+
 @pytest.fixture(scope="function")
 def browser_fixture():
     """
@@ -2043,6 +2107,15 @@ def page_fixture(browser_fixture):
     # Создаем контекст и страницу
     context = browser_fixture.new_context()
     page = context.new_page()
+    try:
+        page.set_default_navigation_timeout(PAGE_NAVIGATION_TIMEOUT_MS)
+    except Exception:
+        pass
+    try:
+        page.set_default_timeout(PAGE_ACTION_TIMEOUT_MS)
+    except Exception:
+        pass
+    _attach_stable_goto(page)
     yield page
     # Закрываем контекст после использования
     context.close()
@@ -2055,6 +2128,15 @@ def page_fixture_ignore_https(browser_fixture_ignore_https):
     """
     context = browser_fixture_ignore_https.new_context(ignore_https_errors=True)
     page = context.new_page()
+    try:
+        page.set_default_navigation_timeout(PAGE_NAVIGATION_TIMEOUT_MS)
+    except Exception:
+        pass
+    try:
+        page.set_default_timeout(PAGE_ACTION_TIMEOUT_MS)
+    except Exception:
+        pass
+    _attach_stable_goto(page)
     yield page
     context.close()
 

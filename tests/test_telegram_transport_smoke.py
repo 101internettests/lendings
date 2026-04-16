@@ -1,4 +1,30 @@
-import conftest as alerts_module
+from __future__ import annotations
+
+import importlib.util
+import sys
+from pathlib import Path
+from types import ModuleType
+
+
+def _load_root_conftest_module() -> ModuleType:
+    """Load repo-root conftest.py explicitly to avoid xdist import collisions."""
+    repo_root = Path(__file__).resolve().parents[1]
+    conftest_path = repo_root / "conftest.py"
+
+    repo_root_str = str(repo_root)
+    if repo_root_str not in sys.path:
+        sys.path.insert(0, repo_root_str)
+
+    spec = importlib.util.spec_from_file_location("lendings_root_conftest", conftest_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Cannot load root conftest from {conftest_path}")
+
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+alerts_module = _load_root_conftest_module()
 
 
 class _DummyBot:
