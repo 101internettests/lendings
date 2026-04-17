@@ -785,20 +785,27 @@ class MainSteps(BasePage):
             "Возможные причины: подсказки не подгрузились, изменился селектор, попап/выпадающий список не активен."
         )
 
-    def _pick_first_visible(self, selector: str, *, timeout_ms: int = 500):
+    def _pick_first_visible(self, selector: str, *, timeout_ms: int = 2500):
         loc = self.page.locator(selector)
-        try:
-            total = loc.count()
-        except Exception:
-            total = 0
-        for idx in range(total):
+        deadline = time.time() + (timeout_ms / 1000.0)
+
+        while time.time() < deadline:
             try:
-                el = loc.nth(idx)
-                if el.is_visible(timeout=timeout_ms):
-                    return el
+                total = loc.count()
             except Exception:
-                continue
-        return loc.first
+                total = 0
+
+            for idx in range(total):
+                try:
+                    el = loc.nth(idx)
+                    if el.is_visible(timeout=200):
+                        return el
+                except Exception:
+                    continue
+
+            time.sleep(0.1)
+
+        raise AssertionError(f"Не найден видимый элемент по селектору: {selector}")
 
     def _pick_nth_visible_or_fallback(self, selector: str, index_1based: int, *, timeout_ms: int = 400):
         loc = self.page.locator(selector)
@@ -1056,8 +1063,8 @@ class MainSteps(BasePage):
     @allure.title("Нажать на кнопку Подключиться в хедере")
     def open_popup_express_connection_button(self):
         try:
-            # FORM_BUTTON может матчить несколько элементов — кликаем по первому
-            self.page.locator(ExpressConnection.FORM_BUTTON).first.click()
+            # FORM_BUTTON может матчить несколько элементов из A/B версток — кликаем по видимому.
+            self._pick_first_visible(ExpressConnection.FORM_BUTTON, timeout_ms=4000).click()
         except Exception as e:
             raise AssertionError(
                 "Не удалось нажать кнопку 'Подключиться' в хедере.\n"
@@ -1079,7 +1086,7 @@ class MainSteps(BasePage):
                     pass
                 # Попап мог не открыться с первого клика (оверлей/скролл/перерисовка) — кликаем ещё раз.
                 try:
-                    self.page.locator(ExpressConnection.FORM_BUTTON).first.click()
+                    self._pick_first_visible(ExpressConnection.FORM_BUTTON, timeout_ms=2500).click()
                 except Exception:
                     pass
 
@@ -2093,10 +2100,10 @@ class MainSteps(BasePage):
     def send_popup_express_connection_second(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
-                street_input = self._pick_first_visible(ExpressConnection.STREET, timeout_ms=2500)
+                street_input = self._pick_first_visible(ExpressConnection.STREET, timeout_ms=5000)
                 try:
                     if not street_input.is_visible(timeout=1200):
-                        street_input = self._pick_nth_visible_or_fallback(ExpressConnection.STREET, 2, timeout_ms=2500)
+                        street_input = self._pick_nth_visible_or_fallback(ExpressConnection.STREET, 2, timeout_ms=5000)
                 except Exception:
                     pass
                 street_input.fill("")
@@ -2115,7 +2122,7 @@ class MainSteps(BasePage):
                 )
             time.sleep(1)
             try:
-                house_input = self._pick_first_visible(ExpressConnection.HOUSE, timeout_ms=2500)
+                house_input = self._pick_first_visible(ExpressConnection.HOUSE, timeout_ms=5000)
                 # Пробуем дом 3, затем 4, затем 7 (часто некоторые номера отсутствуют в подсказках на конкретном лендинге)
                 for num in ("2", "3", "4", "5", "6", "7", "8", "9", "1"):
                     try:
@@ -2135,9 +2142,9 @@ class MainSteps(BasePage):
                 )
             time.sleep(1)
             try:
-                self._pick_first_visible(ExpressConnection.PHONE, timeout_ms=2500).fill("99999999999")
+                self._pick_first_visible(ExpressConnection.PHONE, timeout_ms=5000).fill("99999999999")
                 time.sleep(1)
-                self._pick_first_visible(ExpressConnection.BUTTON_SEND, timeout_ms=2500).click()
+                self._pick_first_visible(ExpressConnection.BUTTON_SEND, timeout_ms=5000).click()
             except Exception as e:
                 raise AssertionError(
                     "Не удалось отправить форму 'Экспресс подключение' (вариант 2)."
