@@ -53,12 +53,12 @@ class CheckaddressPOP:
     BUTTON_SEND_SECOND = "xpath=(//input[contains(@class,'checkaddress_address_button_send')])[2]"
 
 class Undecided:
-    STREET = "xpath=//input[contains(@class,'undecided_address_street')]"
-    HOUSE = "xpath=//input[contains(@class,'undecided_address_house')]"
-    PHONE = "xpath=//input[contains(@class,'undecided_address_phone')]"
-    BUTTON_SEND = "xpath=//input[contains(@class,'undecided_address_button_send')]"
+    STREET = "xpath=//input[contains(@class,'undecided_address_street')] | //input[contains(@class,'checkaddress_address_street')]"
+    HOUSE = "xpath=//input[contains(@class,'undecided_address_house')] | //input[contains(@class,'checkaddress_address_house')]"
+    PHONE = "xpath=//input[contains(@class,'undecided_address_phone')] | //input[contains(@class,'checkaddress_address_phone')]"
+    BUTTON_SEND = "xpath=//input[contains(@class,'undecided_address_button_send')] | //input[contains(@class,'checkaddress_address_button_send')]"
     BUTTON_CHANGE_CITY = "xpath=//button[contains(@class,'undecided_address_button_change_city')]"
-    UNDECIDED_BLOCK = "xpath=//div[contains(@id,'checkaddress-undecided')]"
+    UNDECIDED_BLOCK = "xpath=//div[contains(@id,'checkaddress-undecided')] | //div[contains(@class,'undecided_address')]"
 
 
 class Business:
@@ -91,12 +91,12 @@ class Moving:
 
 
 class ExpressConnection:
-    STREET = "xpath=(//input[contains(@class,'express-connection_address_street')])[1]"
-    HOUSE = "xpath=(//input[contains(@class,'express-connection_address_house')])[1]"
-    PHONE = "xpath=(//input[contains(@class,'express-connection_address_phone')])[1]"
-    BUTTON_SEND = "xpath=(//input[contains(@class,'express-connection_address_button_send')])[1]"
-    BUTTON_CHANGE_CITY = "xpath=(//div[contains(@class,'express-connection_address_button_change_city')])[1]"
+    STREET = "xpath=//input[contains(@class,'express-connection_address_street') or contains(@class,'connection_address_street')]"
+    HOUSE = "xpath=//input[contains(@class,'express-connection_address_house') or contains(@class,'connection_address_house')]"
+    PHONE = "xpath=//input[contains(@class,'express-connection_address_phone') or contains(@class,'connection_address_phone')]"
+    BUTTON_SEND = "xpath=//input[contains(@class,'express-connection_address_button_send') or contains(@class,'connection_address_button_send')]"
+    BUTTON_CHANGE_CITY = "xpath=//div[contains(@class,'express-connection_address_button_change_city') or contains(@class,'connection_address_button_change_city') or contains(@class,'checkaddress_address_button_change_city')] | //span[contains(@class,'express-connection_address_button_change_city') or contains(@class,'connection_address_button_change_city') or contains(@class,'checkaddress_address_button_change_city')]"
 
-    FORM_BUTTON = "xpath=(//button[contains(@class,'connection_address_button')])"
+    FORM_BUTTON = "xpath=//button[contains(@class,'connection_address_button') or contains(@class,'express-connection_address_button')] | //a[contains(@class,'connection_address_button') or contains(@class,'express-connection_address_button')]"
 
 

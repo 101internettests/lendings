@@ -134,6 +134,31 @@ class MtsHomeOnlinePage(BasePage):
         except Exception:
             pass
 
+        # На части лендингов успешная отправка остаётся на том же URL, но появляется блок благодарности.
+        success_markers = [
+            MTSHomeOnlineMain.THANKYOU_TEXT,
+            MTSHomeOnlineMain.THANKYOU_TEXT_SECOND,
+            MTSHomeOnlineMain.THANKYOU_TEXT_MORE,
+            MTSHomeOnlineMain.THANKYOU_HEADER,
+            MTSHomeOnlineMain.MORE_THANKYOU,
+            MTSHomeOnlineMain.THANKYOU_CLOSE,
+            MTSHomeOnlineMain.CLOSE_BUTTON_NEW,
+            MTSHomeOnlineMain.GO_TO_MAIN,
+        ]
+        for sel in success_markers:
+            try:
+                if self.page.locator(sel).first.is_visible(timeout=1200):
+                    return
+            except Exception:
+                continue
+
+        try:
+            body_text = (self.page.locator("body").inner_text(timeout=2000) or "").lower()
+            if "спасибо" in body_text and ("заявк" in body_text or "свяж" in body_text):
+                return
+        except Exception:
+            pass
+
         raise AssertionError(f"Страница благодарности не появилась: URL не содержит признаков успешной отправки (last: {last_url})")
 
     @allure.title("Проверить успешность отправления заявки (простой)")
@@ -867,18 +892,51 @@ class MtsHomeOnlinePage(BasePage):
             RegionChoice.NEW_REGION_CHOICE_BUTTON,
             RegionChoice.NEW_REGION_CHOICE_BUTTON_HEADER,
             RegionChoice.REGION_CHOICE_BUTTON_FUTER,
+            "xpath=//a[@id='city']",
+            "xpath=//span[@id='city']",
+            "xpath=//a[contains(@class,'city')]",
+            "xpath=//span[contains(@class,'city')]",
+            MTSHomeOnlineMain.ANOTHER_CITY_BUTTON,
+        ]
+        popup_inputs = [
+            RegionChoice.NEW_CITY_INPUT,
+            RegionChoice.CITY_INPUT,
+            RegionChoice.RTK_CITY_INPUT,
+            RegionChoice.FIRST_CHOICE,
+            "xpath=(//a[contains(@class,'region_item')])[1]",
+            "xpath=(//table[contains(@class,'city_list')]//a)[1]",
         ]
         for sel in candidates:
             try:
-                region_button = self.page.locator(sel).first
-                if not region_button.is_visible(timeout=1200):
-                    continue
-                region_button.scroll_into_view_if_needed()
-                region_button.click(force=True, timeout=6000)
-                time.sleep(2)
-                return
+                buttons = self.page.locator(sel)
+                total = buttons.count()
             except Exception:
                 continue
+            for idx in range(total):
+                try:
+                    region_button = buttons.nth(idx)
+                    if not region_button.is_visible(timeout=1200):
+                        continue
+                    region_button.scroll_into_view_if_needed()
+                    try:
+                        region_button.click(timeout=6000)
+                    except Exception:
+                        region_button.click(force=True, timeout=6000)
+                    # Кнопка могла кликнуться, но попап не открылся (другой шаблон/оверлей).
+                    # Возвращаемся только если реально видим поле поиска/список города.
+                    opened = False
+                    for input_sel in popup_inputs:
+                        try:
+                            if self.page.locator(input_sel).first.is_visible(timeout=1500):
+                                opened = True
+                                break
+                        except Exception:
+                            continue
+                    if opened:
+                        time.sleep(1)
+                        return
+                except Exception:
+                    continue
         # Fallback to robust flow used by newer templates.
         try:
             self.click_region_choice_button_new()
@@ -1058,17 +1116,30 @@ class ChoiceRegionPage(BasePage):
 
     @allure.title("Ввести текст в поле поиска региона")
     def fill_region_search_new(self, search_text):
-        city_input = self.page.locator(RegionChoice.NEW_CITY_INPUT)
-        try:
-            city_input.fill(search_text)
-        except Exception:
+        selectors = [
+            RegionChoice.NEW_CITY_INPUT,
+            RegionChoice.CITY_INPUT,
+            RegionChoice.RTK_CITY_INPUT,
+            "xpath=//div[contains(@class,'popup-select-city')]//input[contains(@id,'city') or contains(@placeholder,'город')]",
+        ]
+        filled = False
+        for sel in selectors:
+            try:
+                city_input = self.page.locator(sel).first
+                city_input.wait_for(state="visible", timeout=4500)
+                city_input.fill(search_text)
+                filled = True
+                break
+            except Exception:
+                continue
+        if not filled:
             raise AssertionError(
                 "Не удалось ввести текст в поле поиска региона (новая версия).\n"
                 "Возможно, поле недоступно, скрыто или изменился селектор."
             )
         # Вместо fixed sleep — ждём появления результатов
         try:
-            self._wait_region_results_visible(timeout=7000)
+            self._wait_region_results_visible(timeout=9000)
         except Exception:
             pass
 
