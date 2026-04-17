@@ -12,8 +12,11 @@ class MtsHomeOnlineSecondPage(BasePage):
     @allure.title("Проверить, что попап Выгодное приложение появился")
     def check_popup_super_offer(self):
         try:
-            # expect(self.page.locator(MTSHomeOnlineSecondMain.SUPER_OFFER_HEADER)).to_be_visible()
-            expect(self.page.locator(MTSHomeOnlineSecondMain.SUPER_OFFER_TEXT)).to_be_visible(timeout=65000)
+            # Берем только видимые экземпляры текста, чтобы не падать на hidden-дубликатах.
+            visible_offer_text = self.page.locator(
+                f"{MTSHomeOnlineSecondMain.SUPER_OFFER_TEXT} >> visible=true"
+            ).first
+            expect(visible_offer_text).to_be_visible(timeout=65000)
         except Exception:
             raise AssertionError(
                 "Попап 'Выгодное предложение' не появился на странице за ожидаемое время.\n"

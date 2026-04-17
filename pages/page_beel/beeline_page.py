@@ -502,10 +502,17 @@ class BeelineOnlinePage(BasePage):
 
     @allure.title("Проверить видимость ссылок ТТК во футере")
     def check_all_links_ttk(self):
-        """Проверяет, что все локаторы ссылок ТТК во футере видимы"""
-        for name, locator in BeelineMain.FOOTER_LINKS_TTK.items():
-            with allure.step(f"Проверить видимость элемента: {name}"):
-                expect(self.page.locator(locator)).to_be_visible()
+        """
+        Проверяет, что PDF-ссылки ТТК во футере видимы.
+        Количество ссылок может отличаться на разных лендингах, поэтому не фиксируем жестко индекс [3]/[4].
+        """
+        pdf_links = self.page.locator("xpath=//a[normalize-space(text())='скачать PDF']")
+        total = pdf_links.count()
+        if total == 0:
+            raise AssertionError("Не найдено ни одной ссылки 'скачать PDF' во футере ТТК.")
+        for idx in range(total):
+            with allure.step(f"Проверить видимость PDF-ссылки #{idx + 1}"):
+                expect(pdf_links.nth(idx)).to_be_visible(timeout=5000)
 
 class OnlineBeelinePage(BasePage):
     @allure.title("Проверить, что попап появился и нажать на  кнопку выбора города")

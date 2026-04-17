@@ -753,6 +753,40 @@ class MainSteps(BasePage):
             "Возможные причины: подсказки не подгрузились, изменился селектор, попап/выпадающий список не активен."
         )
 
+    def _pick_first_visible(self, selector: str, *, timeout_ms: int = 500):
+        loc = self.page.locator(selector)
+        try:
+            total = loc.count()
+        except Exception:
+            total = 0
+        for idx in range(total):
+            try:
+                el = loc.nth(idx)
+                if el.is_visible(timeout=timeout_ms):
+                    return el
+            except Exception:
+                continue
+        return loc.first
+
+    def _pick_nth_visible_or_fallback(self, selector: str, index_1based: int, *, timeout_ms: int = 400):
+        loc = self.page.locator(selector)
+        visible = []
+        try:
+            total = loc.count()
+        except Exception:
+            total = 0
+        for idx in range(total):
+            try:
+                el = loc.nth(idx)
+                if el.is_visible(timeout=timeout_ms):
+                    visible.append(el)
+            except Exception:
+                continue
+        if len(visible) >= index_1based:
+            return visible[index_1based - 1]
+        # Фолбэк на исходное поведение по индексу в DOM.
+        return loc.nth(index_1based - 1)
+
     def _verify_city_label_accepts_variants(self, expected_city: str):
         # Принимаем как валидные варианты:
         # 1) Точное совпадение названия города
@@ -955,7 +989,7 @@ class MainSteps(BasePage):
         Если поле улицы не видно — пробует кликнуть по кнопке открытия попапа ещё раз.
         """
         try:
-            street = self.page.locator(ExpressConnection.STREET).first
+            street = self._pick_first_visible(ExpressConnection.STREET)
             try:
                 street.wait_for(state="visible", timeout=3000)
                 return
@@ -1732,7 +1766,7 @@ class MainSteps(BasePage):
     def send_form_undecided(self, index: int):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
-                self.page.locator(Undecided.STREET).nth(index - 1).type("Лен", delay=100)
+                self._pick_nth_visible_or_fallback(Undecided.STREET, index).type("Лен", delay=100)
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click(timeout=10000)
             except Exception as e:
                 raise AssertionError(
@@ -1740,7 +1774,7 @@ class MainSteps(BasePage):
                 )
             time.sleep(1)
             try:
-                self.page.locator(Undecided.HOUSE).nth(index - 1).fill("1")
+                self._pick_nth_visible_or_fallback(Undecided.HOUSE, index).fill("1")
                 self._click_first_available_house()
             except AssertionError:
                 raise
@@ -1750,9 +1784,9 @@ class MainSteps(BasePage):
                 )
             time.sleep(1)
             try:
-                self.page.locator(Undecided.PHONE).nth(index - 1).fill("99999999999")
+                self._pick_nth_visible_or_fallback(Undecided.PHONE, index).fill("99999999999")
                 time.sleep(1)
-                self.page.locator(Undecided.BUTTON_SEND).nth(index - 1).click()
+                self._pick_nth_visible_or_fallback(Undecided.BUTTON_SEND, index).click()
             except Exception as e:
                 raise AssertionError(
                     f"Не удалось отправить форму 'Не определились с тарифом?' (индекс {index})."
@@ -1794,9 +1828,9 @@ class MainSteps(BasePage):
     def send_form_undecided_third(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
-                self.page.locator(Undecided.PHONE).fill("99999999999")
+                self._pick_first_visible(Undecided.PHONE).fill("99999999999")
                 time.sleep(1)
-                self.page.locator(Undecided.BUTTON_SEND).click()
+                self._pick_first_visible(Undecided.BUTTON_SEND).click()
             except Exception as e:
                 raise AssertionError(
                     "Не удалось отправить форму 'Не определились с тарифом?' (короткая версия)."
@@ -1894,7 +1928,7 @@ class MainSteps(BasePage):
     def send_popup_express_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
-                street_input = self.page.locator(ExpressConnection.STREET)
+                street_input = self._pick_first_visible(ExpressConnection.STREET)
                 # street_input.click()
                 street_input.fill("")
                 street_input.type("Лен", delay=100)
@@ -1912,7 +1946,7 @@ class MainSteps(BasePage):
                 )
             time.sleep(1)
             try:
-                house_input = self.page.locator(ExpressConnection.HOUSE)
+                house_input = self._pick_first_visible(ExpressConnection.HOUSE)
                 # Пробуем дом 2, затем 3, затем 7 (часто некоторые номера отсутствуют в подсказках на конкретном лендинге)
                 for num in ("1", "2", "3", "4","5","6", "7","8","9",):
                     try:
@@ -1932,9 +1966,9 @@ class MainSteps(BasePage):
                 )
             time.sleep(1)
             try:
-                self.page.locator(ExpressConnection.PHONE).fill("99999999999")
+                self._pick_first_visible(ExpressConnection.PHONE).fill("99999999999")
                 time.sleep(1)
-                self.page.locator(ExpressConnection.BUTTON_SEND).click()
+                self._pick_first_visible(ExpressConnection.BUTTON_SEND).click()
             except Exception as e:
                 raise AssertionError(
                     "Не удалось отправить форму 'Экспресс подключение'."

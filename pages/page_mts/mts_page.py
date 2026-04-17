@@ -239,6 +239,10 @@ class MtsHomeOnlinePage(BasePage):
         if self.page.locator(MTSHomeOnlineMain.GO_TO_MAIN).is_visible(timeout=1000):
             self.page.locator(MTSHomeOnlineMain.GO_TO_MAIN).click()
             return
+        # На части лендингов /submitted является финальной успешной страницей без явной кнопки закрытия.
+        current_url = (self.page.url or "").lower()
+        if "/submitted" in current_url or "/thanks" in current_url:
+            return
         # Если ни одна из кнопок не доступна — сообщаем в ошибке
         raise AssertionError(
             "Не удалось закрыть страницу благодарности: ни одна из кнопок закрытия не видна или не кликабельна.\n"
@@ -857,15 +861,34 @@ class MtsHomeOnlinePage(BasePage):
 
     @allure.title("Нажать на кнопку выбора региона в хедере")
     def click_region_choice_button(self):
-        region_button = self.page.locator(RegionChoice.REGION_CHOICE_BUTTON)
+        candidates = [
+            RegionChoice.REGION_CHOICE_BUTTON,
+            RegionChoice.TELE_REGION_CHOICE_BUTTON,
+            RegionChoice.NEW_REGION_CHOICE_BUTTON,
+            RegionChoice.NEW_REGION_CHOICE_BUTTON_HEADER,
+            RegionChoice.REGION_CHOICE_BUTTON_FUTER,
+        ]
+        for sel in candidates:
+            try:
+                region_button = self.page.locator(sel).first
+                if not region_button.is_visible(timeout=1200):
+                    continue
+                region_button.scroll_into_view_if_needed()
+                region_button.click(force=True, timeout=6000)
+                time.sleep(2)
+                return
+            except Exception:
+                continue
+        # Fallback to robust flow used by newer templates.
         try:
-            region_button.click()
+            self.click_region_choice_button_new()
+            return
         except Exception:
-            raise AssertionError(
-                "Не удалось нажать кнопку выбора региона в хедере.\n"
-                "Возможно, кнопка недоступна, перекрыта или изменился селектор."
-            )
-        time.sleep(2)
+            pass
+        raise AssertionError(
+            "Не удалось нажать кнопку выбора региона в хедере.\n"
+            "Возможно, кнопка недоступна, перекрыта или изменился селектор."
+        )
 
     @allure.title("Нажать на кнопку выбора региона в хедере")
     def click_region_choice_button_gpon(self):
