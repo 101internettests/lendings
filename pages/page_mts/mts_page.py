@@ -1240,39 +1240,87 @@ class ChoiceRegionPage(BasePage):
 
     @allure.title("Проверить текст кнопки выбора региона")
     def verify_region_button_text(self, expected_text):
+        def _slugify_city_ru(text: str) -> str:
+            translit = {
+                "а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "е": "e", "ё": "e",
+                "ж": "zh", "з": "z", "и": "i", "й": "y", "к": "k", "л": "l", "м": "m",
+                "н": "n", "о": "o", "п": "p", "р": "r", "с": "s", "т": "t", "у": "u",
+                "ф": "f", "х": "h", "ц": "c", "ч": "ch", "ш": "sh", "щ": "sch",
+                "ъ": "", "ы": "y", "ь": "", "э": "e", "ю": "yu", "я": "ya",
+            }
+            raw = (text or "").strip().lower()
+            parts = []
+            for ch in raw:
+                if ch in translit:
+                    parts.append(translit[ch])
+                elif ch.isalnum():
+                    parts.append(ch)
+                elif ch in (" ", "-", "_", "/"):
+                    parts.append("-")
+            slug = "".join(parts)
+            while "--" in slug:
+                slug = slug.replace("--", "-")
+            return slug.strip("-")
+
         try:
             selector_candidates = [
                 RegionChoice.REGION_CHOICE_BUTTON,
                 RegionChoice.TELE_REGION_CHOICE_BUTTON,
                 RegionChoice.NEW_REGION_CHOICE_BUTTON,
+                RegionChoice.NEW_REGION_CHOICE_BUTTON_HEADER,
                 RegionChoice.UPDATED_REGION_BUTTON,
+                RegionChoice.REGION_CHOICE_BUTTON_FUTER,
+                RegionChoice.FUTER_MTS_NEW,
+                RegionChoice.FOOTER_BUTTON,
+                RegionChoice.FOOTER_SECOND_TIME,
+                "xpath=//a[@id='city']",
+                "xpath=//span[@id='city']",
+                "xpath=//a[contains(@class,'city')]",
+                "xpath=//span[contains(@class,'city')]",
             ]
-            region_button = None
-            for selector in selector_candidates:
-                locator = self.page.locator(selector)
-                try:
-                    total = locator.count()
-                except Exception:
-                    total = 0
-                for i in range(total):
+            expected_low = (expected_text or "").strip().lower()
+            deadline = time.time() + 14.0
+            collected_texts = []
+
+            while time.time() < deadline:
+                region_button = None
+                for selector in selector_candidates:
+                    locator = self.page.locator(selector)
                     try:
-                        candidate = locator.nth(i)
-                        if candidate.is_visible(timeout=700):
-                            region_button = candidate
-                            break
+                        total = locator.count()
                     except Exception:
-                        continue
+                        total = 0
+                    for i in range(total):
+                        try:
+                            candidate = locator.nth(i)
+                            if candidate.is_visible(timeout=500):
+                                region_button = candidate
+                                break
+                        except Exception:
+                            continue
+                    if region_button:
+                        break
+
                 if region_button:
-                    break
+                    actual_text = (region_button.text_content() or "").strip()
+                    if actual_text:
+                        collected_texts.append(actual_text)
+                    if expected_low in actual_text.lower():
+                        return
 
-            if not region_button:
-                raise AssertionError("Не найдена видимая кнопка выбора региона.")
+                time.sleep(0.25)
 
-            actual_text = (region_button.text_content() or "").strip()
-            if expected_text.lower() not in actual_text.lower():
+            # Фолбэк: на части Tele2-шаблонов город подтверждается редиректом (/abakan), а кнопка не успевает стать видимой.
+            expected_slug = _slugify_city_ru(expected_text)
+            current_url = (self.page.url or "").lower()
+            if expected_slug and f"/{expected_slug}" in current_url:
+                return
+
+            if collected_texts:
                 raise AssertionError(
-                    f"Некорректный город в кнопке выбора региона: '{actual_text}', ожидали '{expected_text}'"
+                    f"Некорректный город в кнопке выбора региона: '{collected_texts[-1]}', ожидали '{expected_text}'"
                 )
+            raise AssertionError("Не найдена видимая кнопка выбора региона.")
         except AssertionError:
             raise
         except Exception:

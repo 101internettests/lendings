@@ -24,6 +24,50 @@ from locators.mts.mts_home_online import RegionChoice
 class MainSteps(BasePage):
     @allure.title("Проверить все ссылки на странице")
     def check_links_tele(self):
+        def _is_file_like_link(url: str) -> bool:
+            try:
+                path = (urlparse(url).path or "").lower()
+            except Exception:
+                path = (url or "").lower()
+            file_exts = (
+                ".pdf",
+                ".doc",
+                ".docx",
+                ".xls",
+                ".xlsx",
+                ".zip",
+                ".rar",
+                ".7z",
+                ".ppt",
+                ".pptx",
+                ".csv",
+                ".rtf",
+                ".txt",
+            )
+            return any(path.endswith(ext) for ext in file_exts)
+
+        def _assert_link_reachable(url: str):
+            if _is_file_like_link(url):
+                try:
+                    response = self.page.request.get(url, timeout=20000, fail_on_status_code=False)
+                    status = int(response.status)
+                except Exception as e:
+                    raise AssertionError(f"Не удалось проверить файл-ссылку: {url}. Ошибка запроса: {e}")
+                if status < 200 or status >= 400:
+                    raise AssertionError(f"Файл-ссылка недоступна: {url}. HTTP статус: {status}")
+                return
+
+            new_page = self.page.context.new_page()
+            try:
+                new_page.goto(url)
+                new_page.wait_for_load_state("load", timeout=15000)
+                expect(new_page).not_to_have_url("**/404")
+            finally:
+                try:
+                    new_page.close()
+                except Exception:
+                    pass
+
         header_items = self.page.locator("xpath=//div[@class='header__nav-block-item']")
         footer_candidates = [
             "xpath=//div[@class='footer__tarifs']//a",
@@ -96,16 +140,7 @@ class MainSteps(BasePage):
                     continue
                 current_base = self.page.url
                 absolute_href = href if href.startswith("http") else urljoin(current_base, href)
-                new_page = self.page.context.new_page()
-                try:
-                    new_page.goto(absolute_href)
-                    new_page.wait_for_load_state("load", timeout=15000)
-                    expect(new_page).not_to_have_url("**/404")
-                finally:
-                    try:
-                        new_page.close()
-                    except Exception:
-                        pass
+                _assert_link_reachable(absolute_href)
             except Exception:
                 # Не валим весь прогон из-за нестабильного хедера — следующая ссылка
                 continue
@@ -134,16 +169,7 @@ class MainSteps(BasePage):
 
         # Затем открываем каждую ссылку по порядку в новой вкладке и проверяем отсутствие 404
         for href in footer_hrefs:
-            new_page = self.page.context.new_page()
-            try:
-                new_page.goto(href)
-                new_page.wait_for_load_state("load", timeout=15000)
-                expect(new_page).not_to_have_url("**/404")
-            finally:
-                try:
-                    new_page.close()
-                except Exception:
-                    pass
+            _assert_link_reachable(href)
 
         # Считаем и проверяем ссылки на скачивание
         for i in range(total_downloads):
