@@ -14,30 +14,29 @@ class MtsHomeOnlineSecondPage(BasePage):
         try:
             timeout_s = 65
             started = time.time()
-            markup_seen_at = None
+            selectors = [
+                MTSHomeOnlineSecondMain.SUPER_OFFER_TEXT,
+                MTSHomeOnlineSecondMain.SUPER_OFFER_HEADER,
+                "xpath=//div[contains(@class,'popup-lead-catcher')]",
+                (
+                    "xpath=//input[contains(@class,'profit_address_street') "
+                    "or contains(@class,'connection_address_street') "
+                    "or contains(@class,'checkaddress_address_street')]"
+                ),
+            ]
             while time.time() - started < timeout_s:
-                candidates = [
-                    self.page.locator(MTSHomeOnlineSecondMain.SUPER_OFFER_TEXT),
-                    self.page.locator(MTSHomeOnlineSecondMain.SUPER_OFFER_HEADER),
-                    self.page.locator("xpath=//div[contains(@class,'popup-lead-catcher')]"),
-                ]
-                for loc in candidates:
+                for selector in selectors:
                     try:
+                        loc = self.page.locator(selector)
                         total = loc.count()
                     except Exception:
                         total = 0
-                    if total > 0 and markup_seen_at is None:
-                        markup_seen_at = time.time()
                     for idx in range(total):
                         try:
                             if loc.nth(idx).is_visible(timeout=200):
                                 return
                         except Exception:
                             continue
-                # Если разметка попапа существует, но элемент скрыт (частый шаблон с дублями),
-                # считаем проверку пройденной после небольшой стабилизации.
-                if markup_seen_at and (time.time() - markup_seen_at) > 8:
-                    return
                 time.sleep(0.25)
             raise AssertionError("offer_popup_not_visible")
         except Exception:

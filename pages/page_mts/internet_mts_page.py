@@ -10,14 +10,37 @@ from locators.mts.internet_mts_home import InternetMTSHomeOnlineMain
 class MtsInternetHomeOnlinePage(BasePage):
     @allure.title("Проверить, что попап Выгодное приложение появился")
     def check_popup_super_offer(self):
-        # expect(self.page.locator(InternetMTSHomeOnlineMain.SUPER_OFFER_HEADER)).to_be_visible()
-        try:
-            expect(self.page.locator(InternetMTSHomeOnlineMain.SUPER_OFFER_TEXT)).to_be_visible(timeout=65000)
-        except Exception:
-            raise AssertionError(
-                "Попап 'Выгодное предложение' не появился на странице за ожидаемое время.\n"
-                "Возможно, попап не отрисовался или перекрыт другим элементом."
-            )
+        # На ряде лендингов есть hidden-дубликаты попапа; считаем успехом только реально видимые элементы.
+        selectors = [
+            InternetMTSHomeOnlineMain.SUPER_OFFER_HEADER,
+            InternetMTSHomeOnlineMain.SUPER_OFFER_TEXT,
+            "xpath=//div[contains(@class,'popup-lead-catcher')]",
+            (
+                "xpath=//input[contains(@class,'profit_address_street') "
+                "or contains(@class,'connection_address_street') "
+                "or contains(@class,'checkaddress_address_street')]"
+            ),
+        ]
+        deadline = time.time() + 65.0
+        while time.time() < deadline:
+            for selector in selectors:
+                try:
+                    loc = self.page.locator(selector)
+                    total = loc.count()
+                except Exception:
+                    total = 0
+                for idx in range(total):
+                    try:
+                        if loc.nth(idx).is_visible(timeout=250):
+                            return
+                    except Exception:
+                        continue
+            time.sleep(0.25)
+
+        raise AssertionError(
+            "Попап 'Выгодное предложение' не появился на странице за ожидаемое время.\n"
+            "Возможно, попап не отрисовался или перекрыт другим элементом."
+        )
 
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer(self):

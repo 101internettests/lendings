@@ -725,8 +725,28 @@ class MainSteps(BasePage):
     @allure.title("Отправить заявку в попап 'Выгодное спецпредложение!' с домом 1, при недоступности — 2 или 3")
     def send_popup_profit(self):
         with allure.step("Заполнить попап и отправить заявку"):
+            street_selector = (
+                "xpath=//input[contains(@class,'profit_address_street') "
+                "or contains(@class,'connection_address_street') "
+                "or contains(@class,'checkaddress_address_street')]"
+            )
+            house_selector = (
+                "xpath=//input[contains(@class,'profit_address_house') "
+                "or contains(@class,'connection_address_house') "
+                "or contains(@class,'checkaddress_address_house')]"
+            )
+            phone_selector = (
+                "xpath=//input[contains(@class,'profit_address_phone') "
+                "or contains(@class,'connection_address_phone') "
+                "or contains(@class,'checkaddress_address_phone')]"
+            )
+            send_selector = (
+                "xpath=//input[contains(@class,'profit_address_button_send') "
+                "or contains(@class,'connection_address_button_send') "
+                "or contains(@class,'checkaddress_address_button_send')]"
+            )
             try:
-                street = self._pick_first_visible("xpath=//input[contains(@class,'profit_address_street')]", timeout_ms=5000)
+                street = self._pick_first_visible(street_selector, timeout_ms=7000)
                 street.click()
                 # fill быстрее, чем type с delay; дальше ждём подсказку явным ожиданием
                 street.fill("Лен")
@@ -735,19 +755,26 @@ class MainSteps(BasePage):
                     "Не удалось ввести улицу в форму 'Выгодное спецпредложение!'. Возможные причины: поле недоступно/не найдено."
                 )
             try:
-                # Дождаться появления подсказок вместо fixed sleep
-                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).wait_for(state="visible", timeout=7000)
-                self.page.locator(MTSHomeOnlineMain.FIRST_STREET).click()
-            except Exception as e:
-                raise AssertionError(
-                    "Не удалось выбрать первую подсказку улицы. Возможные причины: подсказки не подгрузились или изменился селектор."
+                # Дождаться и кликнуть видимую подсказку (без привязки к [1], где часто hidden-дубликаты)
+                self._pick_first_visible("xpath=//div[contains(@class,'autocomplete-street')]", timeout_ms=8000).click(
+                    timeout=3000
                 )
+            except Exception as e:
+                # Фолбэк: выбрать первую подсказку клавиатурой
+                try:
+                    street.press("ArrowDown")
+                    street.press("Enter")
+                except Exception:
+                    raise AssertionError(
+                        "Не удалось выбрать первую подсказку улицы. Возможные причины: подсказки не подгрузились или изменился селектор."
+                    )
             # Пытаемся дом 1..9 (часто некоторые номера отсутствуют в подсказках на конкретном лендинге)
             tried_any = False
             for num in ("1", "2", "3", "4", "5", "6", "7", "8", "9"):
                 try:
-                    self._pick_first_visible("xpath=//input[contains(@class,'profit_address_house')]", timeout_ms=5000).fill(num)
-                    self._click_first_available_house()
+                    house_input = self._pick_first_visible(house_selector, timeout_ms=6000)
+                    house_input.fill(num)
+                    self._click_first_available_house(house_input)
                     tried_any = True
                     break
                 except Exception:
@@ -755,13 +782,13 @@ class MainSteps(BasePage):
             if not tried_any:
                 raise AssertionError("Не удалось указать дом (1..9) в форме 'Выгодное спецпредложение!'.")
             try:
-                self._pick_first_visible("xpath=//input[contains(@class,'profit_address_phone')]", timeout_ms=5000).fill("99999999999")
+                self._pick_first_visible(phone_selector, timeout_ms=6000).fill("99999999999")
             except Exception as e:
                 raise AssertionError(
                     "Не удалось ввести телефон в форму 'Выгодное спецпредложение!'."
                 )
             try:
-                self._pick_first_visible("xpath=//input[contains(@class,'profit_address_button_send')]", timeout_ms=5000).click()
+                self._pick_first_visible(send_selector, timeout_ms=6000).click()
             except Exception as e:
                 raise AssertionError(
                     "Не удалось отправить форму 'Выгодное спецпредложение!'. Кнопка недоступна или не найдена."
@@ -807,17 +834,38 @@ class MainSteps(BasePage):
                     "Не удалось отправить форму 'Выгодное спецпредложение!' (дом 2)."
                 )
 
-    def _click_first_available_house(self):
-        try:
-            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE).click(timeout=3000)
-            return
-        except Exception:
-            pass
-        try:
-            self.page.locator(MTSHomeOnlineMain.FIRST_HOUSE_SECOND).click(timeout=3000)
-            return
-        except Exception:
-            pass
+    def _click_first_available_house(self, house_input=None, allow_manual_value: bool = False):
+        house_suggestion_selectors = [
+            MTSHomeOnlineMain.FIRST_HOUSE,
+            MTSHomeOnlineMain.FIRST_HOUSE_SECOND,
+            "xpath=//div[contains(@class,'autocomplete-item')]",
+            "xpath=//div[@id='house-list']//div[contains(@class,'autocomplete-item')]",
+        ]
+        for selector in house_suggestion_selectors:
+            try:
+                self._pick_first_visible(selector, timeout_ms=2500).click(timeout=3000)
+                return
+            except Exception:
+                continue
+        if house_input is not None:
+            try:
+                house_input.press("ArrowDown")
+                house_input.press("Enter")
+                return
+            except Exception:
+                pass
+        if allow_manual_value and house_input is not None:
+            # На части express-шаблонов список домов не появляется, но ручное значение валидно.
+            try:
+                value = (house_input.input_value() or "").strip()
+            except Exception:
+                value = ""
+            if value:
+                try:
+                    house_input.press("Tab")
+                except Exception:
+                    pass
+                return
         raise AssertionError(
             "Не удалось кликнуть по варианту дома.\n"
             "Пробовали клики по FIRST_HOUSE и FIRST_HOUSE_SECOND, оба варианта недоступны.\n"
@@ -2088,14 +2136,19 @@ class MainSteps(BasePage):
     def send_popup_express_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
-                street_input = self._pick_first_visible(ExpressConnection.STREET)
-                # street_input.click()
+                try:
+                    street_input = self._pick_first_visible(ExpressConnection.STREET, timeout_ms=5000)
+                except Exception:
+                    # На части лендингов попап после клика не открывается/перерисовывается с первого раза.
+                    self.open_popup_express_connection_button()
+                    street_input = self._pick_first_visible(ExpressConnection.STREET, timeout_ms=7000)
                 street_input.fill("")
                 street_input.type("Лен", delay=100)
                 # Автокомплит иногда появляется с задержкой; ждём и кликаем по первой подсказке
                 try:
-                    self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.wait_for(state="visible", timeout=8000)
-                    self.page.locator(MTSHomeOnlineMain.FIRST_STREET).first.click(timeout=8000)
+                    self._pick_first_visible("xpath=//div[contains(@class,'autocomplete-street')]", timeout_ms=8000).click(
+                        timeout=3000
+                    )
                 except Exception:
                     # Фолбэк: выбрать первую подсказку клавиатурой
                     street_input.press("ArrowDown")
@@ -2112,7 +2165,7 @@ class MainSteps(BasePage):
                     try:
                         house_input.fill("")  # очистить
                         house_input.fill(num)
-                        self._click_first_available_house()
+                        self._click_first_available_house(house_input, allow_manual_value=True)
                         break
                     except Exception:
                         continue
@@ -2172,7 +2225,7 @@ class MainSteps(BasePage):
                     try:
                         house_input.fill("")  # очистить
                         house_input.fill(num)
-                        self._click_first_available_house()
+                        self._click_first_available_house(house_input, allow_manual_value=True)
                         break
                     except Exception:
                         continue
