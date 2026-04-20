@@ -91,10 +91,10 @@ class Moving:
 
 
 class ExpressConnection:
-    STREET = "xpath=//input[contains(@class,'express-connection_address_street') or contains(@class,'connection_address_street')]"
-    HOUSE = "xpath=//input[contains(@class,'express-connection_address_house') or contains(@class,'connection_address_house')]"
-    PHONE = "xpath=//input[contains(@class,'express-connection_address_phone') or contains(@class,'connection_address_phone')]"
-    BUTTON_SEND = "xpath=//input[contains(@class,'express-connection_address_button_send') or contains(@class,'connection_address_button_send')]"
+    STREET = "xpath=//input[contains(@class,'express-connection_address_street') or contains(@class,'connection_address_street') or contains(@class,'checkaddress_address_street')]"
+    HOUSE = "xpath=//input[contains(@class,'express-connection_address_house') or contains(@class,'connection_address_house') or contains(@class,'checkaddress_address_house')]"
+    PHONE = "xpath=//input[contains(@class,'express-connection_address_phone') or contains(@class,'connection_address_phone') or contains(@class,'checkaddress_address_phone')]"
+    BUTTON_SEND = "xpath=//input[contains(@class,'express-connection_address_button_send') or contains(@class,'connection_address_button_send') or contains(@class,'checkaddress_address_button_send')]"
     BUTTON_CHANGE_CITY = "xpath=//div[contains(@class,'express-connection_address_button_change_city') or contains(@class,'connection_address_button_change_city') or contains(@class,'checkaddress_address_button_change_city')] | //span[contains(@class,'express-connection_address_button_change_city') or contains(@class,'connection_address_button_change_city') or contains(@class,'checkaddress_address_button_change_city')]"
 
     FORM_BUTTON = "xpath=//button[contains(@class,'connection_address_button') or contains(@class,'express-connection_address_button')] | //a[contains(@class,'connection_address_button') or contains(@class,'express-connection_address_button')]"

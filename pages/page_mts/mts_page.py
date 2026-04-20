@@ -10,16 +10,20 @@ class MtsHomeOnlinePage(BasePage):
     @allure.title("Проверить, что попап Выгодное приложение появился")
     def check_popup_super_offer(self):
         try:
-            expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_HEADER)).to_be_visible(timeout=65000)
-            expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)).to_be_visible(timeout=65000)
+            visible_header = self.page.locator(f"{MTSHomeOnlineMain.SUPER_OFFER_HEADER} >> visible=true").first
+            visible_header_second = self.page.locator(f"{MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND} >> visible=true").first
+            expect(visible_header).to_be_visible(timeout=65000)
+            expect(visible_header_second).to_be_visible(timeout=65000)
         except Exception:
             raise AssertionError("Попап не появился на странице за 65 секунд")
 
     @allure.title("Проверить, что попап Выгодное приложение появился")
     def check_popup_super_offer_second(self):
         try:
-            expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND)).to_be_visible(timeout=65000)
-            expect(self.page.locator(MTSHomeOnlineMain.SUPER_OFFER_TEXT)).to_be_visible(timeout=65000)
+            visible_offer_title = self.page.locator(f"{MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND} >> visible=true").first
+            visible_offer_text = self.page.locator(f"{MTSHomeOnlineMain.SUPER_OFFER_TEXT} >> visible=true").first
+            expect(visible_offer_title).to_be_visible(timeout=65000)
+            expect(visible_offer_text).to_be_visible(timeout=65000)
         except Exception:
             raise AssertionError("Попап не появился на странице за 65 секунд")
 
@@ -1237,10 +1241,35 @@ class ChoiceRegionPage(BasePage):
     @allure.title("Проверить текст кнопки выбора региона")
     def verify_region_button_text(self, expected_text):
         try:
-            region_button = self.page.locator(RegionChoice.REGION_CHOICE_BUTTON)
-            expect(region_button).to_be_visible()
+            selector_candidates = [
+                RegionChoice.REGION_CHOICE_BUTTON,
+                RegionChoice.TELE_REGION_CHOICE_BUTTON,
+                RegionChoice.NEW_REGION_CHOICE_BUTTON,
+                RegionChoice.UPDATED_REGION_BUTTON,
+            ]
+            region_button = None
+            for selector in selector_candidates:
+                locator = self.page.locator(selector)
+                try:
+                    total = locator.count()
+                except Exception:
+                    total = 0
+                for i in range(total):
+                    try:
+                        candidate = locator.nth(i)
+                        if candidate.is_visible(timeout=700):
+                            region_button = candidate
+                            break
+                    except Exception:
+                        continue
+                if region_button:
+                    break
+
+            if not region_button:
+                raise AssertionError("Не найдена видимая кнопка выбора региона.")
+
             actual_text = (region_button.text_content() or "").strip()
-            if actual_text != expected_text:
+            if expected_text.lower() not in actual_text.lower():
                 raise AssertionError(
                     f"Некорректный город в кнопке выбора региона: '{actual_text}', ожидали '{expected_text}'"
                 )

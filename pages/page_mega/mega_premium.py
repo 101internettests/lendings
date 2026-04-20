@@ -183,7 +183,12 @@ class MegaPremiumOnline(BasePage):
             with self.page.context.expect_page() as new_page_info:
                 link.click(modifiers=["Control"])
             new_page = new_page_info.value
-            new_page.wait_for_load_state("networkidle", timeout=15000)
+            new_page.wait_for_load_state("load", timeout=15000)
+            try:
+                new_page.wait_for_load_state("networkidle", timeout=5000)
+            except Exception:
+                # Для части страниц long-poll держит сеть "живой" и networkidle не наступает.
+                pass
             expect(new_page).not_to_have_url("**/404")
             new_page.close()
 

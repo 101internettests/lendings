@@ -86,6 +86,14 @@ class MainSteps(BasePage):
                 if not href:
                     # Если это не ссылка — пропускаем
                     continue
+                href_l = href.strip().lower()
+                if (
+                    href_l.startswith("#")
+                    or href_l.startswith("javascript:")
+                    or href_l.startswith("tel:")
+                    or href_l.startswith("mailto:")
+                ):
+                    continue
                 current_base = self.page.url
                 absolute_href = href if href.startswith("http") else urljoin(current_base, href)
                 new_page = self.page.context.new_page()
@@ -112,7 +120,12 @@ class MainSteps(BasePage):
             if not href:
                 continue
             href_l = href.strip().lower()
-            if href_l.startswith("#") or href_l.startswith("javascript:"):
+            if (
+                href_l.startswith("#")
+                or href_l.startswith("javascript:")
+                or href_l.startswith("tel:")
+                or href_l.startswith("mailto:")
+            ):
                 continue
             absolute_href = href if href.startswith("http") else urljoin(current_base, href)
             footer_hrefs.append(absolute_href)
@@ -687,7 +700,7 @@ class MainSteps(BasePage):
     def send_popup_profit(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
-                street = self.page.locator(Profit.STREET)
+                street = self._pick_first_visible("xpath=//input[contains(@class,'profit_address_street')]", timeout_ms=5000)
                 street.click()
                 # fill быстрее, чем type с delay; дальше ждём подсказку явным ожиданием
                 street.fill("Лен")
@@ -707,7 +720,7 @@ class MainSteps(BasePage):
             tried_any = False
             for num in ("1", "2", "3", "4", "5", "6", "7", "8", "9"):
                 try:
-                    self.page.locator(Profit.HOUSE).fill(num)
+                    self._pick_first_visible("xpath=//input[contains(@class,'profit_address_house')]", timeout_ms=5000).fill(num)
                     self._click_first_available_house()
                     tried_any = True
                     break
@@ -716,13 +729,13 @@ class MainSteps(BasePage):
             if not tried_any:
                 raise AssertionError("Не удалось указать дом (1..9) в форме 'Выгодное спецпредложение!'.")
             try:
-                self.page.locator(Profit.PHONE).fill("99999999999")
+                self._pick_first_visible("xpath=//input[contains(@class,'profit_address_phone')]", timeout_ms=5000).fill("99999999999")
             except Exception as e:
                 raise AssertionError(
                     "Не удалось ввести телефон в форму 'Выгодное спецпредложение!'."
                 )
             try:
-                self.page.locator(Profit.BUTTON_SEND).click()
+                self._pick_first_visible("xpath=//input[contains(@class,'profit_address_button_send')]", timeout_ms=5000).click()
             except Exception as e:
                 raise AssertionError(
                     "Не удалось отправить форму 'Выгодное спецпредложение!'. Кнопка недоступна или не найдена."
@@ -732,7 +745,7 @@ class MainSteps(BasePage):
     def send_popup_profit_second_house(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
-                street = self.page.locator(Profit.STREET)
+                street = self._pick_first_visible("xpath=//input[contains(@class,'profit_address_street')]", timeout_ms=5000)
                 street.click()
                 street.fill("Лен")
                 self.page.locator(MTSHomeOnlineMain.FIRST_STREET).wait_for(state="visible", timeout=7000)
@@ -742,7 +755,7 @@ class MainSteps(BasePage):
                     "Не удалось выбрать улицу/подсказку в форме 'Выгодное спецпредложение!'."
                 )
             try:
-                house_input = self.page.locator(Profit.HOUSE)
+                house_input = self._pick_first_visible("xpath=//input[contains(@class,'profit_address_house')]", timeout_ms=5000)
                 # Пробуем дом 2..9 (часто некоторые номера отсутствуют в подсказках на конкретном лендинге)
                 for num in ("2", "3", "4", "5", "6", "7", "8", "9"):
                     try:
@@ -761,8 +774,8 @@ class MainSteps(BasePage):
                     "Не удалось указать дом (вариант 2) в форме 'Выгодное спецпредложение!'."
                 )
             try:
-                self.page.locator(Profit.PHONE).fill("99999999999")
-                self.page.locator(Profit.BUTTON_SEND).click()
+                self._pick_first_visible("xpath=//input[contains(@class,'profit_address_phone')]", timeout_ms=5000).fill("99999999999")
+                self._pick_first_visible("xpath=//input[contains(@class,'profit_address_button_send')]", timeout_ms=5000).click()
             except Exception as e:
                 raise AssertionError(
                     "Не удалось отправить форму 'Выгодное спецпредложение!' (дом 2)."
@@ -2100,7 +2113,12 @@ class MainSteps(BasePage):
     def send_popup_express_connection_second(self):
         with allure.step("Заполнить попап и отправить заявку"):
             try:
-                street_input = self._pick_first_visible(ExpressConnection.STREET, timeout_ms=5000)
+                try:
+                    street_input = self._pick_first_visible(ExpressConnection.STREET, timeout_ms=5000)
+                except Exception:
+                    # На части business-лендингов попап после смены города закрывается/перерисовывается.
+                    self.open_popup_express_connection_button()
+                    street_input = self._pick_first_visible(ExpressConnection.STREET, timeout_ms=7000)
                 try:
                     if not street_input.is_visible(timeout=1200):
                         street_input = self._pick_nth_visible_or_fallback(ExpressConnection.STREET, 2, timeout_ms=5000)
