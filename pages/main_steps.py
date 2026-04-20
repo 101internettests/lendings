@@ -725,30 +725,54 @@ class MainSteps(BasePage):
     @allure.title("Отправить заявку в попап 'Выгодное спецпредложение!' с домом 1, при недоступности — 2 или 3")
     def send_popup_profit(self):
         with allure.step("Заполнить попап и отправить заявку"):
-            street_selector = (
-                "xpath=//input[contains(@class,'profit_address_street') "
-                "or contains(@class,'connection_address_street') "
-                "or contains(@class,'checkaddress_address_street')]"
-            )
-            house_selector = (
-                "xpath=//input[contains(@class,'profit_address_house') "
-                "or contains(@class,'connection_address_house') "
-                "or contains(@class,'checkaddress_address_house')]"
-            )
-            phone_selector = (
-                "xpath=//input[contains(@class,'profit_address_phone') "
-                "or contains(@class,'connection_address_phone') "
-                "or contains(@class,'checkaddress_address_phone')]"
-            )
-            send_selector = (
-                "xpath=//input[contains(@class,'profit_address_button_send') "
-                "or contains(@class,'connection_address_button_send') "
-                "or contains(@class,'checkaddress_address_button_send')]"
-            )
+            street_selectors = [
+                "xpath=//div[contains(@id,'popup-lead-catcher') or contains(@class,'popup-lead-catcher')]//input[contains(@class,'profit_address_street')]",
+                "xpath=//div[contains(@id,'popup-lead-catcher') or contains(@class,'popup-lead-catcher')]//input[contains(@class,'connection_address_street')]",
+                "xpath=//input[contains(@class,'profit_address_street')]",
+                "xpath=//input[contains(@class,'connection_address_street')]",
+                "xpath=//input[contains(@class,'checkaddress_address_street')]",
+            ]
+            house_selectors = [
+                "xpath=//div[contains(@id,'popup-lead-catcher') or contains(@class,'popup-lead-catcher')]//input[contains(@class,'profit_address_house')]",
+                "xpath=//div[contains(@id,'popup-lead-catcher') or contains(@class,'popup-lead-catcher')]//input[contains(@class,'connection_address_house')]",
+                "xpath=//input[contains(@class,'profit_address_house')]",
+                "xpath=//input[contains(@class,'connection_address_house')]",
+                "xpath=//input[contains(@class,'checkaddress_address_house')]",
+            ]
+            phone_selectors = [
+                "xpath=//div[contains(@id,'popup-lead-catcher') or contains(@class,'popup-lead-catcher')]//input[contains(@class,'profit_address_phone')]",
+                "xpath=//div[contains(@id,'popup-lead-catcher') or contains(@class,'popup-lead-catcher')]//input[contains(@class,'connection_address_phone')]",
+                "xpath=//input[contains(@class,'profit_address_phone')]",
+                "xpath=//input[contains(@class,'connection_address_phone')]",
+                "xpath=//input[contains(@class,'checkaddress_address_phone')]",
+            ]
+            send_selectors = [
+                "xpath=//div[contains(@id,'popup-lead-catcher') or contains(@class,'popup-lead-catcher')]//input[contains(@class,'profit_address_button_send')]",
+                "xpath=//div[contains(@id,'popup-lead-catcher') or contains(@class,'popup-lead-catcher')]//input[contains(@class,'connection_address_button_send')]",
+                "xpath=//input[contains(@class,'profit_address_button_send')]",
+                "xpath=//input[contains(@class,'connection_address_button_send')]",
+                "xpath=//input[contains(@class,'checkaddress_address_button_send')]",
+            ]
             try:
-                street = self._pick_first_visible(street_selector, timeout_ms=7000)
-                street.click()
+                street = self._pick_first_visible_by_priority(street_selectors, timeout_ms=7000)
+            except Exception:
+                # На части лендингов попап не открывается автоматически — пробуем открыть вручную.
+                try:
+                    self._pick_first_visible_by_priority(
+                        [
+                            MTSHomeOnlineMain.RED_BUTTON,
+                            "xpath=//button[contains(@class,'button-lead-catcher')]",
+                        ],
+                        timeout_ms=4000,
+                    ).click(force=True, timeout=3000)
+                    street = self._pick_first_visible_by_priority(street_selectors, timeout_ms=9000)
+                except Exception:
+                    raise AssertionError(
+                        "Не удалось ввести улицу в форму 'Выгодное спецпредложение!'. Возможные причины: поле недоступно/не найдено."
+                    )
+            try:
                 # fill быстрее, чем type с delay; дальше ждём подсказку явным ожиданием
+                street.fill("")
                 street.fill("Лен")
             except Exception as e:
                 raise AssertionError(
@@ -756,7 +780,13 @@ class MainSteps(BasePage):
                 )
             try:
                 # Дождаться и кликнуть видимую подсказку (без привязки к [1], где часто hidden-дубликаты)
-                self._pick_first_visible("xpath=//div[contains(@class,'autocomplete-street')]", timeout_ms=8000).click(
+                self._pick_first_visible_by_priority(
+                    [
+                        "xpath=//div[contains(@id,'popup-lead-catcher') or contains(@class,'popup-lead-catcher')]//div[contains(@class,'autocomplete-street')]",
+                        "xpath=//div[contains(@class,'autocomplete-street')]",
+                    ],
+                    timeout_ms=8000,
+                ).click(
                     timeout=3000
                 )
             except Exception as e:
@@ -772,9 +802,16 @@ class MainSteps(BasePage):
             tried_any = False
             for num in ("1", "2", "3", "4", "5", "6", "7", "8", "9"):
                 try:
-                    house_input = self._pick_first_visible(house_selector, timeout_ms=6000)
+                    house_input = self._pick_first_visible_by_priority(house_selectors, timeout_ms=6000)
+                    house_input.fill("")
                     house_input.fill(num)
-                    self._click_first_available_house(house_input)
+                    self._click_first_available_house(
+                        house_input,
+                        suggestion_selectors=[
+                            "xpath=//div[contains(@id,'popup-lead-catcher') or contains(@class,'popup-lead-catcher')]//div[contains(@class,'autocomplete-item')]",
+                            "xpath=//div[contains(@class,'autocomplete-item')]",
+                        ],
+                    )
                     tried_any = True
                     break
                 except Exception:
@@ -782,13 +819,13 @@ class MainSteps(BasePage):
             if not tried_any:
                 raise AssertionError("Не удалось указать дом (1..9) в форме 'Выгодное спецпредложение!'.")
             try:
-                self._pick_first_visible(phone_selector, timeout_ms=6000).fill("99999999999")
+                self._pick_first_visible_by_priority(phone_selectors, timeout_ms=6000).fill("99999999999")
             except Exception as e:
                 raise AssertionError(
                     "Не удалось ввести телефон в форму 'Выгодное спецпредложение!'."
                 )
             try:
-                self._pick_first_visible(send_selector, timeout_ms=6000).click()
+                self._pick_first_visible_by_priority(send_selectors, timeout_ms=6000).click(force=True, timeout=5000)
             except Exception as e:
                 raise AssertionError(
                     "Не удалось отправить форму 'Выгодное спецпредложение!'. Кнопка недоступна или не найдена."
@@ -834,8 +871,8 @@ class MainSteps(BasePage):
                     "Не удалось отправить форму 'Выгодное спецпредложение!' (дом 2)."
                 )
 
-    def _click_first_available_house(self, house_input=None, allow_manual_value: bool = False):
-        house_suggestion_selectors = [
+    def _click_first_available_house(self, house_input=None, allow_manual_value: bool = False, suggestion_selectors=None):
+        house_suggestion_selectors = suggestion_selectors or [
             MTSHomeOnlineMain.FIRST_HOUSE,
             MTSHomeOnlineMain.FIRST_HOUSE_SECOND,
             "xpath=//div[contains(@class,'autocomplete-item')]",
@@ -893,6 +930,18 @@ class MainSteps(BasePage):
             time.sleep(0.1)
 
         raise AssertionError(f"Не найден видимый элемент по селектору: {selector}")
+
+    def _pick_first_visible_by_priority(self, selectors, *, timeout_ms: int = 2500):
+        last_error = None
+        for selector in selectors:
+            try:
+                return self._pick_first_visible(selector, timeout_ms=timeout_ms)
+            except Exception as e:
+                last_error = e
+                continue
+        if last_error:
+            raise AssertionError(f"Не найден видимый элемент ни по одному селектору из набора: {selectors}")
+        raise AssertionError("Не переданы селекторы для поиска видимого элемента.")
 
     def _pick_nth_visible_or_fallback(self, selector: str, index_1based: int, *, timeout_ms: int = 400):
         loc = self.page.locator(selector)
@@ -2135,20 +2184,48 @@ class MainSteps(BasePage):
     @allure.title("Отправить заявку в попап 'Заявка на экспресс подключение'")
     def send_popup_express_connection(self):
         with allure.step("Заполнить попап и отправить заявку"):
+            street_selectors = [
+                "xpath=//div[contains(@id,'popup-banner') or contains(@class,'popup-banner')]//input[contains(@class,'express-connection_address_street')]",
+                "xpath=//div[contains(@id,'popup-banner') or contains(@class,'popup-banner')]//input[contains(@class,'connection_address_street')]",
+                "xpath=//div[contains(@id,'popup-banner') or contains(@class,'popup-banner')]//input[contains(@class,'checkaddress_address_street')]",
+                ExpressConnection.STREET,
+            ]
+            house_selectors = [
+                "xpath=//div[contains(@id,'popup-banner') or contains(@class,'popup-banner')]//input[contains(@class,'express-connection_address_house')]",
+                "xpath=//div[contains(@id,'popup-banner') or contains(@class,'popup-banner')]//input[contains(@class,'connection_address_house')]",
+                "xpath=//div[contains(@id,'popup-banner') or contains(@class,'popup-banner')]//input[contains(@class,'checkaddress_address_house')]",
+                ExpressConnection.HOUSE,
+            ]
+            phone_selectors = [
+                "xpath=//div[contains(@id,'popup-banner') or contains(@class,'popup-banner')]//input[contains(@class,'express-connection_address_phone')]",
+                "xpath=//div[contains(@id,'popup-banner') or contains(@class,'popup-banner')]//input[contains(@class,'connection_address_phone')]",
+                "xpath=//div[contains(@id,'popup-banner') or contains(@class,'popup-banner')]//input[contains(@class,'checkaddress_address_phone')]",
+                ExpressConnection.PHONE,
+            ]
+            send_selectors = [
+                "xpath=//div[contains(@id,'popup-banner') or contains(@class,'popup-banner')]//input[contains(@class,'express-connection_address_button_send')]",
+                "xpath=//div[contains(@id,'popup-banner') or contains(@class,'popup-banner')]//input[contains(@class,'connection_address_button_send')]",
+                "xpath=//div[contains(@id,'popup-banner') or contains(@class,'popup-banner')]//input[contains(@class,'checkaddress_address_button_send')]",
+                ExpressConnection.BUTTON_SEND,
+            ]
             try:
                 try:
-                    street_input = self._pick_first_visible(ExpressConnection.STREET, timeout_ms=5000)
+                    street_input = self._pick_first_visible_by_priority(street_selectors, timeout_ms=5000)
                 except Exception:
                     # На части лендингов попап после клика не открывается/перерисовывается с первого раза.
                     self.open_popup_express_connection_button()
-                    street_input = self._pick_first_visible(ExpressConnection.STREET, timeout_ms=7000)
+                    street_input = self._pick_first_visible_by_priority(street_selectors, timeout_ms=7000)
                 street_input.fill("")
                 street_input.type("Лен", delay=100)
                 # Автокомплит иногда появляется с задержкой; ждём и кликаем по первой подсказке
                 try:
-                    self._pick_first_visible("xpath=//div[contains(@class,'autocomplete-street')]", timeout_ms=8000).click(
-                        timeout=3000
-                    )
+                    self._pick_first_visible_by_priority(
+                        [
+                            "xpath=//div[contains(@id,'popup-banner') or contains(@class,'popup-banner')]//div[contains(@class,'autocomplete-street')]",
+                            "xpath=//div[contains(@class,'autocomplete-street')]",
+                        ],
+                        timeout_ms=8000,
+                    ).click(timeout=3000)
                 except Exception:
                     # Фолбэк: выбрать первую подсказку клавиатурой
                     street_input.press("ArrowDown")
@@ -2159,13 +2236,20 @@ class MainSteps(BasePage):
                 )
             time.sleep(1)
             try:
-                house_input = self._pick_first_visible(ExpressConnection.HOUSE)
+                house_input = self._pick_first_visible_by_priority(house_selectors)
                 # Пробуем дом 2, затем 3, затем 7 (часто некоторые номера отсутствуют в подсказках на конкретном лендинге)
                 for num in ("1", "2", "3", "4","5","6", "7","8","9",):
                     try:
                         house_input.fill("")  # очистить
                         house_input.fill(num)
-                        self._click_first_available_house(house_input, allow_manual_value=True)
+                        self._click_first_available_house(
+                            house_input,
+                            allow_manual_value=True,
+                            suggestion_selectors=[
+                                "xpath=//div[contains(@id,'popup-banner') or contains(@class,'popup-banner')]//div[contains(@class,'autocomplete-item')]",
+                                "xpath=//div[contains(@class,'autocomplete-item')]",
+                            ],
+                        )
                         break
                     except Exception:
                         continue
@@ -2179,9 +2263,9 @@ class MainSteps(BasePage):
                 )
             time.sleep(1)
             try:
-                self._pick_first_visible(ExpressConnection.PHONE).fill("99999999999")
+                self._pick_first_visible_by_priority(phone_selectors).fill("99999999999")
                 time.sleep(1)
-                self._pick_first_visible(ExpressConnection.BUTTON_SEND).click()
+                self._pick_first_visible_by_priority(send_selectors).click(force=True, timeout=5000)
             except Exception as e:
                 raise AssertionError(
                     "Не удалось отправить форму 'Экспресс подключение'."

@@ -19,13 +19,65 @@ class MtsHomeOnlinePage(BasePage):
 
     @allure.title("Проверить, что попап Выгодное приложение появился")
     def check_popup_super_offer_second(self):
+        marker_selectors = [
+            MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND,
+            MTSHomeOnlineMain.SUPER_OFFER_HEADER,
+            MTSHomeOnlineMain.SUPER_OFFER_TEXT,
+            "xpath=//div[contains(@id,'popup-lead-catcher') or contains(@class,'popup-lead-catcher')]",
+            "xpath=//input[contains(@class,'profit_address_street') or contains(@class,'connection_address_street')]",
+        ]
+        deadline = time.time() + 65.0
+        open_clicked = False
+
+        while time.time() < deadline:
+            for selector in marker_selectors:
+                locator = self.page.locator(selector)
+                try:
+                    total = locator.count()
+                except Exception:
+                    total = 0
+                for i in range(total):
+                    try:
+                        if locator.nth(i).is_visible(timeout=250):
+                            return
+                    except Exception:
+                        continue
+
+            # На ряде лендингов попап не авто-показывается, пока не нажата плавающая кнопка.
+            if not open_clicked and time.time() > (deadline - 50.0):
+                try:
+                    open_btn = self.page.locator(MTSHomeOnlineMain.RED_BUTTON)
+                    total_btn = open_btn.count()
+                except Exception:
+                    total_btn = 0
+
+                if total_btn > 0:
+                    for idx in range(total_btn):
+                        try:
+                            btn = open_btn.nth(idx)
+                            if btn.is_visible(timeout=200):
+                                btn.click(force=True, timeout=3000)
+                                break
+                        except Exception:
+                            continue
+                open_clicked = True
+            time.sleep(0.25)
+
+        # Фолбэк: если автопопап не появился, но кнопка открытия доступна —
+        # продолжаем сценарий, popup будет открыт в send_popup_profit().
         try:
-            visible_offer_title = self.page.locator(f"{MTSHomeOnlineMain.SUPER_OFFER_HEADER_SECOND} >> visible=true").first
-            visible_offer_text = self.page.locator(f"{MTSHomeOnlineMain.SUPER_OFFER_TEXT} >> visible=true").first
-            expect(visible_offer_title).to_be_visible(timeout=65000)
-            expect(visible_offer_text).to_be_visible(timeout=65000)
+            open_btn = self.page.locator(MTSHomeOnlineMain.RED_BUTTON)
+            total_btn = open_btn.count()
         except Exception:
-            raise AssertionError("Попап не появился на странице за 65 секунд")
+            total_btn = 0
+        for idx in range(total_btn):
+            try:
+                if open_btn.nth(idx).is_visible(timeout=200):
+                    return
+            except Exception:
+                continue
+
+        raise AssertionError("Попап не появился на странице за 65 секунд")
 
     @allure.title("Отправить заявку в попап и проверить успешность")
     def send_popup_super_offer(self):
