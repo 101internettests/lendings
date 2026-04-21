@@ -26,8 +26,38 @@ class MtsHomeOnlinePage(BasePage):
             "xpath=//div[contains(@id,'popup-lead-catcher') or contains(@class,'popup-lead-catcher')]",
             "xpath=//input[contains(@class,'profit_address_street') or contains(@class,'connection_address_street')]",
         ]
+        open_button_selectors = [
+            MTSHomeOnlineMain.RED_BUTTON,
+            MTSHomeOnlineMain.CONNECT_BUTTON,
+            MTSHomeOnlineMain.CONNECTING_BUTTON,
+            MTSHomeOnlineMain.CONNECT_BUTTON_CONDITIONS,
+            MTSHomeOnlineMain.CONNECT_BUTTON_SECOND,
+            MTSHomeOnlineMain.CONNECT_BUTTON_SECOND_CONNECT,
+            MTSHomeOnlineMain.CONNECT_BUTTON_THIRD,
+            MTSHomeOnlineMain.CONNECT_BUTTON_FUTER,
+            MTSHomeOnlineMain.CHECK_ADDRESS_BUTTON,
+            MTSHomeOnlineMain.CHECK_ADDRESS_BUTTON_FUTER,
+            "xpath=//button[contains(@class,'button-lead-catcher')]",
+            "xpath=//*[@id='btnup' and (self::button or self::a)]",
+        ]
         deadline = time.time() + 65.0
         open_clicked = False
+
+        def _find_first_visible(selectors, timeout_ms=200):
+            for selector in selectors:
+                locator = self.page.locator(selector)
+                try:
+                    total = locator.count()
+                except Exception:
+                    total = 0
+                for idx in range(total):
+                    try:
+                        el = locator.nth(idx)
+                        if el.is_visible(timeout=timeout_ms):
+                            return el
+                    except Exception:
+                        continue
+            return None
 
         while time.time() < deadline:
             for selector in marker_selectors:
@@ -46,36 +76,18 @@ class MtsHomeOnlinePage(BasePage):
             # На ряде лендингов попап не авто-показывается, пока не нажата плавающая кнопка.
             if not open_clicked and time.time() > (deadline - 50.0):
                 try:
-                    open_btn = self.page.locator(MTSHomeOnlineMain.RED_BUTTON)
-                    total_btn = open_btn.count()
+                    open_btn = _find_first_visible(open_button_selectors, timeout_ms=200)
+                    if open_btn is not None:
+                        open_btn.click(force=True, timeout=3000)
                 except Exception:
-                    total_btn = 0
-
-                if total_btn > 0:
-                    for idx in range(total_btn):
-                        try:
-                            btn = open_btn.nth(idx)
-                            if btn.is_visible(timeout=200):
-                                btn.click(force=True, timeout=3000)
-                                break
-                        except Exception:
-                            continue
+                    pass
                 open_clicked = True
             time.sleep(0.25)
 
         # Фолбэк: если автопопап не появился, но кнопка открытия доступна —
         # продолжаем сценарий, popup будет открыт в send_popup_profit().
-        try:
-            open_btn = self.page.locator(MTSHomeOnlineMain.RED_BUTTON)
-            total_btn = open_btn.count()
-        except Exception:
-            total_btn = 0
-        for idx in range(total_btn):
-            try:
-                if open_btn.nth(idx).is_visible(timeout=200):
-                    return
-            except Exception:
-                continue
+        if _find_first_visible(open_button_selectors, timeout_ms=200) is not None:
+            return
 
         raise AssertionError("Попап не появился на странице за 65 секунд")
 

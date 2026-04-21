@@ -761,7 +761,17 @@ class MainSteps(BasePage):
                     self._pick_first_visible_by_priority(
                         [
                             MTSHomeOnlineMain.RED_BUTTON,
+                            MTSHomeOnlineMain.CONNECT_BUTTON,
+                            MTSHomeOnlineMain.CONNECTING_BUTTON,
+                            MTSHomeOnlineMain.CONNECT_BUTTON_CONDITIONS,
+                            MTSHomeOnlineMain.CONNECT_BUTTON_SECOND,
+                            MTSHomeOnlineMain.CONNECT_BUTTON_SECOND_CONNECT,
+                            MTSHomeOnlineMain.CONNECT_BUTTON_THIRD,
+                            MTSHomeOnlineMain.CONNECT_BUTTON_FUTER,
+                            MTSHomeOnlineMain.CHECK_ADDRESS_BUTTON,
+                            MTSHomeOnlineMain.CHECK_ADDRESS_BUTTON_FUTER,
                             "xpath=//button[contains(@class,'button-lead-catcher')]",
+                            "xpath=//*[@id='btnup' and (self::button or self::a)]",
                         ],
                         timeout_ms=4000,
                     ).click(force=True, timeout=3000)
@@ -807,6 +817,7 @@ class MainSteps(BasePage):
                     house_input.fill(num)
                     self._click_first_available_house(
                         house_input,
+                        allow_manual_value=True,
                         suggestion_selectors=[
                             "xpath=//div[contains(@id,'popup-lead-catcher') or contains(@class,'popup-lead-catcher')]//div[contains(@class,'autocomplete-item')]",
                             "xpath=//div[contains(@class,'autocomplete-item')]",
