@@ -1,8 +1,10 @@
 import os
 import sys
 import json
+import html
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import requests
 # Ensure project root is on sys.path when running as a script (python tools/daily_report.py)
 _THIS_DIR = Path(__file__).resolve().parent
 _ROOT = _THIS_DIR.parent
@@ -10,6 +12,79 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 from dotenv import load_dotenv
 from config import bot, chat_id
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    val = raw.strip().lower()
+    if val in ("1", "true", "yes", "y", "on"):
+        return True
+    if val in ("0", "false", "no", "n", "off", ""):
+        return False
+    return default
+
+
+def _send_telegram_summary(text: str) -> None:
+    use_proxy = _env_bool("USE_TELEGRAM_PROXY", False)
+    try:
+        timeout = float(os.getenv("TELEGRAM_PROXY_TIMEOUT_SEC", "15"))
+    except Exception:
+        timeout = 15.0
+
+    if use_proxy:
+        proxy_url = (os.getenv("TELEGRAM_PROXY_URL") or "").strip()
+        auth_secret = (os.getenv("TELEGRAM_PROXY_AUTH_SECRET") or "").strip()
+        creds = (os.getenv("TELEGRAM_PROXY_CREDS") or "").strip()
+        missing = []
+        if not proxy_url:
+            missing.append("TELEGRAM_PROXY_URL")
+        if not auth_secret:
+            missing.append("TELEGRAM_PROXY_AUTH_SECRET")
+        if not creds:
+            missing.append("TELEGRAM_PROXY_CREDS")
+        if missing:
+            print(f"[TELEGRAM][proxy][daily_report] Missing required env vars: {', '.join(missing)}")
+            return
+
+        try:
+            resp = requests.post(
+                proxy_url,
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Authentication": auth_secret,
+                },
+                json={
+                    "title": html.escape("Run summary"),
+                    "text": html.escape(text),
+                    "creds": creds,
+                    "parse_mode": "HTML",
+                    "disable_notification": False,
+                },
+                timeout=timeout,
+            )
+            if getattr(resp, "status_code", 200) >= 400:
+                body = (getattr(resp, "text", "") or "").strip().replace("\n", " ")
+                print(f"[TELEGRAM][proxy][daily_report] send failed: {resp.status_code} {body[:180]}")
+            return
+        except requests.Timeout:
+            print(f"[TELEGRAM][proxy][daily_report] timeout after {timeout}s")
+            return
+        except requests.RequestException as exc:
+            print(f"[TELEGRAM][proxy][daily_report] transport error: {exc}")
+            return
+        except Exception as exc:
+            print(f"[TELEGRAM][proxy][daily_report] unexpected error: {exc}")
+            return
+
+    try:
+        if not bot or not chat_id:
+            return
+        bot.send_message(chat_id, text)
+    except Exception:
+        # Keep best-effort behavior for cron jobs.
+        pass
 
 
 def _now_utc():
@@ -129,11 +204,7 @@ def main():
         now_msk_str=now_msk_str,
         period_msk=period_str,
     )
-    try:
-        bot.send_message(chat_id, text)
-    except Exception:
-        # Fail silently to avoid cron noise; logs can be added here if needed
-        pass
+    _send_telegram_summary(text)
 
 
 if __name__ == "__main__":
