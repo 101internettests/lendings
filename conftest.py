@@ -2164,6 +2164,11 @@ def pytest_sessionfinish(session, exitstatus):
             # First, merge "failed tests this run" from worker jsonl logs into persistent state.
             failed_this_run: set[tuple[str, str]] = set()
             executed_this_run: set[tuple[str, str]] = set()
+            # For run summary in xdist: collect unique test ids seen in workers.
+            # Master process doesn't execute tests itself, so in-memory RUN_* can stay zero.
+            failed_test_ids: set[str] = set()
+            executed_test_ids: set[str] = set()
+            executed_domains: set[str] = set()
             try:
                 for fp in sorted(_FAILED_TESTS_DIR.glob("*.jsonl")):
                     try:
@@ -2181,6 +2186,7 @@ def pytest_sessionfinish(session, exitstatus):
                                 if not t:
                                     continue
                                 failed_this_run.add((d, t))
+                                failed_test_ids.add(t)
                                 try:
                                     ent = _STATE.setdefault("test_errors", {}).setdefault(d, {}).setdefault(t, {})
                                     ent["active"] = True
@@ -2220,10 +2226,28 @@ def pytest_sessionfinish(session, exitstatus):
                                 if not t:
                                     continue
                                 executed_this_run.add((d, t))
+                                executed_test_ids.add(t)
+                                if d and d != "—":
+                                    executed_domains.add(d)
                     except Exception:
                         continue
             except Exception:
                 executed_this_run = set()
+
+            # Rebuild run counters from worker logs for accurate summary in parallel runs (-n).
+            # Keep fallback to in-process counters when worker logs are absent.
+            try:
+                if executed_test_ids:
+                    global RUN_TOTAL_PAGES, RUN_PASSED, RUN_FAILED, RUN_LANDINGS
+                    RUN_TOTAL_PAGES = len(executed_test_ids)
+                    RUN_FAILED = len(failed_test_ids)
+                    if RUN_FAILED > RUN_TOTAL_PAGES:
+                        RUN_FAILED = RUN_TOTAL_PAGES
+                    RUN_PASSED = max(0, RUN_TOTAL_PAGES - RUN_FAILED)
+                    RUN_LANDINGS.clear()
+                    RUN_LANDINGS.update(executed_domains)
+            except Exception:
+                pass
 
             for domain, tmap in list((_STATE.get("test_errors", {}) or {}).items()):
                 for test_name, entry in list((tmap or {}).items()):
@@ -2304,21 +2328,29 @@ def pytest_sessionfinish(session, exitstatus):
                 _send_telegram_message("\n\n".join([p for p in summary_parts if p]))
     finally:
         _save_state()
-        # Append per-run summary line for daily aggregation
+        # Append per-run summary line for daily aggregation (master only).
+        # In xdist, workers have partial/empty counters; writing from workers distorts daily totals.
         try:
-            record = {
-                "ts": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "pages": RUN_TOTAL_PAGES,
-                "passed": RUN_PASSED,
-                "failed": RUN_FAILED,
-                "landings": sorted(list(RUN_LANDINGS)),
-            }
+            is_worker = False
             try:
-                _RUN_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+                is_worker = getattr(session.config, "workerinput", None) is not None
             except Exception:
-                pass
-            with _RUN_LOG_PATH.open("a", encoding="utf-8") as f:
-                f.write(json.dumps(record, ensure_ascii=False) + "\n")
+                is_worker = False
+
+            if not is_worker:
+                record = {
+                    "ts": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "pages": RUN_TOTAL_PAGES,
+                    "passed": RUN_PASSED,
+                    "failed": RUN_FAILED,
+                    "landings": sorted(list(RUN_LANDINGS)),
+                }
+                try:
+                    _RUN_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+                except Exception:
+                    pass
+                with _RUN_LOG_PATH.open("a", encoding="utf-8") as f:
+                    f.write(json.dumps(record, ensure_ascii=False) + "\n")
         except Exception:
             # do not break the session finish on logging errors
             pass
