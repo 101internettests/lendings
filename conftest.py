@@ -614,14 +614,44 @@ def _now_str():
     By default, if TZ_LABEL=MSK, we shift UTC by +3 hours; otherwise use TZ_OFFSET_HOURS if provided.
     """
     try:
+        ts = _now_local_dt()
+        return ts.strftime("%Y-%m-%d %H:%M") + f" ({TIMEZONE_LABEL})"
+    except Exception:
+        return f"{datetime.utcnow().strftime('%Y-%m-%d %H:%M')} ({TIMEZONE_LABEL})"
+
+
+def _now_local_dt() -> datetime:
+    """Current datetime adjusted by configured timezone offset."""
+    try:
         from datetime import timedelta
         # If explicit offset provided, use it; else default to +3 for MSK, 0 otherwise.
         default_offset = "3" if (str(TIMEZONE_LABEL).upper() == "MSK") else "0"
         offset_hours = int(os.getenv("TZ_OFFSET_HOURS", default_offset))
-        ts = datetime.utcnow() + timedelta(hours=offset_hours)
-        return ts.strftime("%Y-%m-%d %H:%M") + f" ({TIMEZONE_LABEL})"
+        return datetime.utcnow() + timedelta(hours=offset_hours)
     except Exception:
-        return f"{datetime.utcnow().strftime('%Y-%m-%d %H:%M')} ({TIMEZONE_LABEL})"
+        return datetime.utcnow()
+
+
+def _is_run_summary_time() -> bool:
+    """Optional hour gate for per-run summary.
+    Env: RUN_SUMMARY_ALLOWED_HOURS='9,17' (or '09,17').
+    If unset/invalid, summary is allowed (backward compatible behavior).
+    """
+    raw = (os.getenv("RUN_SUMMARY_ALLOWED_HOURS") or "").strip()
+    if not raw:
+        return True
+    try:
+        tokens = [t.strip() for t in re.split(r"[,\s;]+", raw) if t.strip()]
+        allowed = set()
+        for t in tokens:
+            h = int(t)
+            if 0 <= h <= 23:
+                allowed.add(h)
+        if not allowed:
+            return True
+        return int(_now_local_dt().hour) in allowed
+    except Exception:
+        return True
 
 
 def _utc_iso() -> str:
@@ -1005,9 +1035,9 @@ def _format_short_run_summary() -> str:
     errors = RUN_FAILED
     total = RUN_TOTAL_PAGES
     runs = success + errors
-    # Заголовок: текущая дата UTC (или локальная, если потребуется — можно расширить)
-    today_ymd = datetime.utcnow().strftime("%Y-%m-%d")
-    last_run_hhmm = datetime.utcnow().strftime("%d.%m.%Y %H:%M")
+    now_local = _now_local_dt()
+    today_ymd = now_local.strftime("%Y-%m-%d")
+    last_run_hhmm = now_local.strftime("%d.%m.%Y %H:%M")
     parts = []
     parts.append(f"📊 Отчёт за {today_ymd}")
     parts.append("")
@@ -2311,7 +2341,7 @@ def pytest_sessionfinish(session, exitstatus):
         # Конечные fixed-оповещения по невстреченным в этом прогоне случаям отключены — только мгновенные при прохождении
 
         # Run summary (optional)
-        if RUN_SUMMARY_ENABLED:
+        if RUN_SUMMARY_ENABLED and _is_run_summary_time():
             summary_parts = []
             try:
                 if RUN_SUMMARY_LONG_ENABLED:
